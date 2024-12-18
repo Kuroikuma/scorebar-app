@@ -18,7 +18,7 @@ type UIState = {
 }
 
 export const useUIStore = create<UIState>((set) => ({
-  activeTab: "scoreboard",
+  activeTab: "controls",
   scoreboardStyle: "classic",
   primaryColor: "#000000",
   primaryTextColor: "#ffffff",
