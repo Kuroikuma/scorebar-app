@@ -1,36 +1,14 @@
 import Image from 'next/image'
 import { Triangle } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import { useGameStore } from '@/store/gameStore'
+import { useTeamsStore } from '@/store/teamsStore'
+import { useUIStore } from '@/store/uiStore'
 
-interface ClassicScoreboardProps {
-  teams: Array<{
-    name: string
-    runs: number
-    color: string
-    textColor: string
-    logo?: string
-  }>
-  inning: number
-  isTopInning: boolean
-  balls: number
-  strikes: number
-  outs: number
-  bases: boolean[]
-  primaryColor: string
-  primaryTextColor: string
-}
-
-export function ClassicScoreboard({
-  teams,
-  inning,
-  isTopInning,
-  balls,
-  strikes,
-  outs,
-  bases,
-  primaryColor,
-  primaryTextColor,
-}: ClassicScoreboardProps) {
+export function ClassicScoreboard() {
+  const { inning, isTopInning, balls, strikes, outs, bases } = useGameStore()
+  const { teams } = useTeamsStore()
+  const { primaryColor, primaryTextColor } = useUIStore()
   const currentTeamColor = teams[isTopInning ? 0 : 1].color;
 
   return (

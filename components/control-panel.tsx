@@ -17,44 +17,17 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { useTeamsStore } from "@/store/teamsStore"
+import { useGameStore } from "@/store/gameStore"
+import { useUIStore } from "@/store/uiStore"
 
-interface ControlPanelProps {
-  balls: number
-  setBalls: (value: number) => void
-  strikes: number
-  setStrikes: (value: number) => void
-  outs: number
-  setOuts: (value: number) => void
-  bases: boolean[]
-  setBases: (value: boolean[]) => void
-  teams: { name: string; runs: number, color: string, textColor: string, logo: string }[]
-  setTeams: (value: { name: string; runs: number, color: string, textColor: string, logo: string }[]) => void
-  inning: number
-  setInning: (increment: boolean) => void
-  isTopInning: boolean
-  setIsTopInning: (value: boolean) => void
-  scoreboardStyle: "classic" | "modern"
-  setScoreboardStyle: (style: "classic" | "modern") => void
-}
-
-export function ControlPanel({
-  balls,
-  setBalls,
-  strikes,
-  setStrikes,
-  outs,
-  setOuts,
-  bases,
-  setBases,
-  teams,
-  setTeams,
-  inning,
-  setInning,
-  isTopInning,
-  setIsTopInning,
-  scoreboardStyle,
-  setScoreboardStyle,
-}: ControlPanelProps) {
+export function ControlPanel() {
+  const { 
+    balls, strikes, outs, bases, setBases, inning, changeInning, isTopInning, setIsTopInning,
+    handleBallChange, handleStrikeChange, handleOutsChange } = useGameStore()
+  const { teams, setTeams } = useTeamsStore()
+  const { scoreboardStyle, setScoreboardStyle } = useUIStore()
+  
   return (
     <Card className="bg-[#1a1625] border-[#2d2b3b] text-white">
       <CardHeader>
@@ -87,7 +60,7 @@ export function ControlPanel({
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 bg-[#2d2b3b] hover:bg-[#363447]"
-                onClick={() => setBalls(Math.max(0, balls - 1))}
+                onClick={() => handleBallChange(Math.max(0, balls - 1))}
               >
                 -1
               </Button>
@@ -96,7 +69,7 @@ export function ControlPanel({
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 bg-[#4c3f82] hover:bg-[#5a4b99]"
-                onClick={() => setBalls(Math.min(3, balls + 1))}
+                onClick={() => handleBallChange(Math.min(3, balls + 1))}
               >
                 +1
               </Button>
@@ -109,7 +82,7 @@ export function ControlPanel({
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 bg-[#2d2b3b] hover:bg-[#363447]"
-                onClick={() => setStrikes(Math.max(0, strikes - 1))}
+                onClick={() => handleStrikeChange(Math.max(0, strikes - 1))}
               >
                 -1
               </Button>
@@ -118,7 +91,7 @@ export function ControlPanel({
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 bg-[#4c3f82] hover:bg-[#5a4b99]"
-                onClick={() => setStrikes(Math.min(2, strikes + 1))}
+                onClick={() => handleStrikeChange(Math.min(2, strikes + 1))}
               >
                 +1
               </Button>
@@ -131,7 +104,7 @@ export function ControlPanel({
           <span className="text-sm text-white font-semibold">Outs</span>
           <Select
             value={outs.toString()}
-            onValueChange={(value) => setOuts(parseInt(value))}
+            onValueChange={(value) => handleOutsChange(parseInt(value))}
           >
             <SelectTrigger className="w-full bg-[#4c3f82] border-0">
               <SelectValue placeholder="Select outs" />
@@ -227,7 +200,7 @@ export function ControlPanel({
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 bg-[#2d2b3b] hover:bg-[#363447]"
-                onClick={() => setInning(false)}
+                onClick={() => changeInning(false)}
                 disabled={isTopInning && inning === 1}
               >
                 -
@@ -237,7 +210,7 @@ export function ControlPanel({
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 bg-[#4c3f82] hover:bg-[#5a4b99]"
-                onClick={() => setInning(true)}
+                onClick={() => changeInning(true)}
               >
                 +
               </Button>

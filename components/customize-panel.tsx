@@ -7,44 +7,20 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Minus, Plus } from 'lucide-react'
 import Image from 'next/image'
+import { useUIStore } from "@/store/uiStore"
+import { Team, useTeamsStore } from "@/store/teamsStore"
 
-interface Team {
-  name: string;
-    runs: number;
-    color: string;
-    textColor: string;
-    logo: string;
-}
+export function CustomizePanel() {
 
-interface CustomizePanelProps {
-  teams: Team[]
-  setTeams: (teams: Team[]) => void
-  primaryColor: string
-  setPrimaryColor: (color: string) => void
-  primaryTextColor: string
-  setPrimaryTextColor: (color: string) => void
-  accentColor: string
-  setAccentColor: (color: string) => void
-  horizontalPosition: number
-  setHorizontalPosition: (position: number) => void
-  verticalPosition: number
-  setVerticalPosition: (position: number) => void
-}
+  const { teams, setTeams } = useTeamsStore()
+  const { 
+    primaryColor, setPrimaryColor,
+    primaryTextColor, setPrimaryTextColor,
+    accentColor, setAccentColor,
+    horizontalPosition, setHorizontalPosition,
+    verticalPosition, setVerticalPosition
+  } = useUIStore()
 
-export function CustomizePanel({ 
-  teams, 
-  setTeams, 
-  primaryColor, 
-  setPrimaryColor,
-  primaryTextColor,
-  setPrimaryTextColor,
-  accentColor,
-  setAccentColor,
-  horizontalPosition,
-  setHorizontalPosition,
-  verticalPosition,
-  setVerticalPosition
-}: CustomizePanelProps) {
   const updateTeam = (index: number, updates: Partial<Team>) => {
     setTeams(
       teams.map((team, i) => (i === index ? { ...team, ...updates } : team))
