@@ -1,0 +1,36 @@
+"use client"
+
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+interface TabsLayoutProps {
+  activeTab: string
+  setActiveTab: (value: string) => void
+}
+
+export function TabsLayout({ activeTab, setActiveTab }: TabsLayoutProps) {
+  return (
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-3">
+      <TabsList className="w-full bg-[#1a1625] border-b border-[#2d2b3b] max-[768px]:h-16">
+        <TabsTrigger
+          value="controls"
+          className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center"
+        >
+          Baseball Scorebug
+        </TabsTrigger>
+        <TabsTrigger
+          value="customize"
+          className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white h-11 flex items-center justify-center"
+        >
+          Customize
+        </TabsTrigger>
+        <TabsTrigger
+          value="settings"
+          className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center"
+        >
+          Settings
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
+  )
+}
+
