@@ -1,4 +1,4 @@
-import { Game, GameState } from '@/store/gameStore';
+import { Game, GameState, useGameStore } from '@/store/gameStore';
 import { TeamsState } from '@/store/teamsStore';
 import axios, { AxiosInstance } from 'axios';
 
@@ -13,6 +13,13 @@ export const SetOverlayContent = (id: string, contentId: string, content: any) =
     command: 'SetOverlayContent',
     id: contentId,
     content: content,
+  })
+}
+
+export const toogleVisibleOverlay = (id: string, contentId: string, command: string) => {
+  return axiosInstance(id).put('', {
+    command: command ,
+    id: contentId,
   })
 }
 

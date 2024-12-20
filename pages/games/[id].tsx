@@ -13,6 +13,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useParams } from "next/navigation"
 import "@/styles/fonts.css"
 import "../../app/globals.css";
+import { ToggleOverlays } from "@/components/toogleOverlays"
 
 export default function BaseballScoreboard() {
 
@@ -70,6 +71,7 @@ const  BaseballScoreboardDestok = () => {
       {/* Side Panel */}
       <div className="w-[350px] ml-4">
         <TabsLayout />
+        <ToggleOverlays />
         {activeTab === "controls" ? (
           <ControlPanel />
         ) : activeTab === "customize" ? (
