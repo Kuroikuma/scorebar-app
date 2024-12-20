@@ -89,7 +89,7 @@ const BaseballScoreboardMovil = () => {
   return (
     <div className="h-screen bg-black p-4 font-['Roboto_Condensed'] flex flex-col">
       {/* Scoreboard */}
-      <div className="flex-shrink-0 mb-4">
+      <div className="flex-shrink-0">
         {scoreboardStyle === "classic" ? (
           <ClassicScoreboard />
         ) : (
@@ -110,6 +110,7 @@ const BaseballScoreboardMovil = () => {
             {activeTab === "customize" && <CustomizePanel />}
           </div>
       </div>
+      <ToggleOverlays />
     </div>
   )
 }

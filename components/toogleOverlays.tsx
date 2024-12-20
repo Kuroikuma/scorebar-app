@@ -25,7 +25,7 @@ export const ToggleOverlays = () => {
   }
 
   return (
-    <div className='flex gap-2 w-full justify-center pb-2'>
+    <div className='flex gap-2 w-full justify-center  max-[768px]:pt-2 min-[768px]:pb-2'>
       <Toggle
         onPressedChange={toogleVisibleScorebug}
         className="data-[state=on]:bg-[#4C3F82] data-[state=on]:text-white bg-[#1a1625] text-neutral-500"
