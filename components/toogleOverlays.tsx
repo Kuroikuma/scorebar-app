@@ -24,6 +24,18 @@ export const ToggleOverlays = () => {
     toogleVisibleOverlay(overlayId, modelId, e ? 'ShowOverlay' : 'HideOverlay')
   }
 
+  const toogleVisibleFormationA = (e:boolean) => {
+    const overlayId = currentConfig?.formation.overlayId || ''
+    const modelId = currentConfig?.formation.modelId || ''
+    toogleVisibleOverlay(overlayId, modelId, e ? 'TakeOverlayFirstSlot' : 'HideOverlay')
+  }
+
+  const toogleVisibleFormationB = (e:boolean) => {
+    const overlayId = currentConfig?.formation.overlayId || ''
+    const modelId = currentConfig?.formation.modelId || ''
+    toogleVisibleOverlay(overlayId, modelId, e ? 'TakeOverlayLastSlot' : 'HideOverlay')
+  }
+
   return (
     <div className='flex gap-2 w-full justify-center  max-[768px]:pt-2 min-[768px]:pb-2'>
       <Toggle
@@ -31,21 +43,35 @@ export const ToggleOverlays = () => {
         className="data-[state=on]:bg-[#4C3F82] data-[state=on]:text-white bg-[#1a1625] text-neutral-500"
         aria-label="Toggle bold"
       >
-        Marcador
+        Marc.
       </Toggle>
       <Toggle
         onPressedChange={toogleVisibleScoreboard}
         className="data-[state=on]:bg-[#4C3F82] data-[state=on]:text-white bg-[#1a1625] text-neutral-500"
         aria-label="Toggle bold"
       >
-        Tabla
+        M. x Inn.
       </Toggle>
       <Toggle
         onPressedChange={toogleVisibleScoreboardMini}
         className="data-[state=on]:bg-[#4C3F82] data-[state=on]:text-white bg-[#1a1625] text-neutral-500"
         aria-label="Toggle bold"
       >
-        Marcador mini
+        Marc. Min
+      </Toggle>
+      <Toggle
+        onPressedChange={toogleVisibleFormationA}
+        className="data-[state=on]:bg-[#4C3F82] data-[state=on]:text-white bg-[#1a1625] text-neutral-500"
+        aria-label="Toggle bold"
+      >
+        Eq. A
+      </Toggle>
+      <Toggle
+        onPressedChange={toogleVisibleFormationB}
+        className="data-[state=on]:bg-[#4C3F82] data-[state=on]:text-white bg-[#1a1625] text-neutral-500"
+        aria-label="Toggle bold"
+      >
+        Eq. B
       </Toggle>
     </div>
   )

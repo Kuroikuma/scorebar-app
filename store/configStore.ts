@@ -9,9 +9,10 @@ interface OverlayConfig {
 export interface ConfigGame {
   _id: string;
   userId: string;
-  scorebug: OverlayConfig;
-  scoreboard: OverlayConfig;
-  scoreboardMinimal: OverlayConfig;
+  scorebug:OverlayConfig;
+  scoreboard:OverlayConfig;
+  scoreboardMinimal:OverlayConfig;
+  formation:OverlayConfig;
 }
 
 type ConfigState = {

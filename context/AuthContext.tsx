@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { login as apiLogin, register as apiRegister } from '../service/api';
+import { jwtDecode } from 'jwt-decode';
+import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: any | null;
@@ -9,21 +11,42 @@ interface AuthContextType {
   loading: boolean;
 }
 
+interface DecodedToken {
+  exp: number; // Expiration time (UNIX timestamp)
+  userId: string;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setLoading(false);
-    } else {
-      setLoading(false);
+    const token = localStorage.getItem('token');
+
+    if (token && storedUser) {
+      const decoded: DecodedToken = jwtDecode(token);
+      const isTokenExpired = decoded.exp * 1000 < new Date().getTime();
+
+      if (isTokenExpired) {
+        logout();
+      } else {
+        setUser(JSON.parse(storedUser));
+        setTokenExpirationTimeout(decoded.exp * 1000);
+      }
     }
+    setLoading(false);
   }, []);
+
+  const setTokenExpirationTimeout = (expirationTime: number) => {
+    const timeout = expirationTime - new Date().getTime();
+    setTimeout(() => {
+      logout();
+    }, timeout);
+  };
 
   const login = async (email: string, password: string) => {
     const response = await apiLogin(email, password);
@@ -43,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    router.push('/login');
   };
 
   return (
