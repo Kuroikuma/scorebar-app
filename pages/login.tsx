@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
 import "@/styles/fonts.css"
 import "../app/globals.css";
+import Image from 'next/image';
+import logo from "../assets/WhatsApp_Image_2024-12-17_at_5.01.50_PM-removebg-preview.png"
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -23,10 +25,18 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-black py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <div>
+          <Image 
+        src={logo}
+        alt="Descripción de la imagen" 
+        width={500} 
+        height={300} 
+      />
+          </div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Sign in to your account
           </h2>
         </div>
