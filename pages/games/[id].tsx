@@ -1,14 +1,46 @@
 "use client"
 
-import { ControlPanel } from "./control-panel"
-import { CustomizePanel } from "./customize-panel"
-import { TabsLayout } from "./tabs-layout"
-import { ClassicScoreboard } from "./classic-scoreboard"
-import { ModernScoreboard } from "./modern-scoreboard"
+import { ControlPanel } from "../../components/control-panel"
+import { CustomizePanel } from "../../components/customize-panel"
+import { TabsLayout } from "../../components/tabs-layout"
+import { ClassicScoreboard } from "../../components/classic-scoreboard"
+import { ModernScoreboard } from "../../components/modern-scoreboard"
 import { useUIStore } from "@/store/uiStore"
 import { cn } from "@/lib/utils"
+import { useEffect, useState } from "react"
+import { useGameStore } from "@/store/gameStore"
+import { useAuth } from "@/context/AuthContext"
+import { useParams } from "next/navigation"
+import "@/styles/fonts.css"
+import "../../app/globals.css";
 
 export default function BaseballScoreboard() {
+
+  const { user, loading } = useAuth();
+  const paramas = useParams();
+    //@ts-ignore
+  const id = paramas?.id as string;
+
+  const [gameId, setGameId] = useState<string | null>(id);
+
+  const { loadGame } = useGameStore()
+
+
+  useEffect(() => {
+    if (user && id) {
+      loadGame(id);
+      setGameId(id);
+    }
+  }, [user, gameId, loadGame, setGameId, loading, paramas]);
+
+   if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div>
       <div className="max-[768px]:hidden">

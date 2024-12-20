@@ -23,9 +23,9 @@ import { useUIStore } from "@/store/uiStore"
 
 export function ControlPanel() {
   const { 
-    balls, strikes, outs, bases, setBases, inning, changeInning, isTopInning, setIsTopInning,
-    handleBallChange, handleStrikeChange, handleOutsChange } = useGameStore()
-  const { teams, setTeams } = useTeamsStore()
+    balls, strikes, outs, bases, setBase, inning, changeInning, isTopInning, setIsTopInning,
+    handleBallChange, handleStrikeChange, handleOutsChange, changeIsTopInning } = useGameStore()
+  const { teams, incrementRuns } = useTeamsStore()
   const { scoreboardStyle, setScoreboardStyle } = useUIStore()
   
   return (
@@ -69,7 +69,7 @@ export function ControlPanel() {
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 bg-[#4c3f82] hover:bg-[#5a4b99]"
-                onClick={() => handleBallChange(Math.min(3, balls + 1))}
+                onClick={() => handleBallChange(Math.min(4, balls + 1))}
               >
                 +1
               </Button>
@@ -91,7 +91,7 @@ export function ControlPanel() {
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 bg-[#4c3f82] hover:bg-[#5a4b99]"
-                onClick={() => handleStrikeChange(Math.min(2, strikes + 1))}
+                onClick={() => handleStrikeChange(Math.min(3, strikes + 1))}
               >
                 +1
               </Button>
@@ -127,7 +127,7 @@ export function ControlPanel() {
                 onCheckedChange={(checked) => {
                   const newBases = [...bases]
                   newBases[index] = checked
-                  setBases(newBases)
+                  setBase(checked, index)
                 }}
                 className="data-[state=checked]:bg-[#4c3f82]"
               />
@@ -144,13 +144,7 @@ export function ControlPanel() {
                 variant="outline"
                 size="sm"
                 className="h-8 w-8 bg-[#2d2b3b] hover:bg-[#363447]"
-                onClick={() =>
-                  setTeams(
-                    teams.map((t, i) =>
-                      i === teamIndex ? { ...t, runs: Math.max(0, t.runs - 1) } : t
-                    )
-                  )
-                }
+                onClick={() => incrementRuns(teamIndex, -1)}
               >
                 -1
               </Button>
@@ -161,13 +155,7 @@ export function ControlPanel() {
                   variant="outline"
                   size="sm"
                   className="h-8 w-8 bg-[#4c3f82] hover:bg-[#5a4b99]"
-                  onClick={() =>
-                    setTeams(
-                      teams.map((t, i) =>
-                        i === teamIndex ? { ...t, runs: t.runs + increment } : t
-                      )
-                    )
-                  }
+                  onClick={() => incrementRuns(teamIndex, increment)}
                 >
                   +{increment}
                 </Button>
@@ -182,7 +170,7 @@ export function ControlPanel() {
             <span className="text-sm text-white font-semibold">Top or Bottom Inning</span>
             <Select
               value={isTopInning ? "top" : "bottom"}
-              onValueChange={(value) => setIsTopInning(value === "top")}
+              onValueChange={(value) => changeIsTopInning(value === "top")}
             >
               <SelectTrigger className="w-full mt-2 bg-[#4c3f82] border-0">
                 <SelectValue />

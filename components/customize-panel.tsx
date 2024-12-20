@@ -9,10 +9,13 @@ import { Upload, Minus, Plus } from 'lucide-react'
 import Image from 'next/image'
 import { useUIStore } from "@/store/uiStore"
 import { Team, useTeamsStore } from "@/store/teamsStore"
+import { useCallback } from "react"
+import debounce from "lodash/debounce";
+import { changeTeamColorService, changeTeamNameService, changeTeamTextColorService } from "@/service/api"
 
 export function CustomizePanel() {
 
-  const { teams, setTeams } = useTeamsStore()
+  const { teams, setTeams, changeTeamName, changeTeamColor, changeTeamTextColor, gameId } = useTeamsStore()
   const { 
     primaryColor, setPrimaryColor,
     primaryTextColor, setPrimaryTextColor,
@@ -25,6 +28,30 @@ export function CustomizePanel() {
     setTeams(
       teams.map((team, i) => (i === index ? { ...team, ...updates } : team))
     )
+  }
+
+  const debounceUpdate = useCallback(
+    debounce((newValue, teamIndex, funtion) => {
+      if (gameId) {
+        funtion(gameId!, teamIndex, newValue)
+      }
+    }, 1000),
+    []
+  );
+
+  const handleTextColor = (teamIndex: number, newTextColor: string) => {
+    changeTeamTextColor(teamIndex, newTextColor)
+    debounceUpdate(newTextColor, teamIndex, changeTeamTextColorService)
+  }
+
+  const handleColor = (teamIndex: number, newColor: string) => {
+    changeTeamColor(teamIndex, newColor)
+    debounceUpdate(newColor, teamIndex, changeTeamColorService)
+  }
+
+  const handleName = (teamIndex: number, newName: string) => {
+    changeTeamName(teamIndex, newName)
+    debounceUpdate(newName, teamIndex, changeTeamNameService)
   }
 
   const handleLogoUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,7 +93,7 @@ export function CustomizePanel() {
                 </Label>
                 <Input
                   value={team.name}
-                  onChange={(e) => updateTeam(index, { name: e.target.value })}
+                  onChange={(e) => handleName(index, e.target.value )}
                   className="bg-[#2d2b3b] border-0"
                 />
               </div>
@@ -114,12 +141,12 @@ export function CustomizePanel() {
                   <Input
                     type="color"
                     value={team.color}
-                    onChange={(e) => updateTeam(index, { color: e.target.value })}
+                    onChange={(e) => handleColor(index, e.target.value )}
                     className="w-12 h-12 p-1 bg-[#2d2b3b] border-0"
                   />
                   <Input
                     value={team.color}
-                    onChange={(e) => updateTeam(index, { color: e.target.value })}
+                    onChange={(e) => handleColor(index, e.target.value )}
                     className="bg-[#2d2b3b] border-0"
                   />
                 </div>
@@ -134,14 +161,14 @@ export function CustomizePanel() {
                     type="color"
                     value={team.textColor}
                     onChange={(e) =>
-                      updateTeam(index, { textColor: e.target.value })
+                      handleTextColor(index, e.target.value)
                     }
                     className="w-12 h-12 p-1 bg-[#2d2b3b] border-0"
                   />
                   <Input
                     value={team.textColor}
                     onChange={(e) =>
-                      updateTeam(index, { textColor: e.target.value })
+                      handleTextColor(index, e.target.value )
                     }
                     className="bg-[#2d2b3b] border-0"
                   />
@@ -267,4 +294,3 @@ export function CustomizePanel() {
     </Card>
   )
 }
-

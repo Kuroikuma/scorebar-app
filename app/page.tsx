@@ -1,6 +1,12 @@
-import BaseballScoreboard from "../components/scoreboard"
+"use client"
+
+import { AuthProvider } from '@/context/AuthContext'
+import GamesList from '@/pages/games'
 
 export default function Page() {
-  return <BaseballScoreboard />
+  return (
+    <AuthProvider>
+      <GamesList />
+    </AuthProvider>
+  )
 }
-
