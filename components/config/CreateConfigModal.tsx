@@ -23,7 +23,7 @@ export function CreateConfigModal({ onConfigCreated }: CreateConfigModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (user) {
-      const newConfig = await createConfig({
+      await createConfig({
         userId: user._id,
         scorebug: { overlayId: scorebugOverlayId, modelId: scorebugModelId },
         scoreboard: { overlayId: scoreboardOverlayId, modelId: scoreboardModelId },

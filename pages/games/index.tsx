@@ -19,7 +19,7 @@ export default function GamesList() {
     if (!user && !loading) {
       router.push('/login');
     }
-  }, [user, loading]);
+  }, [user, loading, router]);
 
   useEffect(() => {
     const fetchGames = async () => {

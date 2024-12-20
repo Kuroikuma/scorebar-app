@@ -32,7 +32,7 @@ export default function NewGame() {
     e.preventDefault();
     if (user) {
 
-      let dataCreate = {
+      const dataCreate = {
         userId: user._id,
         date: new Date(gameDate),
         status: 'upcoming',
@@ -48,7 +48,6 @@ export default function NewGame() {
         bases: [false, false, false],
         configId: configId,
       }
-      console.log(dataCreate);
       
       const newGame = await createGame(dataCreate);
       router.push(`/games/${newGame._id}`);

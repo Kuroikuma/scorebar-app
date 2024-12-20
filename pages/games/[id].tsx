@@ -18,7 +18,6 @@ export default function BaseballScoreboard() {
 
   const { user, loading } = useAuth();
   const paramas = useParams();
-    //@ts-ignore
   const id = paramas?.id as string;
 
   const [gameId, setGameId] = useState<string | null>(id);

@@ -23,7 +23,7 @@ import { useUIStore } from "@/store/uiStore"
 
 export function ControlPanel() {
   const { 
-    balls, strikes, outs, bases, setBase, inning, changeInning, isTopInning, setIsTopInning,
+    balls, strikes, outs, bases, setBase, inning, changeInning, isTopInning,
     handleBallChange, handleStrikeChange, handleOutsChange, changeIsTopInning } = useGameStore()
   const { teams, incrementRuns } = useTeamsStore()
   const { scoreboardStyle, setScoreboardStyle } = useUIStore()

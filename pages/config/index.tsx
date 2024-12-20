@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { getAllConfigs } from '@/service/api';
 import Link from 'next/link';
@@ -12,6 +12,10 @@ export default function ConfigList() {
   const { user } = useAuth();
   const [configs, setConfigs] = useState([]);
 
+  const fetchCallBack = useCallback(() => {
+    fetchConfigs();
+  }, [user]);
+
   const fetchConfigs = async () => {
     if (user) {
       const fetchedConfigs = await getAllConfigs();
@@ -20,8 +24,8 @@ export default function ConfigList() {
   };
 
   useEffect(() => {
-    fetchConfigs();
-  }, [user]);
+    fetchCallBack();
+  }, [user ]);
 
   return (
     <div className="container mx-auto px-4 py-8">

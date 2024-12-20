@@ -1,3 +1,4 @@
+import { RunsByInning } from '@/store/gameStore';
 import axios from 'axios';
 
 const api = axios.create({
@@ -79,6 +80,11 @@ export const changeStrikeCount = async (id: string, newCount: number) => {
 
 export const changeOutCount = async (id: string, newCount: number) => {
   const response = await api.put(`/games/${id}/outs`, { newCount });
+  return response.data;
+};
+
+export const changeRunsByInningService = async (id: string, runsByInning: RunsByInning) => {
+  const response = await api.put(`/games/runsByInning/${id}`, { runsByInning });
   return response.data;
 };
 

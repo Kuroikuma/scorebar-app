@@ -47,8 +47,17 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
         index === teamIndex ? { ...team, runs: team.runs + newRuns } : team
       )
     }))
+    useGameStore.getState().changeRunsByInning(teamIndex, newRuns, false)
+
+    let runs = get().teams[teamIndex].runs
+
+    let contendName = `${teamIndex + 1 === 1 ? "a" : "b"}Score`;
+    let content = {
+      [contendName]: runs
+    };
+    useGameStore.getState().setScoreBoardMinimal(content)
+
     if (get().gameId && isSaved) {
-      let runs = get().teams[teamIndex].runs
 
       let contendName = `Team ${teamIndex + 1} Runs`;
       let content = {
@@ -57,7 +66,7 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
   
       try {
         // Enviar al overlay
-        await useGameStore.getState().setOverLayOne(content);
+        await useGameStore.getState().setScoreBug(content);
       } catch (error) {
         console.error('Failed to update overlay content:', error);
         // No detener la operación si el overlay falla

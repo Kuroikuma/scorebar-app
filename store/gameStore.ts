@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeGameStatus } from '@/service/api'
+import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeGameStatus, changeRunsByInningService } from '@/service/api'
 import { TeamsState, useTeamsStore } from './teamsStore'
 import { SetOverlayContent, updateOverlayContent } from '@/service/apiOverlays'
 import { useConfigStore } from './configStore';
@@ -19,6 +19,11 @@ export interface Game {
   strikes: number;
   outs: number;
   bases: boolean[];
+  runsByInning: RunsByInning
+}
+
+export interface RunsByInning {
+  [inning: string]: number;
 }
 
 export type GameState = {
@@ -32,6 +37,7 @@ export type GameState = {
   strikes: number
   outs: number
   bases: boolean[]
+  runsByInning: RunsByInning;
   setGame: (game: Game) => void
   setInning: (inning: number) => void
   setIsTopInning: (isTop: boolean) => void
@@ -47,8 +53,11 @@ export type GameState = {
   changeGameStatus: (newStatus: 'upcoming' | 'in_progress' | 'finished') => void
   loadGame: (id: string) => Promise<void>
   updateGame: () => Promise<void>
-  setOverLayOne: (content: any) => Promise<void>
-  changeIsTopInning: (isTopInning: any) => Promise<void>
+  setScoreBug: (content: any) => Promise<void>
+  changeIsTopInning: (isTopInning: boolean) => Promise<void>
+  changeRunsByInning: (teamIndex: number, newRuns: number, isSaved?: boolean) => Promise<void>
+  setScoreBoard: (content: any) => Promise<void>
+  setScoreBoardMinimal: (content: any) => Promise<void>
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -62,6 +71,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   strikes: 0,
   outs: 0,
   bases: [false, false, false],
+  runsByInning: {},
   setGame: (game) => set(game),
   setInning: (inning) => set({ inning }),
   setIsTopInning: (isTop) => set({ isTopInning: isTop }),
@@ -99,7 +109,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ bases })
   },
   changeInning: async (increment, isSaved=true) => {
-    const { inning, isTopInning, id, setOverLayOne } = get()
+    const { inning, isTopInning, id, setScoreBug: setOverLayOne } = get()
 
     let newInning = inning
     let newIsTopInning = isTopInning
@@ -144,7 +154,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   handleOutsChange: async (newOuts, isSaved=true) => {
-    const { changeInning, updateGame, setOverLayOne } = get()
+    const { changeInning, updateGame, setScoreBug: setOverLayOne } = get()
 
     if (newOuts === 3) {
       set({ outs: 0, balls: 0, strikes: 0 })
@@ -163,7 +173,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   handleStrikeChange: async (newStrikes, isSaved=true) => {
-    const { outs, id, handleOutsChange, updateGame, setOverLayOne } = get()
+    const { outs, id, handleOutsChange, updateGame, setScoreBug: setOverLayOne } = get()
 
     if (newStrikes === 3) {
       await handleOutsChange(outs + 1, false)
@@ -178,7 +188,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   handleBallChange: async (newBalls, isSaved=true) => {
-    const { bases, isTopInning, id, updateGame, setOverLayOne } = get()
+    const { bases, isTopInning, id, updateGame, setScoreBug: setOverLayOne } = get()
    
     if (newBalls === 4) {
       set({ balls: 0, strikes: 0 })
@@ -211,12 +221,30 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   changeIsTopInning: async (isTopInning) => {
-    const { setOverLayOne, id } = get()
+    const { setScoreBug: setOverLayOne, id } = get()
     set({ isTopInning })
     if (get().id) {
       let content = { "topOrBottomInning": isTopInning ? "top" : "bottom" }
       await setOverLayOne(content)
       await changeInningService(id!, get().inning, isTopInning)
+    }
+  },
+  changeRunsByInning: async (teamIndex, newRuns, isSaved=true) => {
+    const { id, runsByInning, inning, setScoreBoard } = get()
+
+    const inningKey = `${inning}T${teamIndex + 1}`; // Ejemplo: "3T1" o "3T2"
+
+    // Actualiza las carreras por inning
+    const updatedRunsByInning = {
+      ...runsByInning,
+      [inningKey]: (runsByInning[inningKey] || 0) + newRuns,
+    };
+    set({ runsByInning: updatedRunsByInning });
+    
+    setScoreBoard({[inningKey]: (runsByInning[inningKey] || 0) + newRuns})
+
+    if (id && isSaved) {
+      await changeRunsByInningService(id, runsByInning)
     }
   },
   loadGame: async (id) => {
@@ -240,6 +268,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       teams: teamState.teams,
       status: gameState.status,
       bases: gameState.bases,
+      runsByInning: gameState.runsByInning
     }
 
     let overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
@@ -250,11 +279,22 @@ export const useGameStore = create<GameState>((set, get) => ({
     await updateGameService(id!, game)
   },
 
-  setOverLayOne: async (content) => {
+  setScoreBug: async (content) => {
     let overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
     let contentId = useConfigStore.getState().currentConfig?.scorebug.modelId as string;
 
     await SetOverlayContent(overlayId, contentId, content)
-  }
+  },
+  setScoreBoard: async (content) => {
+    let overlayId = useConfigStore.getState().currentConfig?.scoreboard.overlayId as string;
+    let contentId = useConfigStore.getState().currentConfig?.scoreboard.modelId as string;
 
+    await SetOverlayContent(overlayId, contentId, content)
+  },
+  setScoreBoardMinimal: async (content) => {
+    let overlayId = useConfigStore.getState().currentConfig?.scoreboardMinimal.overlayId as string;
+    let contentId = useConfigStore.getState().currentConfig?.scoreboardMinimal.modelId as string;
+
+    await SetOverlayContent(overlayId, contentId, content)
+  }
 }))
