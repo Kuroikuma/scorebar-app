@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
 import "@/styles/fonts.css"
-import "../../app/globals.css";
+import "../app/globals.css";
 
 export default function Login() {
   const [email, setEmail] = useState('');
