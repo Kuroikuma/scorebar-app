@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { scoreRun } from '@/service/api'
 import { SetOverlayContent } from '@/service/apiOverlays'
+import { useGameStore } from './gameStore'
 
 export type Team = {
   name: string
@@ -49,9 +50,6 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     if (get().gameId && isSaved) {
       let runs = get().teams[teamIndex].runs
 
-      let overlayId = "6KkoM6UT5iTjby4XOpVAdT";
-      let contentId = "fc28bef1-32f2-4088-85df-ba7fc3f10484";
-  
       let contendName = `Team ${teamIndex + 1} Runs`;
       let content = {
         [contendName]: runs
@@ -59,7 +57,7 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
   
       try {
         // Enviar al overlay
-        await SetOverlayContent(overlayId, contentId, content);
+        await useGameStore.getState().setOverLayOne(content);
       } catch (error) {
         console.error('Failed to update overlay content:', error);
         // No detener la operación si el overlay falla
