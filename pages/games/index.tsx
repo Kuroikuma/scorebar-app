@@ -8,6 +8,27 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, CheckIcon, PlayIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RunsByInning } from '@/store/gameStore';
+
+interface Game {
+  _id: string | null;
+  status: 'upcoming' | 'in_progress' | 'finished';
+  teams: {
+    name: string;
+    runs: number;
+    color: string;
+    textColor: string;
+    logo?: string;
+  }[];
+  inning: number;
+  isTopInning: boolean;
+  balls: number;
+  strikes: number;
+  outs: number;
+  bases: boolean[];
+  runsByInning: RunsByInning
+  date: string
+}
 
 export default function GamesList() {
   const { user, loading } = useAuth();
@@ -53,8 +74,8 @@ export default function GamesList() {
         </Link>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {games.map((game: any) => (
-          <Card key={game.id} className="hover:shadow-lg transition-shadow duration-200">
+        {games.map((game: Game) => (
+          <Card key={game._id} className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {game.teams[0].name} vs {game.teams[1].name}

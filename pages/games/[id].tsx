@@ -30,7 +30,7 @@ export default function BaseballScoreboard() {
       loadGame(id);
       setGameId(id);
     }
-  }, [user, gameId, loadGame, setGameId, loading, paramas]);
+  }, [user, gameId, loadGame, setGameId, loading, paramas, id]);
 
    if (loading) {
     return <div>Loading...</div>;

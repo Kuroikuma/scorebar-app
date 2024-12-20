@@ -5,6 +5,7 @@ import { SetOverlayContent, updateOverlayContent } from '@/service/apiOverlays'
 import { useConfigStore } from './configStore';
 
 export interface Game {
+  id: string | null;
   status: 'upcoming' | 'in_progress' | 'finished';
   teams: {
     name: string;
@@ -268,7 +269,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       teams: teamState.teams,
       status: gameState.status,
       bases: gameState.bases,
-      runsByInning: gameState.runsByInning
+      runsByInning: gameState.runsByInning,
+      id: gameState.id
     }
 
     let overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;

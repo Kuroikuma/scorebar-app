@@ -7,25 +7,22 @@ import { Button } from "@/components/ui/button";
 import "@/styles/fonts.css"
 import "../../app/globals.css";
 import { CreateConfigModal } from '@/components/config/CreateConfigModal';
+import { ConfigGame } from '@/store/configStore';
 
 export default function ConfigList() {
   const { user } = useAuth();
-  const [configs, setConfigs] = useState([]);
+  const [configs, setConfigs] = useState<ConfigGame[]>([]);
 
-  const fetchCallBack = useCallback(() => {
-    fetchConfigs();
-  }, [user]);
-
-  const fetchConfigs = async () => {
+  const fetchConfigs = useCallback( async () => {
     if (user) {
-      const fetchedConfigs = await getAllConfigs();
+      const fetchedConfigs:ConfigGame[] = await getAllConfigs();
       setConfigs(fetchedConfigs);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
-    fetchCallBack();
-  }, [user ]);
+    fetchConfigs();
+  }, [user, fetchConfigs ]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -34,11 +31,11 @@ export default function ConfigList() {
         <CreateConfigModal onConfigCreated={fetchConfigs} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {configs.map((config: any) => (
-          <Card key={config.id} className="hover:shadow-lg transition-shadow duration-200">
+        {configs.map((config: ConfigGame) => (
+          <Card key={config._id} className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader>
               <CardTitle className="text-sm font-medium">
-                Configuration {config.id}
+                Configuration {config._id}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -51,7 +48,7 @@ export default function ConfigList() {
               <p className="text-xs text-muted-foreground">
                 Minimal Scoreboard Model: {config.scoreboardMinimal.modelId}
               </p>
-              <Link href={`/config/${config.id}`}>
+              <Link href={`/config/${config._id}`}>
                 <Button variant="link" className="mt-2 p-0">Edit Configuration</Button>
               </Link>
             </CardContent>
