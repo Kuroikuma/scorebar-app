@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ConfigGame } from '@/store/configStore';
+import "@/styles/fonts.css"
+import "../../app/globals.css";
 
 export default function NewGame() {
   const { user } = useAuth();
