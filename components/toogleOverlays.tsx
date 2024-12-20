@@ -1,10 +1,14 @@
 import { toogleVisibleOverlay } from '@/service/apiOverlays'
 import { Toggle } from './ui/toggle'
 import { useConfigStore } from '@/store/configStore'
+import { useState } from 'react'
 
 export const ToggleOverlays = () => {
 
   const { currentConfig } = useConfigStore()
+
+  const [visibleFormationA, setVisibleFormationA] = useState(false);
+  const [visibleFormationB, setVisibleFormationB] = useState(false);
 
   const toogleVisibleScorebug = (e:boolean) => {
     const overlayId = currentConfig?.scorebug.overlayId || ''
@@ -24,16 +28,22 @@ export const ToggleOverlays = () => {
     toogleVisibleOverlay(overlayId, modelId, e ? 'ShowOverlay' : 'HideOverlay')
   }
 
-  const toogleVisibleFormationA = (e:boolean) => {
+  const toogleVisibleFormationA = async (e:boolean) => {
+    setVisibleFormationA(e)
+    setVisibleFormationB(false)
     const overlayId = currentConfig?.formation.overlayId || ''
     const modelId = currentConfig?.formation.modelId || ''
-    toogleVisibleOverlay(overlayId, modelId, e ? 'TakeOverlayFirstSlot' : 'HideOverlay')
+    await toogleVisibleOverlay(overlayId, modelId, e ? 'TakeOverlayFirstSlot' : 'HideOverlay')
+    e && toogleVisibleOverlay(overlayId, modelId, 'ShowOverlay')
   }
 
-  const toogleVisibleFormationB = (e:boolean) => {
+  const toogleVisibleFormationB = async (e:boolean) => {
+    setVisibleFormationB(e)
+    setVisibleFormationA(false)
     const overlayId = currentConfig?.formation.overlayId || ''
     const modelId = currentConfig?.formation.modelId || ''
-    toogleVisibleOverlay(overlayId, modelId, e ? 'TakeOverlayLastSlot' : 'HideOverlay')
+    await toogleVisibleOverlay(overlayId, modelId, e ? 'TakeOverlayLastSlot' : 'HideOverlay')
+    e && toogleVisibleOverlay(overlayId, modelId, 'ShowOverlay')
   }
 
   return (
@@ -60,6 +70,7 @@ export const ToggleOverlays = () => {
         Marc. Min
       </Toggle>
       <Toggle
+        pressed={visibleFormationA}
         onPressedChange={toogleVisibleFormationA}
         className="data-[state=on]:bg-[#4C3F82] data-[state=on]:text-white bg-[#1a1625] text-neutral-500"
         aria-label="Toggle bold"
@@ -67,6 +78,7 @@ export const ToggleOverlays = () => {
         Eq. A
       </Toggle>
       <Toggle
+        pressed={visibleFormationB}
         onPressedChange={toogleVisibleFormationB}
         className="data-[state=on]:bg-[#4C3F82] data-[state=on]:text-white bg-[#1a1625] text-neutral-500"
         aria-label="Toggle bold"
