@@ -1,12 +1,14 @@
 import { create } from 'zustand'
-import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeGameStatus, changeRunsByInningService } from '@/app/service/api'
+import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService } from '@/app/service/api'
 import { Team, useTeamsStore } from './teamsStore'
-import { setInningMinimal, SetOverlayContent, updateOverlayContent } from '@/app/service/apiOverlays'
+import { resetOverlays, setInningMinimal, SetOverlayContent, updateOverlayContent } from '@/app/service/apiOverlays'
 import { ConfigGame, useConfigStore } from './configStore';
+
+export type Status = 'upcoming' | 'in_progress' | 'finished';
 
 export interface Game {
   id: string | null;
-  status: 'upcoming' | 'in_progress' | 'finished';
+  status: Status;
   teams: Team[];
   inning: number;
   isTopInning: boolean;
@@ -28,7 +30,7 @@ export type GameState = {
   id: string | null
   userId: string | null
   date: Date | string | null
-  status: 'upcoming' | 'in_progress' | 'finished'
+  status: Status
   inning: number
   isTopInning: boolean
   balls: number
@@ -217,7 +219,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   changeGameStatus: async (newStatus) => {
     set({ status: newStatus })
     if (get().id) {
-      await changeGameStatus(get().id!, newStatus)
+      if (newStatus === "finished") {
+        resetOverlays()
+      }
+      
+      await changeStatusService(get().id!, newStatus)
     }
   },
   changeIsTopInning: async (isTopInning) => {
@@ -299,5 +305,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     let contentId = useConfigStore.getState().currentConfig?.scoreboardMinimal.modelId as string;
 
     await SetOverlayContent(overlayId, contentId, content)
+  },
+  gameOver: async () => {
+    const { id } = get()
+    if (id) {
+      resetOverlays()
+      await changeInningService(id!, 1, true)
+    }
   },
 }))

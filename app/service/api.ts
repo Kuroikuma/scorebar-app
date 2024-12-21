@@ -1,4 +1,4 @@
-import { Game, RunsByInning } from '@/app/store/gameStore';
+import { Game, RunsByInning, Status } from '@/app/store/gameStore';
 import axios from 'axios';
 import { setCustomationFieldAll } from './apiOverlays';
 import { useTeamsStore } from '@/app/store/teamsStore';
@@ -82,6 +82,11 @@ export const changeTeamTextColorService = async (id: string, teamIndex: number, 
   return response.data;
 };
 
+export const changeStatusService = async (id: string, newStatus: Status) => {
+  const response = await api.put(`/games/status/${id}`, { newStatus });
+  return response.data;
+};
+
 
 export const changeBallCount = async (id: string, newCount: number) => {
   const response = await api.put(`/games/${id}/balls`, { newCount });
@@ -110,11 +115,6 @@ export const changeInningService = async (id: string, newInning: number, isTopIn
 
 export const changeBaseRunner = async (id: string, baseIndex: number, isOccupied: boolean) => {
   const response = await api.put(`/games/${id}/base/${baseIndex}`, { isOccupied });
-  return response.data;
-};
-
-export const changeGameStatus = async (id: string, newStatus: 'upcoming' | 'in_progress' | 'finished') => {
-  const response = await api.put(`/games/${id}/status`, { status: newStatus });
   return response.data;
 };
 

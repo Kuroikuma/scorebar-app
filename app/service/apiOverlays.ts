@@ -133,7 +133,7 @@ export const setInningMinimal = (newInning: number) => {
 export const setCustomationFieldAll = ( fieldId: string, newName: string, newColor: string, newTextColor: string) => {
   const scorebugId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
 
-  const value = fieldId.includes("Name") ? newName : fieldId.includes("Color") ? newColor : newTextColor;
+  const value = fieldId.includes("Name") ? newName : fieldId.includes("Text") ? newTextColor : newColor;
 
   Promise.all([
     setCustomizationField(scorebugId, fieldId, value),
@@ -142,4 +142,76 @@ export const setCustomationFieldAll = ( fieldId: string, newName: string, newCol
   ]).then(() => {
     console.log("Customization field set")
   })
+}
+
+
+const resetOverlayScoreBug = () => {
+  const scorebugId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
+  const modelId = useConfigStore.getState().currentConfig?.scorebug.modelId as string;
+
+  const content = {
+    '1st Base Runner': false,
+    '2nd Base Runner': false,
+    '3rd Base Runner': false,
+    'Balls': 0,
+    'Inning': 1,
+    'Outs': '0 OUT',
+    'Strikes': 0,
+    'topOrBottomInning': 'top',
+    'Team 1 Runs': 0,
+    'Team 2 Runs': 0,
+  }
+
+  return SetOverlayContent(scorebugId, modelId, content)
+}
+
+const resetOverlayScoreBoard = () => {
+  const scoreboardId = useConfigStore.getState().currentConfig?.scoreboard.overlayId as string;
+  const modelId = useConfigStore.getState().currentConfig?.scoreboard.modelId as string;
+
+  const content = {
+    "1T1": 0,
+    "1T2": 0,
+    "2T1": 0,
+    "2T2": 0,
+    "3T1": 0,
+    "3T2": 0,
+    "4T1": 0,
+    "4T2": 0,
+    "5T1": 0,
+    "5T2": 0,
+    "6T1": 0,
+    "6T2": 0,
+    "7T1": 0,
+    "7T2": 0,
+    "8T1": 0,
+    "8T2": 0,
+    "9T1": 0,
+    "9T2": 0,
+    "Team 1 Errors": 0,
+    "Team 1 Hits": 0,
+    "Team 2 Errors": 0,
+    "Team 2 Hits": 0,
+}
+
+  return SetOverlayContent(scoreboardId, modelId, content)
+}
+
+const resetOverlayScoreBoardMinimal = () => {
+  const scoreboardMinimalId = useConfigStore.getState().currentConfig?.scoreboardMinimal.overlayId as string;
+  const modelId = useConfigStore.getState().currentConfig?.scoreboardMinimal.modelId as string;
+
+  const content = {
+    "Game State": "PRIMER INNING",
+    "aScore": 0,
+    "bScore": 0,
+  }
+
+  return SetOverlayContent(scoreboardMinimalId, modelId, content)
+}
+
+export const resetOverlays = () => {
+  resetOverlayScoreBug()
+  resetOverlayScoreBoard()
+  resetOverlayScoreBoardMinimal()
 }

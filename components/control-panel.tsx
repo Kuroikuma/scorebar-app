@@ -24,7 +24,7 @@ import { useUIStore } from "@/app/store/uiStore"
 export function ControlPanel() {
   const { 
     balls, strikes, outs, bases, setBase, inning, changeInning, isTopInning,
-    handleBallChange, handleStrikeChange, handleOutsChange, changeIsTopInning } = useGameStore()
+    handleBallChange, handleStrikeChange, handleOutsChange, changeIsTopInning, changeGameStatus } = useGameStore()
   const { teams, incrementRuns, incrementHits, incrementErrors, decrementHits, decrementErrors } = useTeamsStore()
   const { scoreboardStyle, setScoreboardStyle } = useUIStore()
 
@@ -34,8 +34,9 @@ export function ControlPanel() {
   
   return (
     <Card className="bg-[#1a1625] border-[#2d2b3b] text-white">
-      <CardHeader>
+      <CardHeader className="flex justify-between">
         <CardTitle className="text-lg font-medium">Control Panel</CardTitle>
+        <Button className="bg-[#4c3f82] hover:bg-[#5a4b99] text-white" onClick={() => changeGameStatus("finished")}>Finish Game</Button>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Scoreboard Style */}
