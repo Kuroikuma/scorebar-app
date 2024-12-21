@@ -31,19 +31,23 @@ export const ToggleOverlays = () => {
   const toogleVisibleFormationA = async (e:boolean) => {
     setVisibleFormationA(e)
     setVisibleFormationB(false)
-    const overlayId = currentConfig?.formation.overlayId || ''
-    const modelId = currentConfig?.formation.modelId || ''
-    await toogleVisibleOverlay(overlayId, modelId, e ? 'TakeOverlayFirstSlot' : 'HideOverlay')
-    e && toogleVisibleOverlay(overlayId, modelId, 'ShowOverlay')
+    const overlayId = currentConfig?.formationA.overlayId || ''
+    const modelId = currentConfig?.formationA.modelId || ''
+    const overlayIdB = currentConfig?.formationB.overlayId || ''
+    const modelIdB = currentConfig?.formationB.modelId || ''
+    toogleVisibleOverlay(overlayId, modelId, e ? 'ShowOverlay' : 'HideOverlay')
+    e && toogleVisibleOverlay(overlayIdB, modelIdB, 'HideOverlay')
   }
 
   const toogleVisibleFormationB = async (e:boolean) => {
     setVisibleFormationB(e)
     setVisibleFormationA(false)
-    const overlayId = currentConfig?.formation.overlayId || ''
-    const modelId = currentConfig?.formation.modelId || ''
-    await toogleVisibleOverlay(overlayId, modelId, e ? 'TakeOverlayLastSlot' : 'HideOverlay')
-    e && toogleVisibleOverlay(overlayId, modelId, 'ShowOverlay')
+    const overlayIdA = currentConfig?.formationA.overlayId || ''
+    const modelIdA = currentConfig?.formationA.modelId || ''
+    const overlayId = currentConfig?.formationB.overlayId || ''
+    const modelId = currentConfig?.formationB.modelId || ''
+    toogleVisibleOverlay(overlayId, modelId, e ? 'ShowOverlay' : 'HideOverlay')
+    e && toogleVisibleOverlay(overlayIdA, modelIdA, 'HideOverlay')
   }
 
   return (

@@ -1,5 +1,8 @@
+import { useConfigStore } from '@/store/configStore';
 import { RunsByInning } from '@/store/gameStore';
 import axios from 'axios';
+import { setCustomationFieldAll, setCustomizationField } from './apiOverlays';
+import { useTeamsStore } from '@/store/teamsStore';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api',
@@ -56,16 +59,25 @@ export const scoreRun = async (id: string, teamIndex: number, newRuns: number) =
 };
 
 export const changeTeamNameService = async (id: string, teamIndex: number, newName: string) => {
+  const newColor = useTeamsStore.getState().teams[teamIndex].color;
+  const newTextColor = useTeamsStore.getState().teams[teamIndex].textColor;
+  setCustomationFieldAll(`Team ${teamIndex + 1} Name`, newName, newColor, newTextColor);
   const response = await api.put(`/games/${id}/team/${teamIndex}`, { newName });
   return response.data;
 };
 
 export const changeTeamColorService = async (id: string, teamIndex: number, newColor: string) => {
+  const newName = useTeamsStore.getState().teams[teamIndex].name;
+  const newTextColor = useTeamsStore.getState().teams[teamIndex].textColor;
+  setCustomationFieldAll(`Team ${teamIndex + 1} Color`, newName, newColor, newTextColor);
   const response = await api.put(`/games/${id}/team/${teamIndex}/color`, { newColor });
   return response.data;
 };
 
 export const changeTeamTextColorService = async (id: string, teamIndex: number, newTextColor: string) => {
+  const newName = useTeamsStore.getState().teams[teamIndex].name;
+  const newColor = useTeamsStore.getState().teams[teamIndex].color;
+  setCustomationFieldAll(`Team ${teamIndex + 1} Text Color`, newName, newColor, newTextColor);
   const response = await api.put(`/games/${id}/team/${teamIndex}/textColor`, { newTextColor: newTextColor });
   return response.data;
 };

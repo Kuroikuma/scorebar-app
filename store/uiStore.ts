@@ -1,4 +1,6 @@
+import { setCustomizationField } from '@/service/apiOverlays'
 import { create } from 'zustand'
+import { useConfigStore } from './configStore'
 
 type UIState = {
   activeTab: string
@@ -30,7 +32,15 @@ export const useUIStore = create<UIState>((set) => ({
   setPrimaryColor: (color) => set({ primaryColor: color }),
   setPrimaryTextColor: (color) => set({ primaryTextColor: color }),
   setAccentColor: (color) => set({ accentColor: color }),
-  setHorizontalPosition: (position) => set({ horizontalPosition: position }),
-  setVerticalPosition: (position) => set({ verticalPosition: position }),
+  setHorizontalPosition: (position) => {
+    set({ horizontalPosition: position })
+    const overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string
+    setCustomizationField(overlayId, "Horizontal Position", position)
+  },
+  setVerticalPosition: (position) => {
+    set({ verticalPosition: position })
+    const overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string
+    setCustomizationField(overlayId, "Vertical Position", position)
+  },
 }))
 

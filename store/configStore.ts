@@ -6,13 +6,15 @@ interface OverlayConfig {
   modelId: string;
 }
 
+
 export interface ConfigGame {
   _id: string;
   userId: string;
   scorebug:OverlayConfig;
   scoreboard:OverlayConfig;
   scoreboardMinimal:OverlayConfig;
-  formation:OverlayConfig;
+  formationA:OverlayConfig;
+  formationB:OverlayConfig;
 }
 
 type ConfigState = {

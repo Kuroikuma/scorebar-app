@@ -169,7 +169,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ outs: newOuts, balls: 0, strikes: 0 })
       if (get().id, isSaved) {
         await changeOutCount(get().id!, newOuts)
-        await setOverLayOne({ Outs: `${newOuts} OUT` })
+        await setOverLayOne({ Outs: `${newOuts} OUT`, Strikes: 0, Balls: 0 })
       }
     }
   },

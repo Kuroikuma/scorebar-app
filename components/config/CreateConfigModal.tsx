@@ -27,8 +27,11 @@ export function CreateConfigModal({ onConfigCreated }: CreateConfigModalProps) {
     useState('')
   const [scoreboardMinimalModelId, setScoreboardMinimalModelId] = useState('')
 
-  const [formationOverlayId, setFormationOverlayId] = useState('')
-  const [formationModelId, setFormationModelId] = useState('')
+  const [formationAOverlayId, setFormationAOverlayId] = useState('')
+  const [formationAModelId, setFormationAModelId] = useState('')
+
+  const [formationBOverlayId, setFormationBOverlayId] = useState('')
+  const [formationBModelId, setFormationBModelId] = useState('')
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,10 +48,14 @@ export function CreateConfigModal({ onConfigCreated }: CreateConfigModalProps) {
           overlayId: scoreboardMinimalOverlayId,
           modelId: scoreboardMinimalModelId,
         },
-        formation: {
-          overlayId: formationOverlayId,
-          modelId: formationModelId,
-        }
+        formationA: {
+          overlayId: formationAOverlayId,
+          modelId: formationAModelId,
+        },
+        formationB: {
+          overlayId: formationBOverlayId,
+          modelId: formationBModelId,
+        },
       })
       setIsOpen(false)
       onConfigCreated()
@@ -135,23 +142,47 @@ export function CreateConfigModal({ onConfigCreated }: CreateConfigModalProps) {
           <div className="flex w-full justify-between gap-4">
             <div>
               <Label htmlFor="scoreboardMinimalOverlayId">
-                Formation Overlay
+                Formation A Overlay
               </Label>
               <Input
                 id="scoreboardMinimalOverlayId"
                 value={scoreboardMinimalOverlayId}
-                onChange={(e) => setFormationOverlayId(e.target.value)}
+                onChange={(e) => setFormationAOverlayId(e.target.value)}
                 required
               />
             </div>
             <div>
               <Label htmlFor="scoreboardMinimalModelId">
-                Formation Model
+                Formation B Model
               </Label>
               <Input
                 id="scoreboardMinimalModelId"
                 value={scoreboardMinimalModelId}
-                onChange={(e) => setFormationModelId(e.target.value)}
+                onChange={(e) => setFormationAModelId(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <div className="flex w-full justify-between gap-4">
+            <div>
+              <Label htmlFor="scoreboardMinimalOverlayId">
+                Formation A Overlay
+              </Label>
+              <Input
+                id="scoreboardMinimalOverlayId"
+                value={scoreboardMinimalOverlayId}
+                onChange={(e) => setFormationBOverlayId(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="scoreboardMinimalModelId">
+                Formation B Model
+              </Label>
+              <Input
+                id="scoreboardMinimalModelId"
+                value={scoreboardMinimalModelId}
+                onChange={(e) => setFormationBModelId(e.target.value)}
                 required
               />
             </div>
