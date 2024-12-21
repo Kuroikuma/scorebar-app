@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeGameStatus, changeRunsByInningService } from '@/app/service/api'
 import { useTeamsStore } from './teamsStore'
-import { SetOverlayContent, updateOverlayContent } from '@/app/service/apiOverlays'
+import { setInningMinimal, SetOverlayContent, updateOverlayContent } from '@/app/service/apiOverlays'
 import { ConfigGame, useConfigStore } from './configStore';
 
 export interface Game {
@@ -119,6 +119,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (!isTopInning) {
         newInning = inning + 1
         newIsTopInning = true
+        setInningMinimal(newInning)
       } else {
         newIsTopInning = false
       }
@@ -127,6 +128,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         if (inning > 1) {
           newInning = inning - 1
           newIsTopInning = false
+          setInningMinimal(newInning)
         }
       } else {
         newIsTopInning = true

@@ -100,6 +100,36 @@ const updateNameScorebarMinimal = (fieldId: string, value: string) => {
   }
 }
 
+export const setInningMinimal = (newInning: number) => {
+  const overlayId = useConfigStore.getState().currentConfig?.scoreboardMinimal.overlayId as string;
+  const modelId = useConfigStore.getState().currentConfig?.scoreboardMinimal.modelId as string;
+
+  function getInningLabel(inning: number): string {
+    const ordinalNumbers: { [key: number]: string } = {
+      1: "PRIMER",
+      2: "SEGUNDO",
+      3: "TERCER",
+      4: "CUARTO",
+      5: "QUINTO",
+      6: "SEXTO",
+      7: "SÉPTIMO",
+      8: "OCTAVO",
+      9: "NOVENO",
+    };
+  
+    if (ordinalNumbers[inning]) {
+      return `${ordinalNumbers[inning]} INNING`;
+    } else {
+      return "INNING NO VÁLIDO"; // Mensaje para casos fuera de rango
+    }
+  }
+
+  const content = {
+    "Game State": getInningLabel(newInning),
+  }
+  SetOverlayContent(overlayId, modelId, content)
+}
+
 export const setCustomationFieldAll = ( fieldId: string, newName: string, newColor: string, newTextColor: string) => {
   const scorebugId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
 
