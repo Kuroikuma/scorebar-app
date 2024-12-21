@@ -1,19 +1,13 @@
 import { create } from 'zustand'
 import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeGameStatus, changeRunsByInningService } from '@/app/service/api'
-import { useTeamsStore } from './teamsStore'
+import { Team, useTeamsStore } from './teamsStore'
 import { setInningMinimal, SetOverlayContent, updateOverlayContent } from '@/app/service/apiOverlays'
 import { ConfigGame, useConfigStore } from './configStore';
 
 export interface Game {
   id: string | null;
   status: 'upcoming' | 'in_progress' | 'finished';
-  teams: {
-    name: string;
-    runs: number;
-    color: string;
-    textColor: string;
-    logo?: string;
-  }[];
+  teams: Team[];
   inning: number;
   isTopInning: boolean;
   balls: number;
@@ -75,6 +69,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   outs: 0,
   bases: [false, false, false],
   runsByInning: {},
+  hits: 0,
+  errorsGame: 0,
   setInning: (inning) => set({ inning }),
   setIsTopInning: (isTop) => set({ isTopInning: isTop }),
   setBalls: async (balls) => {
@@ -275,7 +271,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       runsByInning: gameState.runsByInning,
       id: gameState.id,
       configId: useConfigStore.getState().currentConfig?._id as string,
-      date: gameState.date as string
+      date: gameState.date as string,
     }
 
     let overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
@@ -303,5 +299,5 @@ export const useGameStore = create<GameState>((set, get) => ({
     let contentId = useConfigStore.getState().currentConfig?.scoreboardMinimal.modelId as string;
 
     await SetOverlayContent(overlayId, contentId, content)
-  }
+  },
 }))

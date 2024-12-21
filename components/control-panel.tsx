@@ -25,8 +25,12 @@ export function ControlPanel() {
   const { 
     balls, strikes, outs, bases, setBase, inning, changeInning, isTopInning,
     handleBallChange, handleStrikeChange, handleOutsChange, changeIsTopInning } = useGameStore()
-  const { teams, incrementRuns } = useTeamsStore()
+  const { teams, incrementRuns, incrementHits, incrementErrors, decrementHits, decrementErrors } = useTeamsStore()
   const { scoreboardStyle, setScoreboardStyle } = useUIStore()
+
+  let teamIndex = isTopInning ? 0 : 1;
+  let hits = teams[teamIndex].hits;
+  let errors = teams[teamIndex].errorsGame;
   
   return (
     <Card className="bg-[#1a1625] border-[#2d2b3b] text-white">
@@ -92,6 +96,50 @@ export function ControlPanel() {
                 size="sm"
                 className="h-8 w-8 bg-[#4c3f82] hover:bg-[#5a4b99]"
                 onClick={() => handleStrikeChange(Math.min(3, strikes + 1))}
+              >
+                +1
+              </Button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white font-semibold">Hits</span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 bg-[#2d2b3b] hover:bg-[#363447]"
+                onClick={() => decrementHits(Math.max(0, hits - 1))}
+              >
+                -1
+              </Button>
+              <span className="w-8 text-center text-lg">{hits}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 bg-[#4c3f82] hover:bg-[#5a4b99]"
+                onClick={() => incrementHits(strikes + 1)}
+              >
+                +1
+              </Button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white font-semibold">Errors</span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 bg-[#2d2b3b] hover:bg-[#363447]"
+                onClick={() => decrementErrors(Math.max(0, strikes - 1))}
+              >
+                -1
+              </Button>
+              <span className="w-8 text-center text-lg">{errors}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 bg-[#4c3f82] hover:bg-[#5a4b99]"
+                onClick={() => incrementErrors(errors + 1)}
               >
                 +1
               </Button>

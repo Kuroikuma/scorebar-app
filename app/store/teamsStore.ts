@@ -1,7 +1,8 @@
 import { create } from 'zustand'
-import { scoreRun } from '@/app/service/api'
+import { changeErrors, changeHits, scoreRun } from '@/app/service/api'
 import { SetOverlayContent } from '@/app/service/apiOverlays'
 import { useGameStore } from './gameStore'
+import { useConfigStore } from './configStore'
 
 export type Team = {
   name: string
@@ -9,6 +10,8 @@ export type Team = {
   color: string
   textColor: string
   logo?: string
+  hits: number;
+  errorsGame: number;
 }
 
 export type TeamsState = {
@@ -20,6 +23,12 @@ export type TeamsState = {
   setGameId: (id: string) => void
   changeTeamColor: (teamIndex: any, newColor: any) => Promise<void>
   changeTeamTextColor: (teamIndex: any, newTextColor: any) => Promise<void>
+  incrementHits: (newHits: number) => Promise<void>
+  incrementErrors: (newErrors: number) => Promise<void>
+  updateHits: (newHits: number, teamIndex:number) => Promise<void>
+  updateErrors: (newErrors: number, teamIndex:number) => Promise<void>
+  decrementHits: (newHits:number) => Promise<void>
+  decrementErrors: (newErrors:number) => Promise<void>
 }
 
 export const useTeamsStore = create<TeamsState>((set, get) => ({
@@ -31,6 +40,8 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       color: "#2057D1",
       textColor: "#ffffff",
       logo: "",
+      hits: 0,
+      errorsGame: 0,
     },
     { 
       name: "AWAY", 
@@ -38,6 +49,8 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       color: "#A31515",
       textColor: "#ffffff",
       logo: "",
+      hits: 0,
+      errorsGame: 0,
     },
   ],
   setTeams: (teams) => set({ teams }),
@@ -96,4 +109,68 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     }))
   },
   setGameId: (id) => set({ gameId: id }),
+  incrementHits: async (newHits) => {
+    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, hits: team.hits + newHits } : team
+      )
+    }))
+    const { updateHits } = get()
+    updateHits(get().teams[teamIndex].hits, teamIndex)
+  },
+  decrementHits: async (newHits) => {
+    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, hits: team.hits - newHits } : team
+      )
+    }))
+    const { updateHits } = get()
+    updateHits(get().teams[teamIndex].hits, teamIndex)
+  },
+  incrementErrors: async (newErrors) => {
+    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, errorsGame: team.errorsGame + newErrors } : team
+      )
+    }))
+    const { updateErrors } = get()
+    updateErrors(get().teams[teamIndex].errorsGame, teamIndex)
+  },
+  decrementErrors: async (newErrors) => {
+    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, errorsGame: team.errorsGame - newErrors } : team
+      )
+    }))
+    const { updateErrors } = get()
+    updateErrors(get().teams[teamIndex].errorsGame, teamIndex)
+  },
+  updateHits: async (newHits, teamIndex) => {
+    let { id, } = useGameStore.getState()
+    if (id) {
+      const overlayId = useConfigStore.getState().currentConfig?.scoreboard.overlayId as string;
+      const modelId = useConfigStore.getState().currentConfig?.scoreboard.modelId as string;
+      let content = {
+        [`Team ${teamIndex + 1} Hits`]: newHits
+      }
+      SetOverlayContent(overlayId, modelId, content)
+      await changeHits(id!, newHits, teamIndex)
+    }
+  },
+  updateErrors: async (newErrors, teamIndex) => {
+    let { id } = useGameStore.getState()
+    if (id) {
+      const overlayId = useConfigStore.getState().currentConfig?.scoreboard.overlayId as string;
+      const modelId = useConfigStore.getState().currentConfig?.scoreboard.modelId as string;
+      let content = {
+        [`Team ${teamIndex + 1} Errors`]: newErrors
+      }
+      SetOverlayContent(overlayId, modelId, content)
+      await changeErrors(id!, newErrors, teamIndex)
+    }
+  }
 }))

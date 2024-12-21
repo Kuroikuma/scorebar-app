@@ -147,5 +147,15 @@ export const deleteConfig = async (id: string) => {
   await api.delete(`/configs/${id}`);
 };
 
+export const changeHits = async (id: string, newHits: number, teamIndex: number) => {
+  const response = await api.put(`/games/hits/${id}`, { newHits, teamIndex });
+  return response.data;
+};
+
+export const changeErrors = async (id: string, newErrors: number, teamIndex: number) => {
+  const response = await api.put(`/games/errors/${id}`, { newErrors, teamIndex });
+  return response.data;
+};
+
 export default api;
 

@@ -40,8 +40,8 @@ export default function NewGame() {
         date: new Date(gameDate),
         status: 'upcoming',
         teams: [
-          { name: team1Name, runs: 0, color: '#000000', textColor: '#ffffff' },
-          { name: team2Name, runs: 0, color: '#ffffff', textColor: '#000000' },
+          { name: team1Name, runs: 0, color: '#000000', textColor: '#ffffff', hits: 0, errorsGame: 0 },
+          { name: team2Name, runs: 0, color: '#ffffff', textColor: '#000000', hits: 0, errorsGame: 0 },
         ],
         inning: 1,
         isTopInning: true,
