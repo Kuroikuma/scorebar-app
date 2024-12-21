@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { scoreRun } from '@/service/api'
-import { SetOverlayContent } from '@/service/apiOverlays'
+import { scoreRun } from '@/app/service/api'
+import { SetOverlayContent } from '@/app/service/apiOverlays'
 import { useGameStore } from './gameStore'
 
 export type Team = {

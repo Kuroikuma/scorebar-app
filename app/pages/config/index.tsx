@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { getAllConfigs } from '@/service/api';
+import { useAuth } from '@/app/context/AuthContext';
+import { getAllConfigs } from '@/app/service/api';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import "@/styles/fonts.css"
 import "../../app/globals.css";
 import { CreateConfigModal } from '@/components/config/CreateConfigModal';
-import { ConfigGame } from '@/store/configStore';
+import { ConfigGame } from '@/app/store/configStore';
 
 export default function ConfigList() {
   const { user } = useAuth();

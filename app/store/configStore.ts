@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getConfig, createConfig, updateConfig, deleteConfig } from '@/service/api'
+import { getConfig, createConfigService, updateConfig, deleteConfig } from '@/app/service/api'
 
 interface OverlayConfig {
   overlayId: string;
@@ -21,7 +21,7 @@ type ConfigState = {
   currentConfig: ConfigGame | null;
   setCurrentConfig: (config: ConfigGame) => void;
   loadConfig: (id: string) => Promise<void>;
-  createConfig: (config: Omit<ConfigGame, 'id'>) => Promise<ConfigGame>;
+  createConfig: (config: Omit<ConfigGame, '_id'>) => Promise<ConfigGame>;
   updateConfig: (id: string, config: Partial<ConfigGame>) => Promise<void>;
   deleteConfig: (id: string) => Promise<void>;
 }
@@ -34,7 +34,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
     set({ currentConfig: config });
   },
   createConfig: async (config) => {
-    const newConfig = await createConfig(config);
+    const newConfig = await createConfigService(config);
     set({ currentConfig: newConfig });
     return newConfig;
   },

@@ -1,7 +1,7 @@
 "use client"
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useUIStore } from "@/store/uiStore"
+import { useUIStore } from "@/app/store/uiStore"
 
 export function TabsLayout() {
   const { activeTab, setActiveTab } = useUIStore()

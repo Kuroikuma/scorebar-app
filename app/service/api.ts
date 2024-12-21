@@ -1,8 +1,8 @@
-import { useConfigStore } from '@/store/configStore';
-import { RunsByInning } from '@/store/gameStore';
+import { Game, RunsByInning } from '@/app/store/gameStore';
 import axios from 'axios';
-import { setCustomationFieldAll, setCustomizationField } from './apiOverlays';
-import { useTeamsStore } from '@/store/teamsStore';
+import { setCustomationFieldAll } from './apiOverlays';
+import { useTeamsStore } from '@/app/store/teamsStore';
+import { ConfigGame } from '../store/configStore';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api',
@@ -29,12 +29,12 @@ export const register = async (username: string, email: string, password: string
   return response.data;
 };
 
-export const createGame = async (gameData: any) => {
+export const createGame = async (gameData: Omit<Game, "id">) => {
   const response = await api.post('/games', gameData);
   return response.data;
 };
 
-export const updateGameService = async (id: string, gameData: any) => {
+export const updateGameService = async (id: string, gameData: Omit<Game, "userId">) => {
   const response = await api.put(`/games/${id}`, gameData);
   return response.data;
 };
@@ -133,12 +133,12 @@ export const getConfigByUserId = async (userId: string) => {
   return response.data;
 }
 
-export const createConfig = async (configData: any) => {
+export const createConfigService = async (configData: Omit<ConfigGame, "_id">) => {
   const response = await api.post('/configs', configData);
   return response.data;
 };
 
-export const updateConfig = async (id: string, configData: any) => {
+export const updateConfig = async (id: string, configData: Partial<ConfigGame>) => {
   const response = await api.put(`/configs/${id}`, configData);
   return response.data;
 };

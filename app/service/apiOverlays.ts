@@ -1,15 +1,14 @@
-import { useConfigStore } from '@/store/configStore';
-import { Game, GameState, useGameStore } from '@/store/gameStore';
-import { TeamsState } from '@/store/teamsStore';
+import { useConfigStore } from '@/app/store/configStore';
+import { Game } from '@/app/store/gameStore';
 import axios, { AxiosInstance } from 'axios';
 
-function abbreviateCity(city: string): string {
-  // Dividir el nombre de la ciudad en palabras y tomar la primera letra de cada palabra
-  const words = city.split(" ");
-  const abbreviation = words.map(word => word.charAt(0).toUpperCase()).join("");
+// function abbreviateCity(city: string): string {
+//   // Dividir el nombre de la ciudad en palabras y tomar la primera letra de cada palabra
+//   const words = city.split(" ");
+//   const abbreviation = words.map(word => word.charAt(0).toUpperCase()).join("");
   
-  return abbreviation;
-}
+//   return abbreviation;
+// }
 
 export const axiosInstance = (id:string): AxiosInstance => {
   return axios.create({
@@ -17,7 +16,7 @@ export const axiosInstance = (id:string): AxiosInstance => {
   });
 }
 
-export const SetOverlayContent = (id: string, contentId: string, content: any) => {
+export const SetOverlayContent = (id: string, contentId: string, content: Object) => {
   return axiosInstance(id).put('', {
     command: 'SetOverlayContent',
     id: contentId,
@@ -32,9 +31,9 @@ export const toogleVisibleOverlay = (id: string, contentId: string, command: str
   })
 }
 
-export const updateOverlayContent = (id: string, contentId: string, game: Game) => {
+export const updateOverlayContent = (id: string, contentId: string, game: Omit<Game, "userId">) => {
 
-  let content ={
+  const content ={
     "1st Base Runner": game.bases[0],
     "2nd Base Runner": game.bases[1],
     "3rd Base Runner": game.bases[2],
@@ -59,7 +58,7 @@ export const setCustomizationField = (id: string, fieldId: string, value: string
 }
 
 const updateNameLineup = (fieldId: string, newName: string, newColor: string, newTextColor: string) => {
-  let validate = fieldId.includes("Team 1")
+  const validate = fieldId.includes("Team 1")
   const overlayIdA = useConfigStore.getState().currentConfig?.formationA.overlayId as string;
   const OverlayIdB = useConfigStore.getState().currentConfig?.formationB.overlayId as string;
   const modelIdA = useConfigStore.getState().currentConfig?.formationA.modelId as string;
@@ -82,7 +81,7 @@ const updateNameScorebarMinimal = (fieldId: string, value: string) => {
   const overlayId = useConfigStore.getState().currentConfig?.scoreboardMinimal.overlayId as string;
   const modelId = useConfigStore.getState().currentConfig?.scoreboardMinimal.modelId as string;
 
-  let validate = fieldId.includes("Team 1")
+  const validate = fieldId.includes("Team 1")
 
   if (validate) {
     const content = {

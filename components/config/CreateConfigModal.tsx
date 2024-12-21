@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useAuth } from '@/context/AuthContext'
-import { createConfig } from '@/service/api'
+import { useAuth } from '@/app/context/AuthContext'
+import { createConfigService } from '@/app/service/api'
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ConfigGame } from '@/app/store/configStore'
 
 interface CreateConfigModalProps {
   onConfigCreated: () => void
@@ -37,26 +38,17 @@ export function CreateConfigModal({ onConfigCreated }: CreateConfigModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (user) {
-      await createConfig({
+
+      let newConfig:Omit<ConfigGame, "_id"> = {
         userId: user._id,
         scorebug: { overlayId: scorebugOverlayId, modelId: scorebugModelId },
-        scoreboard: {
-          overlayId: scoreboardOverlayId,
-          modelId: scoreboardModelId,
-        },
-        scoreboardMinimal: {
-          overlayId: scoreboardMinimalOverlayId,
-          modelId: scoreboardMinimalModelId,
-        },
-        formationA: {
-          overlayId: formationAOverlayId,
-          modelId: formationAModelId,
-        },
-        formationB: {
-          overlayId: formationBOverlayId,
-          modelId: formationBModelId,
-        },
-      })
+        scoreboard: { overlayId: scoreboardOverlayId, modelId: scoreboardModelId },
+        scoreboardMinimal: { overlayId: scoreboardMinimalOverlayId, modelId: scoreboardMinimalModelId },
+        formationA: { overlayId: formationAOverlayId, modelId: formationAModelId },
+        formationB: { overlayId: formationBOverlayId, modelId: formationBModelId },
+      }
+
+      await createConfigService(newConfig)
       setIsOpen(false)
       onConfigCreated()
     }

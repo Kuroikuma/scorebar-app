@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { createGame, getConfigByUserId } from '@/service/api';
+import { useAuth } from '@/app/context/AuthContext';
+import { createGame, getConfigByUserId } from '@/app/service/api';
 import { useRouter } from 'next/router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ConfigGame } from '@/store/configStore';
+import { ConfigGame } from '@/app/store/configStore';
 import "@/styles/fonts.css"
 import "../../app/globals.css";
+import { Game } from '@/app/store/gameStore';
 
 export default function NewGame() {
   const { user } = useAuth();
@@ -34,7 +35,7 @@ export default function NewGame() {
     e.preventDefault();
     if (user) {
 
-      const dataCreate = {
+      const dataCreate:Omit<Game, 'id'> = {
         userId: user._id,
         date: new Date(gameDate),
         status: 'upcoming',
@@ -49,6 +50,7 @@ export default function NewGame() {
         outs: 0,
         bases: [false, false, false],
         configId: configId,
+        runsByInning: {},
       }
       
       const newGame = await createGame(dataCreate);

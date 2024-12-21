@@ -1,6 +1,6 @@
-import { toogleVisibleOverlay } from '@/service/apiOverlays'
+import { toogleVisibleOverlay } from '@/app/service/apiOverlays'
 import { Toggle } from './ui/toggle'
-import { useConfigStore } from '@/store/configStore'
+import { useConfigStore } from '@/app/store/configStore'
 import { useState } from 'react'
 
 export const ToggleOverlays = () => {

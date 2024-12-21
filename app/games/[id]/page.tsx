@@ -1,18 +1,16 @@
 "use client"
 
-import { ControlPanel } from "../../components/control-panel"
-import { CustomizePanel } from "../../components/customize-panel"
-import { TabsLayout } from "../../components/tabs-layout"
-import { ClassicScoreboard } from "../../components/classic-scoreboard"
-import { ModernScoreboard } from "../../components/modern-scoreboard"
-import { useUIStore } from "@/store/uiStore"
-import { cn } from "@/lib/utils"
+import { ControlPanel } from "../../../components/control-panel"
+import { CustomizePanel } from "../../../components/customize-panel"
+import { TabsLayout } from "../../../components/tabs-layout"
+import { ClassicScoreboard } from "../../../components/classic-scoreboard"
+import { ModernScoreboard } from "../../../components/modern-scoreboard"
+import { useUIStore } from "@/app/store/uiStore"
+import { cn } from "@/app/lib/utils"
 import { useEffect, useState } from "react"
-import { useGameStore } from "@/store/gameStore"
-import { useAuth } from "@/context/AuthContext"
+import { useGameStore } from "@/app/store/gameStore"
+import { useAuth } from "@/app/context/AuthContext"
 import { useParams } from "next/navigation"
-import "@/styles/fonts.css"
-import "../../app/globals.css";
 import { ToggleOverlays } from "@/components/toogleOverlays"
 
 export default function BaseballScoreboard() {

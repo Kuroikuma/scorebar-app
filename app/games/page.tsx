@@ -1,14 +1,14 @@
+"use client";
+
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { getAllGames } from '@/service/api';
+import { useAuth } from '@/app/context/AuthContext';
+import { getAllGames } from '@/app/service/api';
 import Link from 'next/link';
-import "@/styles/fonts.css"
-import "../../app/globals.css";
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, CheckIcon, PlayIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RunsByInning } from '@/store/gameStore';
+import { RunsByInning } from '@/app/store/gameStore';
 
 interface Game {
   _id: string | null;

@@ -1,9 +1,9 @@
 import Image from 'next/image'
 import { Triangle } from 'lucide-react'
-import { cn } from "@/lib/utils"
-import { useGameStore } from '@/store/gameStore'
-import { useTeamsStore } from '@/store/teamsStore'
-import { useUIStore } from '@/store/uiStore'
+import { cn } from "@/app/lib/utils"
+import { useGameStore } from '@/app/store/gameStore'
+import { useTeamsStore } from '@/app/store/teamsStore'
+import { useUIStore } from '@/app/store/uiStore'
 
 export function ClassicScoreboard() {
   const { inning, isTopInning, balls, strikes, outs, bases } = useGameStore()

@@ -2,11 +2,9 @@
 
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'next/router';
-import "@/styles/fonts.css"
-import "../app/globals.css";
 import Image from 'next/image';
 import logo from "../assets/WhatsApp_Image_2024-12-17_at_5.01.50_PM-removebg-preview.png"
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
   const [email, setEmail] = useState('');

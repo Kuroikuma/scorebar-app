@@ -17,9 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { useTeamsStore } from "@/store/teamsStore"
-import { useGameStore } from "@/store/gameStore"
-import { useUIStore } from "@/store/uiStore"
+import { useTeamsStore } from "@/app/store/teamsStore"
+import { useGameStore } from "@/app/store/gameStore"
+import { useUIStore } from "@/app/store/uiStore"
 
 export function ControlPanel() {
   const { 

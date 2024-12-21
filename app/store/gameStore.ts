@@ -1,8 +1,8 @@
 import { create } from 'zustand'
-import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeGameStatus, changeRunsByInningService } from '@/service/api'
-import { TeamsState, useTeamsStore } from './teamsStore'
-import { SetOverlayContent, updateOverlayContent } from '@/service/apiOverlays'
-import { useConfigStore } from './configStore';
+import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeGameStatus, changeRunsByInningService } from '@/app/service/api'
+import { useTeamsStore } from './teamsStore'
+import { SetOverlayContent, updateOverlayContent } from '@/app/service/apiOverlays'
+import { ConfigGame, useConfigStore } from './configStore';
 
 export interface Game {
   id: string | null;
@@ -21,6 +21,9 @@ export interface Game {
   outs: number;
   bases: boolean[];
   runsByInning: RunsByInning
+  userId: string;
+  configId: string | ConfigGame;
+  date: string | Date;
 }
 
 export interface RunsByInning {
@@ -30,7 +33,7 @@ export interface RunsByInning {
 export type GameState = {
   id: string | null
   userId: string | null
-  date: Date | null
+  date: Date | string | null
   status: 'upcoming' | 'in_progress' | 'finished'
   inning: number
   isTopInning: boolean
@@ -39,7 +42,6 @@ export type GameState = {
   outs: number
   bases: boolean[]
   runsByInning: RunsByInning;
-  setGame: (game: Game) => void
   setInning: (inning: number) => void
   setIsTopInning: (isTop: boolean) => void
   setBalls: (balls: number) => void
@@ -73,7 +75,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   outs: 0,
   bases: [false, false, false],
   runsByInning: {},
-  setGame: (game) => set(game),
   setInning: (inning) => set({ inning }),
   setIsTopInning: (isTop) => set({ isTopInning: isTop }),
   setBalls: async (balls) => {
@@ -260,7 +261,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const gameState = get()
     const id = gameState.id
 
-    let game:Game = {
+    let game:Omit<Game, 'userId'> = {
       balls: gameState.balls,
       strikes: gameState.strikes,
       outs: gameState.outs,
@@ -270,7 +271,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       status: gameState.status,
       bases: gameState.bases,
       runsByInning: gameState.runsByInning,
-      id: gameState.id
+      id: gameState.id,
+      configId: useConfigStore.getState().currentConfig?._id as string,
+      date: gameState.date as string
     }
 
     let overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;

@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Minus, Plus } from 'lucide-react'
 import Image from 'next/image'
-import { useUIStore } from "@/store/uiStore"
-import { Team, useTeamsStore } from "@/store/teamsStore"
+import { useUIStore } from "@/app/store/uiStore"
+import { Team, useTeamsStore } from "@/app/store/teamsStore"
 import { useCallback } from "react"
 import debounce from "lodash/debounce";
-import { changeTeamColorService, changeTeamNameService, changeTeamTextColorService } from "@/service/api"
+import { changeTeamColorService, changeTeamNameService, changeTeamTextColorService } from "@/app/service/api"
 
 export function CustomizePanel() {
 

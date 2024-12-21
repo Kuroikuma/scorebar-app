@@ -1,7 +1,7 @@
 "use client"
 
-import { AuthProvider } from '@/context/AuthContext'
-import GamesList from '@/pages/games'
+import { AuthProvider } from '@/app/context/AuthContext'
+import GamesList from './games/page'
 
 export default function Page() {
   return (

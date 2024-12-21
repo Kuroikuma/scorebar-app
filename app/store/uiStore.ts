@@ -1,4 +1,4 @@
-import { setCustomizationField } from '@/service/apiOverlays'
+import { setCustomizationField } from '@/app/service/apiOverlays'
 import { create } from 'zustand'
 import { useConfigStore } from './configStore'
 

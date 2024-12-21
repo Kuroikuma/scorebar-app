@@ -1,10 +1,17 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { login as apiLogin, register as apiRegister } from '../service/api';
 import { jwtDecode } from 'jwt-decode';
 import { useRouter } from 'next/navigation';
 
+export interface User {
+  _id: string;
+  username: string;
+  email: string;
+  password: string;
+}
+
 interface AuthContextType {
-  user: any | null;
+  user: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -23,6 +30,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const logout = useCallback(() => {
+    setUser(null)
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    router.push('/login')
+  }, [router])
+
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
@@ -39,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
     setLoading(false);
-  }, []);
+  }, [logout]);
 
   const setTokenExpirationTimeout = (expirationTime: number) => {
     const timeout = expirationTime - new Date().getTime();
@@ -60,13 +74,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(response);
     localStorage.setItem('token', response.token);
     localStorage.setItem('user', JSON.stringify(response));
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/login');
   };
 
   return (
