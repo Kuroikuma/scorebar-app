@@ -26,6 +26,12 @@ export function TabsLayout() {
         >
           Lineup
         </TabsTrigger>
+        <TabsTrigger
+          value="status"
+          className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center min-[768px]:hidden"
+        >
+          Status
+        </TabsTrigger>
       </TabsList>
     </Tabs>
   )

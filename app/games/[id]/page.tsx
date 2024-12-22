@@ -98,7 +98,6 @@ const BaseballScoreboardMovil = () => {
         ) : (
           <ModernScoreboard />
         )}
-        <StatusGame />
       </div>
 
       {/* Side Panel */}
@@ -113,6 +112,7 @@ const BaseballScoreboardMovil = () => {
             {activeTab === "controls" && <ControlPanel />}
             {activeTab === "customize" && <CustomizePanel />}
             {activeTab === "lineup" && <LineupPanel />}
+            {activeTab === 'status' && <StatusGame />}
           </div>
       </div>
       <ToggleOverlays />
