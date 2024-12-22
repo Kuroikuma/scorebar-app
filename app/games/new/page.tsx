@@ -1,15 +1,15 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { createGame, getConfigByUserId } from '@/app/service/api';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ConfigGame } from '@/app/store/configStore';
-import "@/styles/fonts.css"
-import "../../app/globals.css";
 import { Game } from '@/app/store/gameStore';
 
 export default function NewGame() {
@@ -40,8 +40,8 @@ export default function NewGame() {
         date: new Date(gameDate),
         status: 'upcoming',
         teams: [
-          { name: team1Name, runs: 0, color: '#000000', textColor: '#ffffff', hits: 0, errorsGame: 0 },
-          { name: team2Name, runs: 0, color: '#ffffff', textColor: '#000000', hits: 0, errorsGame: 0 },
+          { name: team1Name, runs: 0, color: '#000000', textColor: '#ffffff', hits: 0, errorsGame: 0, currentBatter: 0, lineupSubmitted: false, lineup: [] },
+          { name: team2Name, runs: 0, color: '#ffffff', textColor: '#000000', hits: 0, errorsGame: 0, currentBatter: 0, lineupSubmitted: false, lineup: [] },
         ],
         inning: 1,
         isTopInning: true,
@@ -51,6 +51,7 @@ export default function NewGame() {
         bases: [false, false, false],
         configId: configId,
         runsByInning: {},
+        isDHEnabled: false,
       }
       
       const newGame = await createGame(dataCreate);

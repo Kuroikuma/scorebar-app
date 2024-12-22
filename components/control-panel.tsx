@@ -24,21 +24,32 @@ import { useUIStore } from "@/app/store/uiStore"
 export function ControlPanel() {
   const { 
     balls, strikes, outs, bases, setBase, inning, changeInning, isTopInning,
-    handleBallChange, handleStrikeChange, handleOutsChange, changeIsTopInning, changeGameStatus } = useGameStore()
+    handleBallChange, handleStrikeChange, handleOutsChange, changeIsTopInning, advanceBatter } = useGameStore()
   const { teams, incrementRuns, incrementHits, incrementErrors, decrementHits, decrementErrors } = useTeamsStore()
   const { scoreboardStyle, setScoreboardStyle } = useUIStore()
 
   let teamIndex = isTopInning ? 0 : 1;
   let hits = teams[teamIndex].hits;
   let errors = teams[teamIndex].errorsGame;
+
+  const handleHit = () => {
+    // Logic for handling a hit (you can customize this based on your needs)
+    advanceBatter()
+  }
   
   return (
     <Card className="bg-[#1a1625] border-[#2d2b3b] text-white">
       <CardHeader className="flex justify-between">
         <CardTitle className="text-lg font-medium">Control Panel</CardTitle>
-        <Button className="bg-[#4c3f82] hover:bg-[#5a4b99] text-white" onClick={() => changeGameStatus("finished")}>Finish Game</Button>
       </CardHeader>
       <CardContent className="space-y-6">
+
+      <div className="space-y-2">
+        <Button onClick={handleHit} className="w-full bg-[#4c3f82] hover:bg-[#5a4b99]">
+        Golpe de hit / Bateador avanza
+        </Button>
+      </div>
+
         {/* Scoreboard Style */}
         <div className="space-y-2">
           <Label className="text-sm text-white font-semibold">Scoreboard Style</Label>

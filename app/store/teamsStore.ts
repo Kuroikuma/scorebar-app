@@ -1,8 +1,15 @@
 import { create } from 'zustand'
-import { changeErrors, changeHits, scoreRun } from '@/app/service/api'
-import { SetOverlayContent } from '@/app/service/apiOverlays'
+import { advanceBatterService, changeErrors, changeHits, scoreRun, updateLineupTeamService } from '@/app/service/api'
+import { setLineupOverlay, SetOverlayContent } from '@/app/service/apiOverlays'
 import { useGameStore } from './gameStore'
 import { useConfigStore } from './configStore'
+
+export type Player = {
+  name: string
+  position: string
+  number: string
+  battingOrder: number
+}
 
 export type Team = {
   name: string
@@ -10,6 +17,9 @@ export type Team = {
   color: string
   textColor: string
   logo?: string
+  lineup: Player[]
+  currentBatter: number
+  lineupSubmitted: boolean
   hits: number;
   errorsGame: number;
 }
@@ -29,6 +39,10 @@ export type TeamsState = {
   updateErrors: (newErrors: number, teamIndex:number) => Promise<void>
   decrementHits: (newHits:number) => Promise<void>
   decrementErrors: (newErrors:number) => Promise<void>
+  updateLineup: (teamIndex: number, lineup: Player[]) => void
+  advanceBatter: (teamIndex: number) => Promise<void>
+  updatePlayer: (teamIndex: number, playerIndex: number, player: Player | null) => void
+  submitLineup: (teamIndex: number) => Promise<void>
 }
 
 export const useTeamsStore = create<TeamsState>((set, get) => ({
@@ -42,6 +56,9 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       logo: "",
       hits: 0,
       errorsGame: 0,
+      lineup: [],
+      currentBatter: 0,
+      lineupSubmitted: false
     },
     { 
       name: "AWAY", 
@@ -51,6 +68,9 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       logo: "",
       hits: 0,
       errorsGame: 0,
+      lineup: [],
+      currentBatter: 0,
+      lineupSubmitted: false
     },
   ],
   setTeams: (teams) => set({ teams }),
@@ -60,7 +80,7 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
         index === teamIndex ? { ...team, runs: team.runs + newRuns } : team
       )
     }))
-    useGameStore.getState().changeRunsByInning(teamIndex, newRuns, false)
+    useGameStore.getState().changeRunsByInning(teamIndex, newRuns, isSaved)
 
     let runs = get().teams[teamIndex].runs
 
@@ -172,5 +192,75 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       SetOverlayContent(overlayId, modelId, content)
       await changeErrors(id!, newErrors, teamIndex)
     }
-  }
+  },
+  updateLineup: (teamIndex, lineup) => set((state) => ({
+    teams: state.teams.map((team, index) =>
+      index === teamIndex ? { ...team, lineup } : team
+    )
+  })),//advanceBatterService
+  advanceBatter: async (teamIndex) => {
+    const { teams } = get()
+    let team = teams[teamIndex];
+    const currentBatter = (team.currentBatter + 1) % team.lineup.length;
+
+    set((state) => {
+      const isDHEnabled = useGameStore.getState().isDHEnabled;
+      const team = state.teams[teamIndex];
+      let nextBatter = (team.currentBatter + 1) % team.lineup.length;
+  
+      if (isDHEnabled) {
+        // Skip the pitcher if DH is enabled
+        while (team.lineup[nextBatter].position === 'P') {
+          nextBatter = (nextBatter + 1) % team.lineup.length;
+        }
+      }
+  
+      return {
+        teams: state.teams.map((team, index) =>
+          index === teamIndex ? { ...team, currentBatter: nextBatter } : team
+        )
+      };
+    })
+    
+    await advanceBatterService(useGameStore.getState().id!, teamIndex, currentBatter)
+  },
+  updatePlayer: (teamIndex, playerIndex, player) => set((state) => {
+    const team = state.teams[teamIndex];
+    let newLineup;
+
+    if (player) {
+      // If adding or updating a player
+      newLineup = [
+        ...team.lineup.slice(0, playerIndex),
+        player,
+        ...team.lineup.slice(playerIndex + 1)
+      ];
+    } else {
+      // If removing a player
+      newLineup = team.lineup.filter((_, i) => i !== playerIndex);
+    }
+
+    // Recalculate batting order
+    const isDHEnabled = useGameStore.getState().isDHEnabled;
+    newLineup = newLineup.map((p, index) => ({
+      ...p,
+      battingOrder: isDHEnabled && p.position === 'P' ? 0 : index + 1
+    }));
+
+    return {
+      teams: state.teams.map((team, index) =>
+        index === teamIndex ? { ...team, lineup: newLineup } : team
+      )
+    };
+  }),
+  submitLineup: async (teamIndex) => {
+    const { teams} = get()
+    set((state) => ({
+      teams: state.teams.map((team, index) =>
+        index === teamIndex ? { ...team, lineupSubmitted: true } : team
+      )
+    }))
+    setLineupOverlay(teams[teamIndex].lineup, teamIndex)
+    await updateLineupTeamService({ teamIndex, lineup: teams[teamIndex].lineup, id: useGameStore.getState().id! })
+  },
 }))

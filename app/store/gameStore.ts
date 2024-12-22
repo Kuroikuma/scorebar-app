@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService } from '@/app/service/api'
+import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService, setDHService } from '@/app/service/api'
 import { Team, useTeamsStore } from './teamsStore'
 import { resetOverlays, setInningMinimal, SetOverlayContent, updateOverlayContent } from '@/app/service/apiOverlays'
 import { ConfigGame, useConfigStore } from './configStore';
@@ -20,6 +20,7 @@ export interface Game {
   userId: string;
   configId: string | ConfigGame;
   date: string | Date;
+  isDHEnabled: boolean;
 }
 
 export interface RunsByInning {
@@ -57,6 +58,13 @@ export type GameState = {
   changeRunsByInning: (teamIndex: number, newRuns: number, isSaved?: boolean) => Promise<void>
   setScoreBoard: (content: any) => Promise<void>
   setScoreBoardMinimal: (content: any) => Promise<void>
+  startGame: () => void
+  endGame: () => void
+  isDHEnabled: boolean
+  setIsDHEnabled: (enabled: boolean) => Promise<void>
+  getCurrentBatter: () => { name: string; number: string } | null
+  getCurrentPitcher: () => { name: string; number: string } | null
+  advanceBatter: () => Promise<void>
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -156,12 +164,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   handleOutsChange: async (newOuts, isSaved=true) => {
-    const { changeInning, updateGame, setScoreBug: setOverLayOne } = get()
+    const { changeInning, updateGame, setScoreBug: setOverLayOne, advanceBatter  } = get()
+
+    await advanceBatter()
 
     if (newOuts === 3) {
       set({ outs: 0, balls: 0, strikes: 0 })
       await changeInning(true, false)
-
       if (isSaved) {
         await updateGame()
       }
@@ -190,10 +199,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   handleBallChange: async (newBalls, isSaved=true) => {
-    const { bases, isTopInning, id, updateGame, setScoreBug: setOverLayOne } = get()
+    const { bases, isTopInning, id, updateGame, setScoreBug: setOverLayOne, advanceBatter } = get()
    
     if (newBalls === 4) {
       set({ balls: 0, strikes: 0 })
+      await advanceBatter()
       const newBases = [...bases]
       for (let i = 2; i >= 0; i--) {
         if (newBases[i]) {
@@ -222,7 +232,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (newStatus === "finished") {
         resetOverlays()
       }
-      
+
       await changeStatusService(get().id!, newStatus)
     }
   },
@@ -240,6 +250,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const inningKey = `${inning}T${teamIndex + 1}`; // Ejemplo: "3T1" o "3T2"
 
+    debugger
+
     // Actualiza las carreras por inning
     const updatedRunsByInning = {
       ...runsByInning,
@@ -250,7 +262,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     setScoreBoard({[inningKey]: (runsByInning[inningKey] || 0) + newRuns})
 
     if (id && isSaved) {
-      await changeRunsByInningService(id, runsByInning)
+      await changeRunsByInningService(id, {[inningKey]: (runsByInning[inningKey] || 0) + newRuns})
     }
   },
   loadGame: async (id) => {
@@ -278,6 +290,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       id: gameState.id,
       configId: useConfigStore.getState().currentConfig?._id as string,
       date: gameState.date as string,
+      isDHEnabled: gameState.isDHEnabled,
     }
 
     let overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
@@ -310,7 +323,45 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { id } = get()
     if (id) {
       resetOverlays()
-      await changeInningService(id!, 1, true)
     }
+  },
+  startGame: () => {
+    const { changeGameStatus } = get()
+    changeGameStatus('in_progress')
+  },
+  endGame: () => {
+    const { changeGameStatus } = get()
+    changeGameStatus('finished')
+  },
+  isDHEnabled: false,//setDHService
+  setIsDHEnabled: async (enabled) => {
+    set({ isDHEnabled: enabled })
+    await setDHService(get().id!)
+  },
+  getCurrentBatter: () => {
+    const { isTopInning, isDHEnabled } = get()
+    const teamIndex = isTopInning ? 0 : 1
+    const team = useTeamsStore.getState().teams[teamIndex]
+    let currentBatterIndex = team.currentBatter
+    if (isDHEnabled) {
+      // Skip pitcher if DH is enabled
+      while (team.lineup[currentBatterIndex].position === 'P') {
+        currentBatterIndex = (currentBatterIndex + 1) % team.lineup.length
+      }
+    }
+    const currentBatter = team.lineup[currentBatterIndex]
+    return currentBatter ? { name: currentBatter.name, number: currentBatter.number } : null
+  },
+  getCurrentPitcher: () => {
+    const { isTopInning } = get()
+    const teamIndex = isTopInning ? 1 : 0
+    const team = useTeamsStore.getState().teams[teamIndex]
+    const pitcher = team.lineup.find(player => player.position === 'P')
+    return pitcher ? { name: pitcher.name, number: pitcher.number } : null
+  },
+  advanceBatter: async () => {
+    const { isTopInning } = get()
+    const teamIndex = isTopInning ? 0 : 1
+    await useTeamsStore.getState().advanceBatter(teamIndex)
   },
 }))

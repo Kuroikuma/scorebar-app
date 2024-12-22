@@ -21,10 +21,10 @@ export function TabsLayout() {
           Customize
         </TabsTrigger>
         <TabsTrigger
-          value="settings"
+          value="lineup"
           className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center"
         >
-          Settings
+          Lineup
         </TabsTrigger>
       </TabsList>
     </Tabs>

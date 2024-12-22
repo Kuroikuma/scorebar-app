@@ -1,6 +1,7 @@
 import { useConfigStore } from '@/app/store/configStore';
 import { Game } from '@/app/store/gameStore';
 import axios, { AxiosInstance } from 'axios';
+import { Player } from '../store/teamsStore';
 
 // function abbreviateCity(city: string): string {
 //   // Dividir el nombre de la ciudad en palabras y tomar la primera letra de cada palabra
@@ -214,4 +215,28 @@ export const resetOverlays = () => {
   resetOverlayScoreBug()
   resetOverlayScoreBoard()
   resetOverlayScoreBoardMinimal()
+}
+
+function createPlayerObject(players: Player[]): Record<string, string> {
+  const playerObject: Record<string, string> = {};
+
+  players.forEach((player) => {
+    playerObject[player.position] = player.name;
+  });
+
+  return playerObject;
+}
+
+export const setLineupOverlay = (lineup: Player[], teamIndex: number) => {
+  const overlayIdA = useConfigStore.getState().currentConfig?.formationA.overlayId as string;
+  const modelIdA = useConfigStore.getState().currentConfig?.formationA.modelId as string;
+  const modelIdB = useConfigStore.getState().currentConfig?.formationB.modelId as string;
+  const overlayB = useConfigStore.getState().currentConfig?.formationB.overlayId as string;
+
+  let content = createPlayerObject(lineup);
+
+  let overlayId = teamIndex === 0 ? overlayIdA : overlayB;
+  let modelId = teamIndex === 0 ? modelIdA : modelIdB;
+
+  SetOverlayContent(overlayId, modelId, content)
 }

@@ -1,8 +1,14 @@
 import { Game, RunsByInning, Status } from '@/app/store/gameStore';
 import axios from 'axios';
 import { setCustomationFieldAll } from './apiOverlays';
-import { useTeamsStore } from '@/app/store/teamsStore';
+import { Player, useTeamsStore } from '@/app/store/teamsStore';
 import { ConfigGame } from '../store/configStore';
+
+interface IUpdateLineupTeam {
+  teamIndex: number;
+  lineup: Player[];
+  id: string;
+}
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api',
@@ -84,6 +90,22 @@ export const changeTeamTextColorService = async (id: string, teamIndex: number, 
 
 export const changeStatusService = async (id: string, newStatus: Status) => {
   const response = await api.put(`/games/status/${id}`, { newStatus });
+  return response.data;
+};
+
+export const updateLineupTeamService = async (data: IUpdateLineupTeam) => {
+  const { teamIndex, lineup, id } = data;
+  let response = await api.put(`/games/lineup/${id}`, { teamIndex, lineup });
+  return response.data;
+};
+
+export const advanceBatterService = async (id: string, teamIndex: number, currentBatter: number) => {
+  const response = await api.put(`/games/advanceBatter/${id}`, { teamIndex, currentBatter });
+  return response.data;
+};
+
+export const setDHService = async (id: string) => {
+  const response = await api.put(`/games/dh/${id}`);
   return response.data;
 };
 
