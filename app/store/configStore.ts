@@ -6,6 +6,10 @@ interface OverlayConfig {
   modelId: string;
 }
 
+interface OverlayConfig2 {
+  overlayId: string;
+}
+
 
 export interface ConfigGame {
   _id: string;
@@ -15,6 +19,8 @@ export interface ConfigGame {
   scoreboardMinimal:OverlayConfig;
   formationA:OverlayConfig;
   formationB:OverlayConfig;
+  battingOrderA:OverlayConfig2;
+  battingOrderB:OverlayConfig2;
 }
 
 type ConfigState = {

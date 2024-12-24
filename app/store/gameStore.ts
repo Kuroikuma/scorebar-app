@@ -339,6 +339,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     await setDHService(get().id!)
   },
   getCurrentBatter: () => {
+    console.log('getCurrentBatter');
+    
     const { isTopInning, isDHEnabled } = get()
     const teamIndex = isTopInning ? 0 : 1
     const team = useTeamsStore.getState().teams[teamIndex]

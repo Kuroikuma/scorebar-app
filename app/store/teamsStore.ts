@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { advanceBatterService, changeErrors, changeHits, scoreRun, updateLineupTeamService } from '@/app/service/api'
-import { setLineupOverlay, SetOverlayContent } from '@/app/service/apiOverlays'
+import { setActiveNumber, setLineupOverlay, SetOverlayContent } from '@/app/service/apiOverlays'
 import { useGameStore } from './gameStore'
 import { useConfigStore } from './configStore'
 
@@ -199,14 +199,12 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     )
   })),//advanceBatterService
   advanceBatter: async (teamIndex) => {
-    const { teams } = get()
-    let team = teams[teamIndex];
-    const currentBatter = (team.currentBatter + 1) % team.lineup.length;
+    let nextBatter = 1;
 
     set((state) => {
       const isDHEnabled = useGameStore.getState().isDHEnabled;
       const team = state.teams[teamIndex];
-      let nextBatter = (team.currentBatter + 1) % team.lineup.length;
+      nextBatter = (team.currentBatter + 1) % team.lineup.length;
   
       if (isDHEnabled) {
         // Skip the pitcher if DH is enabled
@@ -221,8 +219,8 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
         )
       };
     })
-    
-    await advanceBatterService(useGameStore.getState().id!, teamIndex, currentBatter)
+    setActiveNumber((nextBatter + 1), teamIndex)
+    await advanceBatterService(useGameStore.getState().id!, teamIndex, nextBatter)
   },
   updatePlayer: (teamIndex, playerIndex, player) => set((state) => {
     const team = state.teams[teamIndex];

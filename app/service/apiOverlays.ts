@@ -1,7 +1,7 @@
 import { useConfigStore } from '@/app/store/configStore';
-import { Game } from '@/app/store/gameStore';
+import { Game, useGameStore } from '@/app/store/gameStore';
 import axios, { AxiosInstance } from 'axios';
-import { Player } from '../store/teamsStore';
+import { Player, useTeamsStore } from '../store/teamsStore';
 
 // function abbreviateCity(city: string): string {
 //   // Dividir el nombre de la ciudad en palabras y tomar la primera letra de cada palabra
@@ -25,12 +25,62 @@ export const SetOverlayContent = (id: string, contentId: string, content: Object
   })
 }
 
+export const setActiveNumber = (currentBatter: number, teamIndex: number) => {
+  const overlayIdA = useConfigStore.getState().currentConfig?.battingOrderA.overlayId as string;
+  const overlayIdB = useConfigStore.getState().currentConfig?.battingOrderB.overlayId as string;
+
+  const overlayId = teamIndex === 0 ? overlayIdA : overlayIdB;
+
+  return axiosInstance(overlayId).put('', {
+    command: "SetActiveNumber",
+    value: currentBatter
+  })
+}
+
+export const setOverlayBattingOrder = (id: string, content: any) => {
+  return axiosInstance(id).put('', {
+    command: 'SetData',
+    value: content,
+  })
+}
+
 export const toogleVisibleOverlay = (id: string, contentId: string, command: string) => {
   return axiosInstance(id).put('', {
     command: command ,
     id: contentId,
   })
 }
+
+let timeoutId: NodeJS.Timeout | null = null;
+
+export const showBattingOrder = () => {
+  const { isTopInning } = useGameStore.getState();
+  const { battingOrderA, battingOrderB } = useConfigStore.getState().currentConfig || {};
+  const overlayId = isTopInning ? battingOrderA?.overlayId : battingOrderB?.overlayId;
+
+  if (!overlayId) {
+    console.error('Overlay ID is missing');
+    return;
+  }
+
+  const sendOverlayCommand = (command: 'ShowOverlay' | 'HideOverlay') => {
+    axiosInstance(overlayId).put('', { command });
+  };
+
+  // Limpiar temporizador anterior si existe
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+  }
+
+  sendOverlayCommand('ShowOverlay');
+
+  // Configurar un nuevo temporizador
+  timeoutId = setTimeout(() => {
+    sendOverlayCommand('HideOverlay');
+    timeoutId = null; // Restablecer referencia después de ejecución
+  }, 10000);
+};
+
 
 export const updateOverlayContent = (id: string, contentId: string, game: Omit<Game, "userId">) => {
 
@@ -227,11 +277,43 @@ function createPlayerObject(players: Player[]): Record<string, string> {
   return playerObject;
 }
 
+const setBattingOrder = (players: Player[], teamIndex: number) => {
+
+  const logo = useTeamsStore.getState().teams[teamIndex].logo;
+  const overlayIdA = useConfigStore.getState().currentConfig?.battingOrderA.overlayId as string;
+  const overlayIdB = useConfigStore.getState().currentConfig?.battingOrderB.overlayId as string;
+  const overlayId = teamIndex === 0 ? overlayIdA : overlayIdB;
+
+  const lineup = players.map((player) => {
+    let name = player.name.split(" ")[0];
+    let lastname = player.name.split(" ")[1];
+
+    return {
+      "Number": player.number,
+      "Position": player.position,
+      "Logo URL": logo || "",
+      "Name": name,
+      "Lastname": lastname,
+      "Stat 1 Title":"OPS",
+      "Stat 1":0.928,
+      "Stat 2 Title":"BA",
+      "Stat 2":0.266,
+      "Stat 3 Title":"HR",
+      "Stat 3":32,
+      "Stat 4 Title":"RBI",
+      "Stat 4":71,
+  }
+  });
+
+  setOverlayBattingOrder(overlayId, lineup)
+}
+
 export const setLineupOverlay = (lineup: Player[], teamIndex: number) => {
   const overlayIdA = useConfigStore.getState().currentConfig?.formationA.overlayId as string;
   const modelIdA = useConfigStore.getState().currentConfig?.formationA.modelId as string;
   const modelIdB = useConfigStore.getState().currentConfig?.formationB.modelId as string;
   const overlayB = useConfigStore.getState().currentConfig?.formationB.overlayId as string;
+  
 
   let content = createPlayerObject(lineup);
 
@@ -239,4 +321,5 @@ export const setLineupOverlay = (lineup: Player[], teamIndex: number) => {
   let modelId = teamIndex === 0 ? modelIdA : modelIdB;
 
   SetOverlayContent(overlayId, modelId, content)
+  setBattingOrder(lineup, teamIndex)
 }

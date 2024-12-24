@@ -3,6 +3,7 @@ import { useTeamsStore } from "@/app/store/teamsStore"
 import { Button } from "./ui/button"
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
 import { AlertCircle } from "lucide-react"
+import { showBattingOrder } from "@/app/service/apiOverlays"
 
 export const StatusGame = () => {
    const { getCurrentBatter, getCurrentPitcher, status, startGame, endGame } = useGameStore()
@@ -51,6 +52,9 @@ export const StatusGame = () => {
         </div>
       </div>
     )}
+    <Button onClick={showBattingOrder} className="bg-green-500 hover:bg-green-600">
+      Mostrar bateador al turno
+    </Button>
   </div> );
 }
  

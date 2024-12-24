@@ -122,10 +122,9 @@ export function CustomizePanel() {
                   </Button>
                   {team.logo && (
                     <div className="relative w-10 h-10">
-                      <Image
+                      <img
                         src={team.logo}
                         alt={`${team.name} logo`}
-                        fill
                         style={{ objectFit: 'contain' }}
                       />
                     </div>

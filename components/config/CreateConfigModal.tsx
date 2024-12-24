@@ -33,6 +33,8 @@ export function CreateConfigModal({ onConfigCreated }: CreateConfigModalProps) {
 
   const [formationBOverlayId, setFormationBOverlayId] = useState('')
   const [formationBModelId, setFormationBModelId] = useState('')
+  const [battingOrderAOverlayId, setBattingOrderAOverlayId] = useState('')
+  const [battiongOrderBOverlayId, setBattingOrderBOverlayId] = useState('')
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,6 +48,8 @@ export function CreateConfigModal({ onConfigCreated }: CreateConfigModalProps) {
         scoreboardMinimal: { overlayId: scoreboardMinimalOverlayId, modelId: scoreboardMinimalModelId },
         formationA: { overlayId: formationAOverlayId, modelId: formationAModelId },
         formationB: { overlayId: formationBOverlayId, modelId: formationBModelId },
+        battingOrderA: { overlayId: battingOrderAOverlayId },
+        battingOrderB: { overlayId: battiongOrderBOverlayId },
       }
 
       await createConfigService(newConfig)
@@ -175,6 +179,30 @@ export function CreateConfigModal({ onConfigCreated }: CreateConfigModalProps) {
                 id="scoreboardMinimalModelId"
                 value={scoreboardMinimalModelId}
                 onChange={(e) => setFormationBModelId(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <div className="flex w-full justify-between gap-4">
+            <div>
+              <Label htmlFor="scoreboardMinimalOverlayId">
+                Batting Order A Overlay
+              </Label>
+              <Input
+                id="scoreboardMinimalOverlayId"
+                value={battingOrderAOverlayId}
+                onChange={(e) => setBattingOrderAOverlayId(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="scoreboardMinimalModelId">
+                Batting Order B Overlay
+              </Label>
+              <Input
+                id="scoreboardMinimalModelId"
+                value={battiongOrderBOverlayId}
+                onChange={(e) => setBattingOrderBOverlayId(e.target.value)}
                 required
               />
             </div>

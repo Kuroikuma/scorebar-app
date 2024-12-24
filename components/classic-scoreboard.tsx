@@ -24,10 +24,9 @@ export function ClassicScoreboard() {
             <div className="flex items-center gap-2">
               {team.logo && (
                 <div className="relative w-8 h-8">
-                  <Image
+                  <img
                     src={team.logo}
                     alt={`${team.name} logo`}
-                    fill
                     style={{ objectFit: 'contain' }}
                   />
                 </div>
