@@ -5,21 +5,27 @@ import { useGameStore } from '@/app/store/gameStore'
 import { useTeamsStore } from '@/app/store/teamsStore'
 import { useUIStore } from '@/app/store/uiStore'
 
-export function ClassicScoreboard() {
+interface ClassicScoreboardProps {
+  orientation?: 'horizontal' | 'vertical'
+}
+
+export function ClassicScoreboard({ orientation = 'vertical' }: ClassicScoreboardProps) {
   const { inning, isTopInning, balls, strikes, outs, bases } = useGameStore()
   const { teams } = useTeamsStore()
   const { primaryColor, primaryTextColor } = useUIStore()
   const currentTeamColor = teams[isTopInning ? 0 : 1].color;
 
+  let currrentOrientation = orientation === 'horizontal' ? 'flex-row' : 'flex-col'
+
   return (
-    <div style={{ backgroundColor: primaryColor, color: primaryTextColor }}>
+    <div style={{ backgroundColor: primaryColor, color: primaryTextColor }} className={`flex ${currrentOrientation}`}>
       {/* Teams and Scores */}
       <div>
         {teams.map((team) => (
           <div
             key={team.name}
             style={{ backgroundColor: team.color, color: team.textColor }}
-            className="flex justify-between items-center px-6 py-3"
+            className="flex justify-between items-center px-6 py-3 gap-2"
           >
             <div className="flex items-center gap-2">
               {team.logo && (
@@ -38,33 +44,35 @@ export function ClassicScoreboard() {
             <span className="text-3xl font-bold">{team.runs}</span>
           </div>
         ))}
-      </div>
-
-      {/* Game Info Row */}
-      <div className="flex items-center justify-between px-6 py-3">
-        <div className="flex items-center gap-2">
-          <Triangle
-            className={cn(
-              "h-6 w-6 transform",
-              isTopInning ? "" : "rotate-180"
-            )}
-            fill={currentTeamColor}
-          />
-          <span className="text-2xl">{inning}</span>
-        </div>
-        
-        <div className="flex items-center">
-          <span className="text-2xl">{outs}</span>
-          <span className="text-2xl ml-2">OUTS</span>
-        </div>
-
-        <div className="text-2xl">
-          {balls} - {strikes}
+        {/* Game Info Row */}
+        <div className="flex items-center justify-between px-6 py-3">
+          <div className="flex items-center gap-2">
+            <Triangle
+              className={cn(
+                "h-6 w-6 transform",
+                isTopInning ? "" : "rotate-180"
+              )}
+              fill={currentTeamColor}
+            />
+            <span className="text-2xl">{inning}</span>
+          </div>
+          
+          <div className="flex items-center">
+            <span className="text-2xl">{outs}</span>
+            <span className="text-2xl ml-2">OUTS</span>
+          </div>
+          {
+            orientation === 'vertical' && (
+              <div className="text-2xl">
+                {balls} - {strikes}
+              </div>
+            )
+          }
         </div>
       </div>
 
       {/* Bases */}
-      <div className="relative w-32 h-32 mx-auto my-4">
+      <div className="relative w-32 h-32 mx-auto my-4 flex justify-center">
         {/* Second Base */}
         <div 
           className={cn(
@@ -89,6 +97,14 @@ export function ClassicScoreboard() {
           )}
           style={{ backgroundColor: bases[0] ? currentTeamColor : undefined }}
         />
+        {
+          orientation === 'horizontal' && (
+            <div className="absolute text-2xl top-[116px]">
+            {balls} - {strikes}
+          </div>
+          )
+        }
+        
       </div>
     </div>
   )

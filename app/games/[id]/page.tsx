@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { StatusGame } from "@/components/statusGame"
+import { Navigation } from "@/components/navigation"
 
 export default function BaseballScoreboard() {
 
@@ -62,6 +63,7 @@ const  BaseballScoreboardDestok = () => {
 
   return (
     <div className="min-h-screen bg-black md:p-4 font-['Roboto_Condensed'] flex max-[768px]:flex-col pt-4 pb-4">
+      <Navigation />
       {/* Scoreboard */}
       <div className="flex-1 max-w-[400px] md:mx-auto bg-black text-white max-[768px]:px-4 flex flex-col">
         {scoreboardStyle === "classic" && (

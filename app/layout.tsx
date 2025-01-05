@@ -4,6 +4,7 @@ import "./styles/fonts.css";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 import { StrictMode } from "react";
+import { Navigation } from "@/components/navigation";
 
 export default function RootLayout({
   children,
@@ -17,6 +18,7 @@ export default function RootLayout({
       </head>
       <StrictMode>
         <body className="antialiased">
+          {/* <Navigation /> */}
           <AuthProvider>{children}</AuthProvider>
         </body>
       </StrictMode>
