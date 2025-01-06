@@ -135,7 +135,7 @@ export default function OverlayPage() {
 
 const ScoreBoard = () => {
   return (
-    <div className="flex-1 max-w-[570px] bg-black text-white max-[768px]:px-4 flex flex-col">
+    <div className="flex-1 max-w-[570px] bg-black text-white max-[768px]:px-4 flex flex-col font-['Roboto_Condensed']">
       <ClassicScoreboard orientation="horizontal" />
     </div>
   );

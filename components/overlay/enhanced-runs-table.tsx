@@ -28,12 +28,12 @@ export function EnhancedRunsTable() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-[#1a1625] rounded-lg overflow-hidden shadow-lg border border-[#2d2b3b] w-[80vw]"
+      className="bg-[#1a1625] rounded-lg overflow-hidden shadow-lg border border-[#2d2b3b] w-[80vw] font-['Roboto_Condensed']"
     >
       <table className="w-full text-sm border-collapse shadow-md">
         <thead>
           <tr className="bg-[#2d2b3b] text-white border-b-2 border-[#4c3f82]">
-            <th className="w-[200px] px-2 py-3 text-left">Team</th>
+            <th className="w-[240px] px-2 py-3 text-left">Team</th>
             {innings.map((inningNum) => (
               <th key={inningNum} className="px-3 w-[80px] py-2 text-center font-bold">
                 {inningNum}
@@ -53,10 +53,10 @@ export function EnhancedRunsTable() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <td className="px-2 py-3 border-r-2 border-[#4c3f82]">
+              <td className="">
                 <div className="flex items-center gap-2">
                   {team.logo && (
-                    <div className="relative w-8 h-8 overflow-hidden">
+                    <div className="relative w-[40px] h-[40px] overflow-hidden">
                       <img
                         src={team.logo}
                         alt={`${team.name} logo`}
@@ -75,26 +75,38 @@ export function EnhancedRunsTable() {
                 const runs = runsByInning[inningKey] || 0
                 const isCurrentInning = inningNum === inning && index === (isTopInning ? 0 : 1)
                 return (
-                  <td key={inningNum} className={`w-[60px] box-border text-center border-[14px] border-x-[36px] border-[#1a1625] font-bold ${isCurrentInning ? 'bg-[#4c3f82]' : 'bg-[#2d2b3b]'}`}>
-                    {runs}
+                  <td key={inningNum} className={`w-[80px] box-border text-center font-bold`}>
+                    <div className={`${isCurrentInning ? 'bg-[#4c3f82]' : 'bg-[#2d2b3b]'} flex h-[30px] w-[30px] items-center justify-center`}>
+                    <AnimatePresence mode="popLayout">
+                      <motion.div
+                        key={runs}
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -20, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {runs}
+                      </motion.div>
+                    </AnimatePresence>
+                    </div>
                   </td>
                 )
               })}
-              <td className="px-3 py-2 text-center font-bold border-[14px] border-x-[36px] border-[#1a1625] bg-[#4c3f82]">
-                <AnimatePresence>
-                  <motion.span
-                    key={animatedScores[index].animatedRuns}
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.3 }}
-                  >
+              <td className="px-3 py-2 text-center font-bold bg-[#4c3f82]">
+              <AnimatePresence mode="popLayout">
+                <motion.span
+                  key={animatedScores[index].animatedRuns}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -20, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
                     {animatedScores[index].animatedRuns}
                   </motion.span>
                 </AnimatePresence>
               </td>
-              <td className="px-3 py-2 text-center font-bold bg-[#4c3f82] border-[14px] border-x-[36px] border-[#1a1625]">{team.hits}</td>
-              <td className="px-3 py-2 text-center font-bold bg-[#4c3f82] border-[14px] border-x-[36px] border-[#1a1625]">{team.errorsGame}</td>
+              <td className="px-3 py-2 text-center font-bold bg-[#4c3f82]">{team.hits}</td>
+              <td className="px-3 py-2 text-center font-bold bg-[#4c3f82]">{team.errorsGame}</td>
             </motion.tr>
           ))}
         </tbody>

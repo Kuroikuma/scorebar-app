@@ -4,6 +4,8 @@ import { cn } from "@/app/lib/utils"
 import { useGameStore } from '@/app/store/gameStore'
 import { useTeamsStore } from '@/app/store/teamsStore'
 import { useUIStore } from '@/app/store/uiStore'
+import { AnimatePresence, motion } from 'framer-motion'
+import AnimatePopLayout from './ui/AnimatePopLayout'
 
 interface ClassicScoreboardProps {
   orientation?: 'horizontal' | 'vertical'
@@ -25,11 +27,11 @@ export function ClassicScoreboard({ orientation = 'vertical' }: ClassicScoreboar
           <div
             key={team.name}
             style={{ backgroundColor: team.color, color: team.textColor }}
-            className="flex justify-between items-center px-6 py-3 gap-2"
+            className="flex justify-between items-center gap-2"
           >
             <div className="flex items-center gap-2">
               {team.logo && (
-                <div className="relative w-8 h-8">
+                <div className="relative w-[60px] h-[60px]">
                   <img
                     src={team.logo}
                     alt={`${team.name} logo`}
@@ -37,11 +39,15 @@ export function ClassicScoreboard({ orientation = 'vertical' }: ClassicScoreboar
                   />
                 </div>
               )}
-              <span className="text-3xl font-bold tracking-wider">
-                {team.name}
-              </span>
+              <div className='py-3'>
+                <span className="text-3xl font-bold tracking-wider">
+                  {team.name}
+                </span>
+              </div>
             </div>
-            <span className="text-3xl font-bold">{team.runs}</span>
+            <AnimatePopLayout dataNumber={team.runs}>
+              <span className="text-3xl font-bold pr-[15px]">{team.runs}</span>
+            </AnimatePopLayout>
           </div>
         ))}
         {/* Game Info Row */}
@@ -54,17 +60,27 @@ export function ClassicScoreboard({ orientation = 'vertical' }: ClassicScoreboar
               )}
               fill={currentTeamColor}
             />
-            <span className="text-2xl">{inning}</span>
+            <AnimatePopLayout dataNumber={inning}>
+              <span className="text-2xl">{inning}</span>
+            </AnimatePopLayout>
           </div>
           
           <div className="flex items-center">
-            <span className="text-2xl">{outs}</span>
+            <AnimatePopLayout dataNumber={outs}>
+              <span className="text-2xl">{outs}</span>
+            </AnimatePopLayout>
             <span className="text-2xl ml-2">OUTS</span>
           </div>
           {
             orientation === 'vertical' && (
-              <div className="text-2xl">
-                {balls} - {strikes}
+              <div className="text-2xl flex gap-1">
+                <AnimatePopLayout dataNumber={balls}>
+                  {balls} 
+                </AnimatePopLayout>
+                <span>-</span>
+                <AnimatePopLayout dataNumber={strikes}>
+                  {strikes}
+                </AnimatePopLayout>
               </div>
             )
           }
@@ -99,8 +115,14 @@ export function ClassicScoreboard({ orientation = 'vertical' }: ClassicScoreboar
         />
         {
           orientation === 'horizontal' && (
-            <div className="absolute text-2xl top-[116px]">
-            {balls} - {strikes}
+            <div className="absolute text-2xl top-[116px] flex gap-1">
+            <AnimatePopLayout dataNumber={balls}>
+              {balls} 
+            </AnimatePopLayout>
+            <span>-</span>
+            <AnimatePopLayout dataNumber={strikes}>
+              {strikes}
+            </AnimatePopLayout>
           </div>
           )
         }
