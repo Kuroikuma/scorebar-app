@@ -40,8 +40,8 @@ export default function NewGame() {
         date: new Date(gameDate),
         status: 'upcoming',
         teams: [
-          { name: team1Name, runs: 0, color: '#000000', textColor: '#ffffff', hits: 0, errorsGame: 0, currentBatter: 0, lineupSubmitted: false, lineup: [] },
-          { name: team2Name, runs: 0, color: '#ffffff', textColor: '#000000', hits: 0, errorsGame: 0, currentBatter: 0, lineupSubmitted: false, lineup: [] },
+          { name: team1Name, runs: 0, color: '#000000', textColor: '#ffffff', hits: 0, errorsGame: 0, currentBatter: 0, lineupSubmitted: false, lineup: [], shortName:"home" },
+          { name: team2Name, runs: 0, color: '#ffffff', textColor: '#000000', hits: 0, errorsGame: 0, currentBatter: 0, lineupSubmitted: false, lineup: [], shortName:"away" },
         ],
         inning: 1,
         isTopInning: true,
@@ -52,6 +52,41 @@ export default function NewGame() {
         configId: configId,
         runsByInning: {},
         isDHEnabled: false,
+        scoreboardOverlay: {
+          x: 100,
+          y: 100,
+          scale: 100,
+          visible: false,
+          id: "scoreboard"
+        },
+        scorebugOverlay: {
+          x: 200,
+          y: 90,
+          scale: 70,
+          visible: false,
+          id: "scorebug"
+        },
+        formationAOverlay: {
+          x: 0,
+          y: 0,
+          scale: 100,
+          visible: false,
+          id: "formationA"
+        },
+        formationBOverlay: {
+          x: 0,
+          y: 0,
+          scale: 100,
+          visible: false,
+          id: "formationB"
+        },
+        scoreboardMinimalOverlay: {
+          x: 0,
+          y: 0,
+          scale: 100,
+          visible: false,
+          id: "scoreboardMinimal"
+        },
       }
       
       const newGame = await createGame(dataCreate);
