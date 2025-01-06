@@ -72,6 +72,11 @@ export const changeTeamNameService = async (id: string, teamIndex: number, newNa
   return response.data;
 };
 
+export const changeTeamShortNameService = async (id: string, teamIndex: number, newName: string) => {
+  const response = await api.put(`/games/${id}/teamShortName/${teamIndex}`, { newName });
+  return response.data;
+};
+
 export const changeTeamColorService = async (id: string, teamIndex: number, newColor: string) => {
   const newName = useTeamsStore.getState().teams[teamIndex].name;
   const newTextColor = useTeamsStore.getState().teams[teamIndex].textColor;
@@ -176,6 +181,21 @@ export const changeHits = async (id: string, newHits: number, teamIndex: number)
 
 export const changeErrors = async (id: string, newErrors: number, teamIndex: number) => {
   const response = await api.put(`/games/errors/${id}`, { newErrors, teamIndex });
+  return response.data;
+};
+
+export const handlePositionOverlayServices = async (id: string, data: { x: number; y: number; }, gameId: string) => {
+  const response = await api.put(`/games/overlay/position`, { x: data.x, y: data.y, gameId, id });
+  return response.data;
+};
+
+export const handleScaleOverlayServices = async (id: string, scale: number, gameId: string) => {
+  const response = await api.put(`/games/overlay/scale`, { scale, id, gameId });
+  return response.data;
+};
+
+export const handleVisibleOverlayServices = async (id: string, visible: boolean, gameId: string) => {
+  const response = await api.put(`/games/overlay/visible`, { visible, id, gameId });
   return response.data;
 };
 

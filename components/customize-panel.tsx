@@ -11,11 +11,11 @@ import { useUIStore } from "@/app/store/uiStore"
 import { Team, useTeamsStore } from "@/app/store/teamsStore"
 import { useCallback } from "react"
 import debounce from "lodash/debounce";
-import { changeTeamColorService, changeTeamNameService, changeTeamTextColorService } from "@/app/service/api"
+import { changeTeamColorService, changeTeamNameService, changeTeamShortNameService, changeTeamTextColorService } from "@/app/service/api"
 
 export function CustomizePanel() {
 
-  const { teams, setTeams, changeTeamName, changeTeamColor, changeTeamTextColor, gameId } = useTeamsStore()
+  const { teams, setTeams, changeTeamName, changeTeamColor, changeTeamTextColor, gameId, changeTeamShortName } = useTeamsStore()
   const { 
     primaryColor, setPrimaryColor,
     primaryTextColor, setPrimaryTextColor,
@@ -52,6 +52,13 @@ export function CustomizePanel() {
   const handleName = (teamIndex: number, newName: string) => {
     changeTeamName(teamIndex, newName)
     debounceUpdate(newName, teamIndex, changeTeamNameService)
+  }
+
+  const handleShortName = (teamIndex: number, newShortName: string) => {
+    if (newShortName.length < 11) {
+      changeTeamShortName(teamIndex, newShortName)
+      debounceUpdate(newShortName, teamIndex, changeTeamShortNameService)
+    }
   }
 
   const handleLogoUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,6 +101,16 @@ export function CustomizePanel() {
                 <Input
                   value={team.name}
                   onChange={(e) => handleName(index, e.target.value )}
+                  className="bg-[#2d2b3b] border-0"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm text-white font-semibold">
+                  Team {index + 1} Short Name
+                </Label>
+                <Input
+                  value={team.shortName}
+                  onChange={(e) => handleShortName(index, e.target.value)}
                   className="bg-[#2d2b3b] border-0"
                 />
               </div>

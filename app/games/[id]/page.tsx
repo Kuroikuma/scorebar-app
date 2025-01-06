@@ -20,6 +20,7 @@ import { AlertCircle } from "lucide-react"
 import { StatusGame } from "@/components/statusGame"
 import { Navigation } from "@/components/navigation"
 import { EnhancedRunsTable } from "@/components/overlay/enhanced-runs-table"
+import CustomizeOverlays from "@/components/CustomizeOverlays"
 
 export default function BaseballScoreboard() {
 
@@ -117,9 +118,9 @@ const BaseballScoreboardMovil = () => {
             {activeTab === "customize" && <CustomizePanel />}
             {activeTab === "lineup" && <LineupPanel />}
             {activeTab === 'status' && <StatusGame />}
+            {activeTab === 'overlays' && <CustomizeOverlays />}
           </div>
       </div>
-      <ToggleOverlays />
     </div>
   )
 }

@@ -7,7 +7,7 @@ interface Props {
 
 const AnimatePopLayout = ({ dataNumber, children }: Props) => {
   return (
-    <AnimatePresence mode="popLayout">
+    <AnimatePresence mode="popLayout" initial={false}>
       <motion.div
         key={dataNumber}
         initial={{ y: 20, opacity: 0 }}

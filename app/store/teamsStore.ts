@@ -13,6 +13,7 @@ export type Player = {
 
 export type Team = {
   name: string
+  shortName: string
   runs: number
   color: string
   textColor: string
@@ -43,6 +44,7 @@ export type TeamsState = {
   advanceBatter: (teamIndex: number) => Promise<void>
   updatePlayer: (teamIndex: number, playerIndex: number, player: Player | null) => void
   submitLineup: (teamIndex: number) => Promise<void>
+  changeTeamShortName: (teamIndex: any, newShortName: any) => Promise<void>
 }
 
 export const useTeamsStore = create<TeamsState>((set, get) => ({
@@ -58,7 +60,8 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       errorsGame: 0,
       lineup: [],
       currentBatter: 0,
-      lineupSubmitted: false
+      lineupSubmitted: false,
+      shortName: "HOME"
     },
     { 
       name: "AWAY", 
@@ -70,7 +73,8 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       errorsGame: 0,
       lineup: [],
       currentBatter: 0,
-      lineupSubmitted: false
+      lineupSubmitted: false,
+      shortName: "AWAY"
     },
   ],
   setTeams: (teams) => set({ teams }),
@@ -111,6 +115,13 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     set((state) => ({
       teams: state.teams.map((team, index) => 
         index === teamIndex ? { ...team, name: newName } : team
+      )
+    }))
+  },
+  changeTeamShortName: async (teamIndex, newShortName) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, shortName: newShortName } : team
       )
     }))
   },

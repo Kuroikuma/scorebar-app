@@ -1,10 +1,18 @@
 import { create } from 'zustand'
-import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService, setDHService } from '@/app/service/api'
+import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService, setDHService, handlePositionOverlayServices, handleScaleOverlayServices, handleVisibleOverlayServices } from '@/app/service/api'
 import { Team, useTeamsStore } from './teamsStore'
 import { resetOverlays, setInningMinimal, SetOverlayContent, updateOverlayContent } from '@/app/service/apiOverlays'
 import { ConfigGame, useConfigStore } from './configStore';
 
 export type Status = 'upcoming' | 'in_progress' | 'finished';
+
+export type IOverlays = {
+  visible: boolean;
+  x: number;
+  y: number;
+  scale: number;
+  id: string;
+}
 
 export interface Game {
   id: string | null;
@@ -21,6 +29,11 @@ export interface Game {
   configId: string | ConfigGame;
   date: string | Date;
   isDHEnabled: boolean;
+  scoreboardOverlay: IOverlays;
+  scorebugOverlay: IOverlays;
+  formationAOverlay: IOverlays;
+  formationBOverlay: IOverlays;
+  scoreboardMinimalOverlay: IOverlays;
 }
 
 export interface RunsByInning {
@@ -51,7 +64,7 @@ export type GameState = {
   handleStrikeChange: (newStrikes: number, isSaved?: boolean) => Promise<void>
   handleBallChange: (newBalls: number, isSaved?: boolean) => Promise<void>
   changeGameStatus: (newStatus: 'upcoming' | 'in_progress' | 'finished') => void
-  loadGame: (id: string) => Promise<void>
+  loadGame: (id: string) => Promise<any>
   updateGame: () => Promise<void>
   setScoreBug: (content: any) => Promise<void>
   changeIsTopInning: (isTopInning: boolean) => Promise<void>
@@ -65,6 +78,14 @@ export type GameState = {
   getCurrentBatter: () => { name: string; number: string } | null
   getCurrentPitcher: () => { name: string; number: string } | null
   advanceBatter: () => Promise<void>
+  scoreboardOverlay: IOverlays;
+  scorebugOverlay: IOverlays;
+  formationAOverlay: IOverlays;
+  formationBOverlay: IOverlays;
+  scoreboardMinimalOverlay: IOverlays;
+  handlePositionOverlay: (id: string, data: { x: number; y: number; }) => Promise<void>
+  handleScaleOverlay: (id: string, scale: number) => Promise<void>
+  handleVisibleOverlay: (id: string, visible: boolean) => Promise<void>
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -81,6 +102,41 @@ export const useGameStore = create<GameState>((set, get) => ({
   runsByInning: {},
   hits: 0,
   errorsGame: 0,
+  scoreboardOverlay: {
+    x: 100,
+    y: 100,
+    scale: 100,
+    visible: false,
+    id: "scoreboard"
+  },
+  scorebugOverlay: {
+    x: 200,
+    y: 90,
+    scale: 70,
+    visible: false,
+    id: "scorebug"
+  },
+  formationAOverlay: {
+    x: 0,
+    y: 0,
+    scale: 100,
+    visible: false,
+    id: "formationA"
+  },
+  formationBOverlay: {
+    x: 0,
+    y: 0,
+    scale: 100,
+    visible: false,
+    id: "formationB"
+  },
+  scoreboardMinimalOverlay: {
+    x: 0,
+    y: 0,
+    scale: 100,
+    visible: false,
+    id: "scoreboardMinimal"
+  },
   setInning: (inning) => set({ inning }),
   setIsTopInning: (isTop) => set({ isTopInning: isTop }),
   setBalls: async (balls) => {
@@ -187,10 +243,18 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { outs, id, handleOutsChange, updateGame, setScoreBug: setOverLayOne } = get()
 
     if (newStrikes === 3) {
-      await handleOutsChange(outs + 1, false)
+      if (outs + 1 === 3) {
+        await handleOutsChange(outs + 1, false)  
+      } else {
+        await handleOutsChange(outs + 1, true)
+      }
 
-      if (isSaved) {
+      if (isSaved && outs + 1 === 3) {
         await updateGame()
+      } else {
+        set({ strikes: 0 })
+        await setOverLayOne({ Strikes: 0 })
+        await changeStrikeCount(id!, 0)
       }
     } else {
       set({ strikes: newStrikes })
@@ -250,8 +314,6 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const inningKey = `${inning}T${teamIndex + 1}`; // Ejemplo: "3T1" o "3T2"
 
-    debugger
-
     // Actualiza las carreras por inning
     const updatedRunsByInning = {
       ...runsByInning,
@@ -270,7 +332,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     useTeamsStore.getState().setGameId(id)
     useTeamsStore.getState().setTeams(game.teams)
     useConfigStore.getState().setCurrentConfig(game.configId)
-    set({...game, id: game._id})
+    set({...game, id: game._id, scoreboardOverlay: game.scoreboardOverlay })
+
+    return game
   },
   updateGame: async () => {
     const teamState = useTeamsStore.getState()
@@ -291,6 +355,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       configId: useConfigStore.getState().currentConfig?._id as string,
       date: gameState.date as string,
       isDHEnabled: gameState.isDHEnabled,
+      scoreboardOverlay: gameState.scoreboardOverlay,
+      scorebugOverlay: gameState.scorebugOverlay,
+      formationAOverlay: gameState.formationAOverlay,
+      formationBOverlay: gameState.formationBOverlay,
+      scoreboardMinimalOverlay: gameState.scoreboardMinimalOverlay,
     }
 
     let overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
@@ -365,5 +434,56 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { isTopInning } = get()
     const teamIndex = isTopInning ? 0 : 1
     await useTeamsStore.getState().advanceBatter(teamIndex)
+  },
+
+  handlePositionOverlay: async (id: string, data: { x: number; y: number }) => {
+    const { formationAOverlay, formationBOverlay, scoreboardOverlay, scoreboardMinimalOverlay, scorebugOverlay } = get()
+
+    if (id === formationAOverlay.id) {
+      set({ formationAOverlay: { ...formationAOverlay, x: data.x, y: data.y } })
+    } else if (id === formationBOverlay.id) {
+      set({ formationBOverlay: { ...formationBOverlay, x: data.x, y: data.y } })
+    } else if (id === scoreboardOverlay.id) {
+      set({ scoreboardOverlay: { ...scoreboardOverlay, x: data.x, y: data.y } })
+    } else if (id === scoreboardMinimalOverlay.id) {
+      set({ scoreboardMinimalOverlay: { ...scoreboardMinimalOverlay, x: data.x, y: data.y } })
+    } else if (id === scorebugOverlay.id) {
+      set({ scorebugOverlay: { ...scorebugOverlay, x: data.x, y: data.y } })
+    }
+
+    await handlePositionOverlayServices(id, data, useGameStore.getState().id!)
+  },
+  handleScaleOverlay: async (id: string, scale: number) => {
+    const { scorebugOverlay, scoreboardOverlay, scoreboardMinimalOverlay, formationAOverlay, formationBOverlay } = get()
+
+    if (id === scorebugOverlay.id) {
+      set({ scorebugOverlay: { ...scorebugOverlay, scale: scale } })
+    } else if (id === scoreboardOverlay.id) {
+      set({ scoreboardOverlay: { ...scoreboardOverlay, scale: scale } })
+    } else if (id === scoreboardMinimalOverlay.id) {
+      set({ scoreboardMinimalOverlay: { ...scoreboardMinimalOverlay, scale: scale } })
+    } else if (id === formationAOverlay.id) {
+      set({ formationAOverlay: { ...formationAOverlay, scale: scale } })
+    } else if (id === formationBOverlay.id) {
+      set({ formationBOverlay: { ...formationBOverlay, scale: scale } })
+    }
+
+    await handleScaleOverlayServices(id, scale, useGameStore.getState().id!)
+  },
+  handleVisibleOverlay: async (id: string, visible: boolean) => {
+    const { scorebugOverlay, scoreboardOverlay, scoreboardMinimalOverlay, formationAOverlay, formationBOverlay } = get()
+
+    if (id === scorebugOverlay.id) {
+      set({ scorebugOverlay: { ...scorebugOverlay, visible: visible } })
+    } else if (id === scoreboardOverlay.id) {
+      set({ scoreboardOverlay: { ...scoreboardOverlay, visible: visible } })
+    } else if (id === scoreboardMinimalOverlay.id) {
+      set({ scoreboardMinimalOverlay: { ...scoreboardMinimalOverlay, visible: visible } })
+    } else if (id === formationAOverlay.id) {
+      set({ formationAOverlay: { ...formationAOverlay, visible: visible } })
+    } else if (id === formationBOverlay.id) {
+      set({ formationBOverlay: { ...formationBOverlay, visible: visible } })
+    }
+    await handleVisibleOverlayServices(id, visible, useGameStore.getState().id!)
   },
 }))
