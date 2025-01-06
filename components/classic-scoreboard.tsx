@@ -88,7 +88,7 @@ export function ClassicScoreboard({ orientation = 'vertical' }: ClassicScoreboar
       </div>
 
       {/* Bases */}
-      <div className="relative w-32 h-32 mx-auto my-4 flex justify-center">
+      <div className="relative w-32 h-32 mx-auto my-4 flex justify-end">
         {/* Second Base */}
         <div 
           className={cn(
