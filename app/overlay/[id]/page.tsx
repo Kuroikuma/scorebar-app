@@ -48,11 +48,11 @@ export default function OverlayPage() {
 
   const [gameId, setGameId] = useState<string | null>(id);
 
-  const { loadGame, scoreboardOverlay, scorebugOverlay, formationAOverlay, formationBOverlay, scoreboardMinimalOverlay, handlePositionOverlay } = useGameStore()
+  const { loadOverlay, scoreboardOverlay, scorebugOverlay, formationAOverlay, formationBOverlay, scoreboardMinimalOverlay, handlePositionOverlay } = useGameStore()
 
   useEffect(() => {
     if (id) {
-      loadGame(id).then(game => {
+      loadOverlay(id).then(game => {
         setItems([
           {
             id: game.formationAOverlay.id,
@@ -85,7 +85,7 @@ export default function OverlayPage() {
       });
       setGameId(id);
     }
-  }, [gameId, loadGame, setGameId, paramas, id]);
+  }, [gameId, loadOverlay, setGameId, paramas, id]);
   
   const [mounted, setMounted] = useState(false);
   const [items, setItems] = useState<OverlayItem[]>([]);

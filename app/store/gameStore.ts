@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService, setDHService, handlePositionOverlayServices, handleScaleOverlayServices, handleVisibleOverlayServices } from '@/app/service/api'
+import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService, setDHService, handlePositionOverlayServices, handleScaleOverlayServices, handleVisibleOverlayServices, getOverlay } from '@/app/service/api'
 import { Team, useTeamsStore } from './teamsStore'
 import { resetOverlays, setInningMinimal, SetOverlayContent, updateOverlayContent } from '@/app/service/apiOverlays'
 import { ConfigGame, useConfigStore } from './configStore';
@@ -65,6 +65,7 @@ export type GameState = {
   handleBallChange: (newBalls: number, isSaved?: boolean) => Promise<void>
   changeGameStatus: (newStatus: 'upcoming' | 'in_progress' | 'finished') => void
   loadGame: (id: string) => Promise<any>
+  loadOverlay: (id: string) => Promise<any>
   updateGame: () => Promise<void>
   setScoreBug: (content: any) => Promise<void>
   changeIsTopInning: (isTopInning: boolean) => Promise<void>
@@ -329,6 +330,15 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   loadGame: async (id) => {
     const game = await getGame(id)
+    useTeamsStore.getState().setGameId(id)
+    useTeamsStore.getState().setTeams(game.teams)
+    useConfigStore.getState().setCurrentConfig(game.configId)
+    set({...game, id: game._id, scoreboardOverlay: game.scoreboardOverlay })
+
+    return game
+  },
+  loadOverlay: async (id) => {
+    const game = await getOverlay(id)
     useTeamsStore.getState().setGameId(id)
     useTeamsStore.getState().setTeams(game.teams)
     useConfigStore.getState().setCurrentConfig(game.configId)

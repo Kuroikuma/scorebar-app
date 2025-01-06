@@ -50,6 +50,11 @@ export const getGame = async (id: string) => {
   return response.data;
 };
 
+export const getOverlay = async (id: string) => {
+  const response = await api.get(`/overlay/${id}`);
+  return response.data;
+};
+
 export const getAllGames = async () => {
   const response = await api.get('/games');
   return response.data;
