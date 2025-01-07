@@ -10,6 +10,7 @@ import { EnhancedRunsTable } from "@/components/overlay/enhanced-runs-table";
 import { useParams } from "next/navigation";
 import { useGameStore } from "@/app/store/gameStore";
 import { AnimatePresence, motion } from "framer-motion";
+import { OverlaysItem } from "./OverlaysItem";
 
 const DraggableComponent = dynamic(
   () =>
@@ -32,7 +33,7 @@ interface Position {
   y: number;
 }
 
-interface OverlayItem {
+export interface OverlayItem {
   id: string;
   position: Position;
   component: React.ReactNode;
@@ -50,45 +51,16 @@ export default function OverlayPage() {
 
   const { loadOverlay, scoreboardOverlay, scorebugOverlay, formationAOverlay, formationBOverlay, scoreboardMinimalOverlay, handlePositionOverlay } = useGameStore()
 
+  const overlays = [formationAOverlay, scorebugOverlay, scoreboardOverlay ]
+
   useEffect(() => {
     if (id) {
-      loadOverlay(id).then(game => {
-        setItems([
-          {
-            id: game.formationAOverlay.id,
-            position: { x: game.formationAOverlay.x, y: game.formationAOverlay.y },
-            component: <BaseballFormation />,
-            width: "100%",
-            height: "100%",
-            scale: game.formationAOverlay.scale,
-            visible: game.formationAOverlay.visible,
-          },
-          {
-            id: game.scorebugOverlay.id,
-            position: { x: game.scorebugOverlay.x, y: game.scorebugOverlay.y },
-            component: <ScoreBoard />,
-            width: "100%",
-            height: "100%",
-            scale: game.scorebugOverlay.scale,
-            visible: game.scorebugOverlay.visible,
-          },
-          {
-            id: game.scoreboardOverlay.id,
-            position: { x: game.scoreboardOverlay.x, y: game.scoreboardOverlay.y },
-            component: <EnhancedRunsTable />,
-            width: "100%",
-            height: "100%",
-            scale: game.scoreboardOverlay.scale,
-            visible: game.scoreboardOverlay.visible,
-          }
-        ])
-      });
+      loadOverlay(id);
       setGameId(id);
     }
   }, [gameId, loadOverlay, setGameId, paramas, id]);
   
   const [mounted, setMounted] = useState(false);
-  const [items, setItems] = useState<OverlayItem[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -96,16 +68,6 @@ export default function OverlayPage() {
 
   const handleDragStop = useCallback(
     (id: string, data: { x: number; y: number }) => {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                position: { x: data.x, y: data.y }, // Actualiza posición solo al soltar.
-              }
-            : item
-        )
-      );
       handlePositionOverlay(id, data);
     },
     []
@@ -117,10 +79,11 @@ export default function OverlayPage() {
 
   return (
     <div className="relative w-screen h-[calc(100vh)] bg-[#1a472a00] overflow-hidden">
-      {items.map((item) => (
+      {overlays.map((item) => (
         <DraggableComponent
           key={item.id}
-          defaultPosition={item.position} // Usa `defaultPosition` en lugar de `position`.
+          position={{ x: item.x, y: item.y }} 
+          // defaultPosition={{ x: item.x, y: item.y }} // Usa `defaultPosition` en lugar de `position`.
           onStop={(_: any, data: any) =>
             handleDragStop(item.id, { x: data.x, y: data.y })
           }
@@ -130,27 +93,13 @@ export default function OverlayPage() {
         >
           <div
             className="absolute"
-            style={{ width: item.width, height: item.height }}
+            style={{ width: "100%", height: "100%" }}
           >
             <div style={{ transform: `scale(${item.scale / 100})` }} className={`relative transform scale-[${item.scale / 100}]`}>
               {!item.id.includes("formation") && (
                 <div className="drag-handle absolute -top-2 left-0 right-0 h-6 bg-white/10 rounded-t cursor-move opacity-0 hover:opacity-100 transition-opacity" />
               )}
-              <AnimatePresence mode="popLayout">
-                {
-                  item.visible && (
-                    <motion.div
-                      key={item.id}
-                      initial={{ y: 40, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -40, opacity: 0 }}
-                      transition={{ duration: 2 }}
-                    >
-                      {item.component}
-                    </motion.div>
-                  )
-                }
-              </AnimatePresence>
+              <OverlaysItem item={item} gameId={gameId || ""} />
             </div>
           </div>
         </DraggableComponent>
@@ -159,10 +108,3 @@ export default function OverlayPage() {
   );
 }
 
-const ScoreBoard = () => {
-  return (
-    <div className="flex-1 max-w-[520px] bg-black text-white max-[768px]:px-4 flex flex-col font-['Roboto_Condensed']">
-      <ClassicScoreboard orientation="horizontal" />
-    </div>
-  );
-};

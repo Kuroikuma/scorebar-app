@@ -84,7 +84,7 @@ export type GameState = {
   formationAOverlay: IOverlays;
   formationBOverlay: IOverlays;
   scoreboardMinimalOverlay: IOverlays;
-  handlePositionOverlay: (id: string, data: { x: number; y: number; }) => Promise<void>
+  handlePositionOverlay: (id: string, data: { x: number; y: number; }, isSaved?: boolean) => Promise<void>
   handleScaleOverlay: (id: string, scale: number) => Promise<void>
   handleVisibleOverlay: (id: string, visible: boolean) => Promise<void>
 }
@@ -446,7 +446,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     await useTeamsStore.getState().advanceBatter(teamIndex)
   },
 
-  handlePositionOverlay: async (id: string, data: { x: number; y: number }) => {
+  handlePositionOverlay: async (id: string, data: { x: number; y: number }, isSaved=true) => {
     const { formationAOverlay, formationBOverlay, scoreboardOverlay, scoreboardMinimalOverlay, scorebugOverlay } = get()
 
     if (id === formationAOverlay.id) {
@@ -460,8 +460,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     } else if (id === scorebugOverlay.id) {
       set({ scorebugOverlay: { ...scorebugOverlay, x: data.x, y: data.y } })
     }
-
-    await handlePositionOverlayServices(id, data, useGameStore.getState().id!)
+    if (isSaved) {
+      await handlePositionOverlayServices(id, data, useGameStore.getState().id!)
+    }
   },
   handleScaleOverlay: async (id: string, scale: number) => {
     const { scorebugOverlay, scoreboardOverlay, scoreboardMinimalOverlay, formationAOverlay, formationBOverlay } = get()
