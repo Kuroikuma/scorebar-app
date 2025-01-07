@@ -85,6 +85,7 @@ const  BaseballScoreboardDestok = () => {
         {activeTab === "controls" && <ControlPanel />}
         {activeTab === "customize" && <CustomizePanel />}
         {activeTab === "lineup" && <LineupPanel />}
+        {activeTab === 'overlays' && <CustomizeOverlays />}
       </div>
     </div>
   )

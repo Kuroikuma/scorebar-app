@@ -48,6 +48,7 @@ const CustomizeOverlay = ({ overlay: overaly }: CustomizeOverlayProps) => {
           </Label>
           <Switch
             className="data-[state=checked]:bg-[#4c3f82]"
+            checked={overaly.visible}
             onCheckedChange={(checked) =>
               handleVisibleOverlay(overaly.id, checked)
             }

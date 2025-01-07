@@ -76,6 +76,8 @@ export default function GamesList() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {games.map((game: Game) => (
           <Card key={game._id} className="hover:shadow-lg transition-shadow duration-200">
+              <Link href={`/games/${game._id}`}>
+
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {game.teams[0].name} vs {game.teams[1].name}
@@ -89,10 +91,10 @@ export default function GamesList() {
               <p className="text-xs text-muted-foreground">
                 Status: {game.status.charAt(0).toUpperCase() + game.status.slice(1)}
               </p>
-              <Link href={`/games/${game._id}`}>
                 <Button variant="link" className="mt-2 p-0">View Game</Button>
-              </Link>
+              
             </CardContent>
+            </Link>
           </Card>
         ))}
       </div>
