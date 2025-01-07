@@ -17,7 +17,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
       </head>
       <StrictMode>
-        <body className="antialiased">
+        <body className="antialiased bg-transparent">
           {/* <Navigation /> */}
           <AuthProvider>{children}</AuthProvider>
         </body>

@@ -116,7 +116,7 @@ export default function OverlayPage() {
   }
 
   return (
-    <div className="relative w-screen h-[calc(100vh)] overflow-hidden">
+    <div className="relative w-screen h-[calc(100vh)] bg-[#1a472a00] overflow-hidden">
       {items.map((item) => (
         <DraggableComponent
           key={item.id}
