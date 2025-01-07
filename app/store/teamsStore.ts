@@ -30,6 +30,7 @@ export type TeamsState = {
   teams: Team[]
   setTeams: (teams: Team[]) => void
   incrementRuns: (teamIndex: number, newRuns: number, isSaved?: boolean) => Promise<void>
+  incrementRunsOverlay: (teamIndex: number, runs: number, newRuns: number) => Promise<void>
   changeTeamName: (teamIndex: number, newName: string) => void
   setGameId: (id: string) => void
   changeTeamColor: (teamIndex: any, newColor: any) => Promise<void>
@@ -78,13 +79,23 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     },
   ],
   setTeams: (teams) => set({ teams }),
+  incrementRunsOverlay: async (teamIndex, runs, newRuns) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, runs } : team
+      )
+    }))
+
+    useGameStore.getState().changeRunsByInning(teamIndex, newRuns, false)
+  },
   incrementRuns: async (teamIndex, newRuns, isSaved=true) => {
     set((state) => ({
       teams: state.teams.map((team, index) => 
         index === teamIndex ? { ...team, runs: team.runs + newRuns } : team
       )
     }))
-    useGameStore.getState().changeRunsByInning(teamIndex, newRuns, isSaved)
+
+    await useGameStore.getState().changeRunsByInning(teamIndex, newRuns, isSaved)
 
     let runs = get().teams[teamIndex].runs
 
@@ -92,7 +103,7 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     let content = {
       [contendName]: runs
     };
-    useGameStore.getState().setScoreBoardMinimal(content)
+    // useGameStore.getState().setScoreBoardMinimal(content)
 
     if (get().gameId && isSaved) {
 

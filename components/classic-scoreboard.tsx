@@ -6,6 +6,7 @@ import { useTeamsStore } from '@/app/store/teamsStore'
 import { useUIStore } from '@/app/store/uiStore'
 import { AnimatePresence, motion } from 'framer-motion'
 import AnimatePopLayout from './ui/AnimatePopLayout'
+import Runs from './Runs'
 
 interface ClassicScoreboardProps {
   orientation?: 'horizontal' | 'vertical'
@@ -45,9 +46,7 @@ export function ClassicScoreboard({ orientation = 'vertical' }: ClassicScoreboar
                 </span>
               </div>
             </div>
-            <AnimatePopLayout dataNumber={team.runs}>
-              <span className="text-3xl font-bold pr-[15px]">{team.runs}</span>
-            </AnimatePopLayout>
+            <Runs team={team} />
           </div>
         ))}
         {/* Game Info Row */}

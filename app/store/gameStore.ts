@@ -85,8 +85,8 @@ export type GameState = {
   formationBOverlay: IOverlays;
   scoreboardMinimalOverlay: IOverlays;
   handlePositionOverlay: (id: string, data: { x: number; y: number; }, isSaved?: boolean) => Promise<void>
-  handleScaleOverlay: (id: string, scale: number) => Promise<void>
-  handleVisibleOverlay: (id: string, visible: boolean) => Promise<void>
+  handleScaleOverlay: (id: string, scale: number, isSaved?: boolean) => Promise<void>
+  handleVisibleOverlay: (id: string, visible: boolean, isSaved?: boolean) => Promise<void>
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -322,10 +322,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     };
     set({ runsByInning: updatedRunsByInning });
     
-    setScoreBoard({[inningKey]: (runsByInning[inningKey] || 0) + newRuns})
+    // setScoreBoard({[inningKey]: (runsByInning[inningKey] || 0) + newRuns})
 
     if (id && isSaved) {
-      await changeRunsByInningService(id, {[inningKey]: (runsByInning[inningKey] || 0) + newRuns})
+      await changeRunsByInningService(id, {...runsByInning, [inningKey]: (runsByInning[inningKey] || 0) + newRuns})
     }
   },
   loadGame: async (id) => {
@@ -464,7 +464,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       await handlePositionOverlayServices(id, data, useGameStore.getState().id!)
     }
   },
-  handleScaleOverlay: async (id: string, scale: number) => {
+  handleScaleOverlay: async (id: string, scale: number, isSaved=true) => {
     const { scorebugOverlay, scoreboardOverlay, scoreboardMinimalOverlay, formationAOverlay, formationBOverlay } = get()
 
     if (id === scorebugOverlay.id) {
@@ -479,9 +479,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ formationBOverlay: { ...formationBOverlay, scale: scale } })
     }
 
-    await handleScaleOverlayServices(id, scale, useGameStore.getState().id!)
+    if (isSaved) {
+      await handleScaleOverlayServices(id, scale, useGameStore.getState().id!)
+    }
+
   },
-  handleVisibleOverlay: async (id: string, visible: boolean) => {
+  handleVisibleOverlay: async (id: string, visible: boolean, isSaved=true) => {
     const { scorebugOverlay, scoreboardOverlay, scoreboardMinimalOverlay, formationAOverlay, formationBOverlay } = get()
 
     if (id === scorebugOverlay.id) {
@@ -495,6 +498,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     } else if (id === formationBOverlay.id) {
       set({ formationBOverlay: { ...formationBOverlay, visible: visible } })
     }
-    await handleVisibleOverlayServices(id, visible, useGameStore.getState().id!)
+    if (isSaved) {
+      await handleVisibleOverlayServices(id, visible, useGameStore.getState().id!)
+    }
   },
 }))
