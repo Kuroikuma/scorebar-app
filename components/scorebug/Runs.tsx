@@ -1,5 +1,5 @@
 import { Team, useTeamsStore } from '@/app/store/teamsStore'
-import AnimatePopLayout from './ui/AnimatePopLayout'
+import AnimatePopLayout from '../ui/AnimatePopLayout'
 import { useGameStore } from '@/app/store/gameStore'
 import { useEffect } from 'react'
 import socket from '@/app/service/socket'

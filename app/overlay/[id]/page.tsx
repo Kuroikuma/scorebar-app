@@ -4,7 +4,7 @@ import { useCallback, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import BaseballFormation from "@/components/overlay/improved-field-lineup";
 import { RunsTable } from "@/components/overlay/runs-table";
-import { CompactScoreboard } from "@/components/overlay/compact-scoreboard";
+import { ScorebugClassic } from "@/components/overlay/scorebug-classic";
 import { ClassicScoreboard } from "@/components/classic-scoreboard";
 import { EnhancedRunsTable } from "@/components/overlay/enhanced-runs-table";
 import { useParams } from "next/navigation";

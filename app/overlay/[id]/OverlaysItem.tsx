@@ -6,6 +6,7 @@ import { IOverlays, useGameStore } from '@/app/store/gameStore'
 import { ClassicScoreboard } from '@/components/classic-scoreboard'
 import BaseballFormation from '@/components/overlay/improved-field-lineup'
 import { EnhancedRunsTable } from '@/components/overlay/enhanced-runs-table'
+import { ScorebugClassic } from '@/components/overlay/scorebug-classic'
 
 interface IOverlaysItemProps {
   item: IOverlays
@@ -23,6 +24,10 @@ interface ISocketScale {
 
 interface ISocketVisible {
   visible: boolean
+}
+
+interface ScorebugProps {
+  item: IOverlays
 }
 
 export const OverlaysItem = ({
@@ -60,32 +65,20 @@ export const OverlaysItem = ({
   }, [gameId, item.id])
 
   return (
-    <AnimatePresence mode="popLayout">
-      {item.visible && (
-        <motion.div
-          key={item.id}
-          initial={{ y: 40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -40, opacity: 0 }}
-          transition={{ duration: 2 }}
-        >
-          {item.id === 'scorebug' ? (
-            <ScoreBoard />
-          ) : item.id === 'formationA' ? (
-            <BaseballFormation />
-          ) : item.id === 'scoreboard' ? (
-            <EnhancedRunsTable />
-          ) : null}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
+      item.id === 'scorebug' ? (
+        <ScoreBoard item={item} />
+      ) : item.id === 'formationA' ? (
+        <BaseballFormation />
+      ) : item.id === 'scoreboard' ? (
+        <EnhancedRunsTable />
+      ) : <></>
+    )
 }
 
-const ScoreBoard = () => {
+const ScoreBoard = ({ item }:ScorebugProps) => {
   return (
     <div className="flex-1 max-w-[520px] bg-black text-white max-[768px]:px-4 flex flex-col font-['Roboto_Condensed']">
-      <ClassicScoreboard orientation="horizontal" />
+      <ScorebugClassic item={item} />
     </div>
   )
 }
