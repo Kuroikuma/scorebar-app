@@ -85,7 +85,7 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
 const ScoreBoard = ({ item }: ScorebugProps) => {
   return (
     <div className="flex-1 max-w-[100%] bg-black text-white max-[768px]:px-4 flex flex-col font-['Roboto_Condensed']">
-      <ScoreBugBallySports />
+      <ScoreBugBallySports visible={item.visible} />
     </div>
   )
 }
