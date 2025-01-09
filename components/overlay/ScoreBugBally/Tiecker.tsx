@@ -78,7 +78,7 @@ const tickerStyles = `
     display: inline-block;
     padding: 0 2rem;
     font-size: 2rem;
-    color: white;
+    color: #ffff00;
   }
 `;
 
