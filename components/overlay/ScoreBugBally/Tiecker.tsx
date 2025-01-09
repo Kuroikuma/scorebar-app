@@ -23,7 +23,7 @@ const Ticker = () => {
 
     if (ticker) {
       const totalWidth = ticker.scrollWidth; // Ancho total de todos los anuncios
-      const speed = 80; // Velocidad en píxeles por segundo
+      const speed = 50; // Velocidad en píxeles por segundo
 
       const duration = totalWidth / speed; // Calculamos la duración
       ticker.style.animationDuration = `${duration}s`; // Ajustamos la duración dinámicamente

@@ -39,7 +39,7 @@ const OutsCircle = () => {
           <div
             key={index}
             style={{
-              backgroundColor: index < outs ? currentTeamColor : 'transparent',
+              backgroundColor: index < outs ? currentTeamColor : 'white',
             }}
             className={`w-3 h-3 rounded-full border border-white ${
               index < outs ? 'bg-transparent' : 'bg-transparent'
