@@ -5,10 +5,10 @@ const CurrentPitcher = () => {
   const currentPitcher = getCurrentPitcher()
 
   return (
-    <div className="px-4 flex items-center min-w-[120px]">
+    <div className="px-4 flex items-center">
       {currentPitcher && (
         <div className="text-sm">
-          <span className="font-bold text-2xl">
+          <span className="font-bold text-2xl truncate ...">
             P. {currentPitcher.name.split(' ').pop()?.toUpperCase()}
           </span>
         </div>

@@ -42,13 +42,7 @@ export function BaseRunner() {
       className="grid grid-cols-2 grid-rows-2 gap-1 w-[80px] h-[80px] translate-y-[-26%]  -rotate-45 bg-[#2d2b3b] p-1 drop-shadow-2xl"
     >
       {/* Second Base */}
-      <div
-        className={cn(
-          'border-2',
-          bases[1] ? 'bg-opacity-80' : 'bg-gray-800 border-gray-700'
-        )}
-        style={{ backgroundColor: bases[1] ? currentTeamColor : "white" }}
-      />
+      
       {/* Third Base */}
       <div
         className={cn(
@@ -56,6 +50,13 @@ export function BaseRunner() {
           bases[2] ? 'bg-opacity-80' : 'bg-gray-800 border-gray-700'
         )}
         style={{ backgroundColor: bases[2] ? currentTeamColor : "white" }}
+      />
+      <div
+        className={cn(
+          'border-2',
+          bases[1] ? 'bg-opacity-80' : 'bg-gray-800 border-gray-700'
+        )}
+        style={{ backgroundColor: bases[1] ? currentTeamColor : "white" }}
       />
       {/* First Base */}
       <div

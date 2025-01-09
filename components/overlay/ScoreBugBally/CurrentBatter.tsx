@@ -36,10 +36,10 @@ const CurrentBatter = ({ teamIndex }: ICurrentBatterProps) => {
   }, [ id ])
 
   return (
-    <div className="px-4 flex items-center border-r border-white/20 min-w-[120px]">
+    <div className="px-4 flex items-center border-r border-white/20">
       {currentBatter && (
         <div className="text-sm">
-          <span className="font-bold mr-2 text-2xl">
+          <span className="font-bold mr-2 text-2xl truncate ...">
            {currentBatter.number}. {currentBatter.name.split(' ').pop()?.toUpperCase()}
           </span>
         </div>
