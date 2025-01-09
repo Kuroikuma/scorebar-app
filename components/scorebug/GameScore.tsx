@@ -1,15 +1,16 @@
-import { useGameStore } from '@/app/store/gameStore'
-import AnimatePopLayout from '../ui/AnimatePopLayout'
+import { Balls } from './Balls'
+import { Strikes } from './Strikes'
 
 export default function GameScore() {
-
-  const { balls, strikes } = useGameStore()
-
   return (
     <div className="text-2xl flex gap-1">
-      <AnimatePopLayout dataNumber={balls}>{balls}</AnimatePopLayout>
+      <Balls />
       <span>-</span>
-      <AnimatePopLayout dataNumber={strikes}>{strikes}</AnimatePopLayout>
+      <Strikes />
     </div>
   )
 }
+
+
+
+

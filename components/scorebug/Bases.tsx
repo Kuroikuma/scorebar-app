@@ -1,15 +1,39 @@
 import { cn } from '@/app/lib/utils'
+import socket from '@/app/service/socket'
 import { useGameStore } from '@/app/store/gameStore'
+import { useOverlayStore } from '@/app/store/overlayStore'
 import { useTeamsStore } from '@/app/store/teamsStore'
+import { useEffect } from 'react'
+
+interface ISocketBase {
+  baseIndex: number
+  isOccupied: boolean
+}
 
 export default function Bases() {
 
-  const { isTopInning, bases } = useGameStore()
+  const { isTopInning, bases, id } = useGameStore()
   const { teams } = useTeamsStore()
   const currentTeamColor = teams[isTopInning ? 0 : 1].color;
 
+  const { changeBasesRunnersOverlay } = useOverlayStore();
+
+  useEffect(() => {
+    const eventName = `server:baseRunner/${id}`
+    
+    const updateBaseRunners = (socketData: ISocketBase) => {
+      changeBasesRunnersOverlay(socketData.baseIndex, socketData.isOccupied)
+    }
+
+    socket.on(eventName, updateBaseRunners)
+
+    return () => {
+      socket.off(eventName, updateBaseRunners)
+    }
+  }, [ id ])
+
   return (
-    <div className="relative w-32 h-32 mx-auto  flex justify-end">
+    <div className="relative w-32 h-32 mx-auto flex justify-end">
       {/* Second Base */}
       <div
         className={cn(

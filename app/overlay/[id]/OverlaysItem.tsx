@@ -4,9 +4,12 @@ import { SetStateAction, useEffect } from 'react'
 import socket from '@/app/service/socket'
 import { IOverlays, useGameStore } from '@/app/store/gameStore'
 import { ClassicScoreboard } from '@/components/classic-scoreboard'
-import BaseballFormation from '@/components/overlay/improved-field-lineup'
+import BaseballFormation, {
+  BaseballFormationOverlay,
+} from '@/components/overlay/improved-field-lineup'
 import { EnhancedRunsTable } from '@/components/overlay/enhanced-runs-table'
 import { ScorebugClassic } from '@/components/overlay/scorebug-classic'
+import { ScoreBugBallySports } from '@/components/overlay/ScoreBugBally'
 
 interface IOverlaysItemProps {
   item: IOverlays
@@ -30,19 +33,21 @@ interface ScorebugProps {
   item: IOverlays
 }
 
-export const OverlaysItem = ({
-  item,
-  gameId,
-}: IOverlaysItemProps) => {
-  const { handlePositionOverlay, handleVisibleOverlay, handleScaleOverlay } = useGameStore()
+export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
+  const { handlePositionOverlay, handleVisibleOverlay, handleScaleOverlay } =
+    useGameStore()
 
   useEffect(() => {
     const eventName = `server:handlePositionOverlay/${gameId}/${item.id}`
     const eventNameScale = `server:handleScaleOverlay/${gameId}/${item.id}`
     const eventNameVisible = `server:handleVisibleOverlay/${gameId}/${item.id}`
-    
+
     const handlePosition = (imagesSocket: ISocketPosition) => {
-      handlePositionOverlay(item.id, { x: imagesSocket.x, y: imagesSocket.y }, false)
+      handlePositionOverlay(
+        item.id,
+        { x: imagesSocket.x, y: imagesSocket.y },
+        false
+      )
     }
 
     const handleScale = (imagesSocket: ISocketScale) => {
@@ -64,21 +69,23 @@ export const OverlaysItem = ({
     }
   }, [gameId, item.id])
 
-  return (
-      item.id === 'scorebug' ? (
-        <ScoreBoard item={item} />
-      ) : item.id === 'formationA' ? (
-        <BaseballFormation />
-      ) : item.id === 'scoreboard' ? (
-        <EnhancedRunsTable />
-      ) : <></>
-    )
+  return item.id === 'scorebug' ? (
+    <ScoreBoard item={item} />
+  ) : item.id === 'formationA' ? (
+    <BaseballFormationOverlay overlayId="formationA" visible={item.visible} />
+  ) : item.id === 'formationB' ? (
+    <BaseballFormationOverlay overlayId="formationB" visible={item.visible} />
+  ) : item.id === 'scoreboard' ? (
+    <EnhancedRunsTable visible={item.visible} />
+  ) : (
+    <></>
+  )
 }
 
-const ScoreBoard = ({ item }:ScorebugProps) => {
+const ScoreBoard = ({ item }: ScorebugProps) => {
   return (
-    <div className="flex-1 max-w-[520px] bg-black text-white max-[768px]:px-4 flex flex-col font-['Roboto_Condensed']">
-      <ScorebugClassic item={item} />
+    <div className="flex-1 max-w-[100%] bg-black text-white max-[768px]:px-4 flex flex-col font-['Roboto_Condensed']">
+      <ScoreBugBallySports />
     </div>
   )
 }

@@ -34,7 +34,7 @@ const Runs = ({ team }: RunsProps) => {
   }, [ id ])
   return (
     <AnimatePopLayout dataNumber={team.runs}>
-      <span className="text-3xl font-bold pr-[15px]">{team.runs}</span>
+      <span className="text-3xl font-bold">{team.runs}</span>
     </AnimatePopLayout>
   )
 }

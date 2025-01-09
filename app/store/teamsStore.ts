@@ -42,7 +42,7 @@ export type TeamsState = {
   decrementHits: (newHits:number) => Promise<void>
   decrementErrors: (newErrors:number) => Promise<void>
   updateLineup: (teamIndex: number, lineup: Player[]) => void
-  advanceBatter: (teamIndex: number) => Promise<void>
+  advanceBatter: (teamIndex: number, isSaved?: boolean) => void
   updatePlayer: (teamIndex: number, playerIndex: number, player: Player | null) => void
   submitLineup: (teamIndex: number) => Promise<void>
   changeTeamShortName: (teamIndex: any, newShortName: any) => Promise<void>
@@ -155,17 +155,18 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
     set((state) => ({
       teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, hits: team.hits + newHits } : team
+        index === teamIndex ? { ...team, hits: team.hits + 1 } : team
       )
     }))
-    const { updateHits } = get()
+    const { updateHits, advanceBatter } = get()
     updateHits(get().teams[teamIndex].hits, teamIndex)
+    advanceBatter(teamIndex)
   },
   decrementHits: async (newHits) => {
     const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
     set((state) => ({
       teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, hits: team.hits - newHits } : team
+        index === teamIndex ? { ...team, hits: team.hits - 1 } : team
       )
     }))
     const { updateHits } = get()
@@ -175,7 +176,7 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
     set((state) => ({
       teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, errorsGame: team.errorsGame + newErrors } : team
+        index === teamIndex ? { ...team, errorsGame: team.errorsGame + 1 } : team
       )
     }))
     const { updateErrors } = get()
@@ -185,7 +186,7 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
     set((state) => ({
       teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, errorsGame: team.errorsGame - newErrors } : team
+        index === teamIndex ? { ...team, errorsGame: team.errorsGame - 1 } : team
       )
     }))
     const { updateErrors } = get()
@@ -220,7 +221,7 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       index === teamIndex ? { ...team, lineup } : team
     )
   })),//advanceBatterService
-  advanceBatter: async (teamIndex) => {
+  advanceBatter: async (teamIndex, isSaved=true) => {
     let nextBatter = 1;
 
     set((state) => {
@@ -241,8 +242,10 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
         )
       };
     })
-    setActiveNumber((nextBatter + 1), teamIndex)
-    await advanceBatterService(useGameStore.getState().id!, teamIndex, nextBatter)
+    // setActiveNumber((nextBatter + 1), teamIndex)
+    if (isSaved) {
+      await advanceBatterService(useGameStore.getState().id!, teamIndex, nextBatter)
+    }
   },
   updatePlayer: (teamIndex, playerIndex, player) => set((state) => {
     const team = state.teams[teamIndex];

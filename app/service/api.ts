@@ -3,6 +3,7 @@ import axios from 'axios';
 import { setCustomationFieldAll } from './apiOverlays';
 import { Player, useTeamsStore } from '@/app/store/teamsStore';
 import { ConfigGame } from '../store/configStore';
+import socket from './socket';
 
 interface IUpdateLineupTeam {
   teamIndex: number;
@@ -14,11 +15,18 @@ const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api',
 });
 
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers['Access-Control-Allow-Origin'] = '*';
     config.headers.Authorization = `Bearer ${token}`;
+
+    if (!config.data) {
+      config.data = {};
+    }
+
+    config.data.socketId = socket.id || "";
   }
   return config;
 });

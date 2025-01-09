@@ -2,14 +2,8 @@
 
 import { useCallback, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-import BaseballFormation from "@/components/overlay/improved-field-lineup";
-import { RunsTable } from "@/components/overlay/runs-table";
-import { ScorebugClassic } from "@/components/overlay/scorebug-classic";
-import { ClassicScoreboard } from "@/components/classic-scoreboard";
-import { EnhancedRunsTable } from "@/components/overlay/enhanced-runs-table";
 import { useParams } from "next/navigation";
 import { useGameStore } from "@/app/store/gameStore";
-import { AnimatePresence, motion } from "framer-motion";
 import { OverlaysItem } from "./OverlaysItem";
 
 const DraggableComponent = dynamic(
@@ -51,7 +45,7 @@ export default function OverlayPage() {
 
   const { loadOverlay, scoreboardOverlay, scorebugOverlay, formationAOverlay, formationBOverlay, scoreboardMinimalOverlay, handlePositionOverlay } = useGameStore()
 
-  const overlays = [formationAOverlay, scorebugOverlay, scoreboardOverlay ]
+  const overlays = [formationAOverlay, scorebugOverlay, scoreboardOverlay, formationBOverlay ]
 
   useEffect(() => {
     if (id) {
