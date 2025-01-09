@@ -39,7 +39,7 @@ export function BaseRunner() {
       style={{
         clipPath: 'polygon(100% 0, 100% 100%, 35% 100%, 0 65%, 0 0)',
       }}
-      className="grid grid-cols-2 grid-rows-2 gap-1 w-[60px] h-[60px] translate-y-[-26%]  -rotate-45 bg-[#2d2b3b] p-1 drop-shadow-2xl"
+      className="grid grid-cols-2 grid-rows-2 gap-1 w-[80px] h-[80px] translate-y-[-26%]  -rotate-45 bg-[#2d2b3b] p-1 drop-shadow-2xl"
     >
       {/* Second Base */}
       <div

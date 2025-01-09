@@ -11,14 +11,14 @@ const Teams = () => {
   const currentTeamColor = teams[isTopInning ? 0 : 1].color
 
   return (
-    <div className="flex relative top-[-85%] h-[90px] gap-1">
+    <div className="flex relative top-[-65%] h-[90px] gap-1">
       {teams.map((team, index) => (
         <div className="flex flex-col">
           <CurrentPlayer teamIndex={index} color={team.color} />
-          <div className="flex h-[50px] border-y-4 border-white">
+          <div className="flex h-[68px] border-y-4 border-white">
             <div
               key={team.name}
-              className="flex items-stretch w-full h-[46px] border-2 border-white"
+              className="flex items-stretch w-full h-[60px] border-2 border-white"
             >
               {/* Team Info */}
               <div className={`flex flex-1 items-center justify-center`}>

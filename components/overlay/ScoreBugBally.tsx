@@ -55,10 +55,10 @@ export function ScoreBugBallySports({ visible }: ScorebugClassicProps) {
               background:
                 'linear-gradient(90deg, rgba(245,10,10,1) 0%, rgba(0,0,255,1) 100%)',
             }}
-            className="w-full h-[46px] border-y-2 border-white text-white font-['Roboto_Condensed'] flex relative"
+            className="w-full h-[60px] border-y-2 border-white text-white font-['Roboto_Condensed'] flex relative"
           >
             {/* Team Sections */}
-            <div className="relative w-[46px] h-[46px] overflow-hidden">
+            <div className="relative w-[60px] h-[60px] overflow-hidden">
               <img
                 src="/logo-st-activo.png"
                 alt={`logo`}
