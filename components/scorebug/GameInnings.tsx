@@ -16,7 +16,11 @@ export interface ISocketData {
   bases: boolean[]
 }
 
-const GameInnings = () => {
+interface IGameInningsProps {
+  classes?: string
+}
+
+const GameInnings = ({ classes = "" }: IGameInningsProps) => {
   const { inning, isTopInning, id } = useGameStore()
   const { teams } = useTeamsStore()
   const currentTeamColor = teams[isTopInning ? 0 : 1].color
@@ -44,7 +48,7 @@ const GameInnings = () => {
         fill={currentTeamColor}
       />
       <AnimatePopLayout dataNumber={inning}>
-        <span className="text-2xl">{inning}</span>
+        <span className={`text-2xl ${classes}`}>{inning}</span>
       </AnimatePopLayout>
     </div>
   )

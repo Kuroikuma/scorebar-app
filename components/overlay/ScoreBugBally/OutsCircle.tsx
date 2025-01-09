@@ -33,7 +33,7 @@ const OutsCircle = () => {
   }, [ id ])
 
   return (
-    <div className="col-start-1 row-start-2 flex items-center translate-x-[-2%] translate-y-[-12%] rotate-45">
+    <div className="col-start-1 row-start-2 flex items-center translate-x-[-1%] translate-y-[-6%] rotate-45">
       <div className="flex gap-1">
         {[...Array(2)].map((_, index) => (
           <div
@@ -41,7 +41,7 @@ const OutsCircle = () => {
             style={{
               backgroundColor: index < outs ? currentTeamColor : 'white',
             }}
-            className={`w-3 h-3 rounded-full border border-white ${
+            className={`w-4 h-4 rounded-full border border-white ${
               index < outs ? 'bg-transparent' : 'bg-transparent'
             }`}
           />

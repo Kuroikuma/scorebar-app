@@ -71,13 +71,13 @@ export function ScoreBugBallySports({ visible }: ScorebugClassicProps) {
             <div className="flex items-stretch flex-1">
               {/* Inning Indicator */}
               <div className="px-4 flex items-center gap-2 border-r border-white/20">
-                <GameInnings />
+                <GameInnings classes="text-3xl" />
               </div>
 
               <BaseRunner />
 
               <div className="px-4 flex items-center gap-6 border-r border-white/20">
-                <GameScore />
+                <GameScore classes="text-3xl" />
               </div>
               <Ticker />
             </div>

@@ -77,7 +77,7 @@ const tickerStyles = `
   .ticker-item {
     display: inline-block;
     padding: 0 2rem;
-    font-size: 1.5rem;
+    font-size: 2rem;
     color: white;
   }
 `;

@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 
 interface ShortNameProps {
   team: Team
+  classes?: string
 }
 
 interface ISocketShortName {
@@ -13,7 +14,7 @@ interface ISocketShortName {
   teamIndex: number
 }
 
-export function ShortName({ team }: ShortNameProps) {
+export function ShortName({ team, classes = "" }: ShortNameProps) {
 
   const { id } = useGameStore()
 
@@ -33,5 +34,5 @@ export function ShortName({ team }: ShortNameProps) {
     }
   }, [ id ])
 
-  return <div className="font-bold">{team.shortName}</div>
+  return <div className={`font-bold ${classes}`}>{team.shortName}</div>
 }

@@ -8,7 +8,7 @@ const CurrentPitcher = () => {
     <div className="px-4 flex items-center min-w-[120px]">
       {currentPitcher && (
         <div className="text-sm">
-          <span className="font-bold">
+          <span className="font-bold text-2xl">
             P. {currentPitcher.name.split(' ').pop()?.toUpperCase()}
           </span>
         </div>

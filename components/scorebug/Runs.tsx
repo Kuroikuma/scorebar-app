@@ -1,4 +1,4 @@
-import { Team, useTeamsStore } from '@/app/store/teamsStore'
+import { Team } from '@/app/store/teamsStore'
 import AnimatePopLayout from '../ui/AnimatePopLayout'
 import { useGameStore } from '@/app/store/gameStore'
 import { useEffect } from 'react'
@@ -7,6 +7,7 @@ import { useOverlayStore } from '@/app/store/overlayStore'
 
 interface RunsProps {
   team: Team
+  classes?: string
 }
 
 interface ISocketRuns {
@@ -15,7 +16,7 @@ interface ISocketRuns {
   runsInning: number
 }
 
-const Runs = ({ team }: RunsProps) => {
+const Runs = ({ team, classes = "" }: RunsProps) => {
   const { id } = useGameStore();
   const { incrementRunsOverlay } = useOverlayStore();
 
@@ -34,7 +35,7 @@ const Runs = ({ team }: RunsProps) => {
   }, [ id ])
   return (
     <AnimatePopLayout dataNumber={team.runs}>
-      <span className="text-3xl font-bold">{team.runs}</span>
+      <span className={`text-3xl font-bold ${classes}`}>{team.runs}</span>
     </AnimatePopLayout>
   )
 }

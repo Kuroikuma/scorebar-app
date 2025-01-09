@@ -1,9 +1,13 @@
 import { Balls } from './Balls'
 import { Strikes } from './Strikes'
 
-export default function GameScore() {
+interface IGameScoreProps {
+  classes?: string
+}
+
+export default function GameScore({ classes = "" }: IGameScoreProps) {
   return (
-    <div className="text-2xl flex gap-1">
+    <div className={`text-2xl flex gap-1 ${classes}`}>
       <Balls />
       <span>-</span>
       <Strikes />
