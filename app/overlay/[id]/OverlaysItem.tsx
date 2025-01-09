@@ -10,6 +10,7 @@ import BaseballFormation, {
 import { EnhancedRunsTable } from '@/components/overlay/enhanced-runs-table'
 import { ScorebugClassic } from '@/components/overlay/scorebug-classic'
 import { ScoreBugBallySports } from '@/components/overlay/ScoreBugBally'
+import { InningScoreOverlay } from '@/components/overlay/inning-score-overlay'
 
 interface IOverlaysItemProps {
   item: IOverlays
@@ -77,9 +78,9 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
     <BaseballFormationOverlay overlayId="formationB" visible={item.visible} />
   ) : item.id === 'scoreboard' ? (
     <EnhancedRunsTable visible={item.visible} />
-  ) : (
-    <></>
-  )
+  ) : item.id === 'scoreboardMinimal' ? (
+    <InningScoreOverlay />
+  ) : <></>
 }
 
 const ScoreBoard = ({ item }: ScorebugProps) => {
