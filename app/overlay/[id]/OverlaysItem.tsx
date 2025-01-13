@@ -79,7 +79,7 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
   ) : item.id === 'scoreboard' ? (
     <EnhancedRunsTable visible={item.visible} />
   ) : item.id === 'scoreboardMinimal' ? (
-    <InningScoreOverlay />
+    <InningScoreOverlay visible={item.visible} />
   ) : <></>
 }
 
