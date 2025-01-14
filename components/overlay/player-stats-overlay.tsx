@@ -110,13 +110,7 @@ export function PlayerStatsOverlay() {
               </div>
             </div>
 
-            <div
-              style={{ borderColor: '#335b7b', backgroundColor: '#0a2e4b' }}
-              className="flex flex-col items-center justify-center border-x-[2px] px-2 h-full text-white"
-            >
-              <span className="text-2xl leading-6">{position}</span>
-              <span className="text-2xl font-bold leading-6">{number}</span>
-            </div>
+            
 
             <div className="px-4 text-white">
               <div className="flex flex-col items-start justify-center">
@@ -128,10 +122,17 @@ export function PlayerStatsOverlay() {
                 </span>
               </div>
             </div>
+            <div
+              style={{ borderColor: '#335b7b', backgroundColor: '#0a2e4b' }}
+              className="flex flex-col items-center justify-center border-x-[2px] px-2 h-full text-white"
+            >
+              <span className="text-2xl leading-6">{position}</span>
+              <span className="text-2xl font-bold leading-6">{number}</span>
+            </div>
             {/* Inning Indicator */}
             <div
               style={{ borderColor: '#335b7b' }}
-              className="flex flex-col items-center justify-center border-r-[2px] h-full pr-1"
+              className="flex flex-col items-center justify-center border-r-[2px] h-full pr-1 pl-1"
             >
               {[
                 anteriorDelAnteriorBattingOrder,
@@ -153,7 +154,7 @@ export function PlayerStatsOverlay() {
           </div>
 
           {/* Performance Indicators */}
-          <div className="flex flex-col items-start justify-center gap-1 pl-4">
+          <div className="flex flex-col items-start justify-center gap-1 pl-6">
             <motion.div
               className="text-white text-sm font-bold stat-shimmer"
               animate={{ opacity: [1, 0.8, 1] }}
