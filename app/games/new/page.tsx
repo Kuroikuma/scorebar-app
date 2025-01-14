@@ -87,6 +87,13 @@ export default function NewGame() {
           visible: false,
           id: "scoreboardMinimal"
         },
+        playerStatsOverlay: {
+          x: 0,
+          y: 0,
+          scale: 100,
+          visible: false,
+          id: "playerStats"
+        },
       }
       
       const newGame = await createGame(dataCreate);
