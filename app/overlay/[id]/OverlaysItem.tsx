@@ -4,13 +4,12 @@ import { SetStateAction, useEffect } from 'react'
 import socket from '@/app/service/socket'
 import { IOverlays, useGameStore } from '@/app/store/gameStore'
 import { ClassicScoreboard } from '@/components/classic-scoreboard'
-import BaseballFormation, {
-  BaseballFormationOverlay,
-} from '@/components/overlay/improved-field-lineup'
+import { BaseballFormationOverlay } from '@/components/overlay/improved-field-lineup'
 import { EnhancedRunsTable } from '@/components/overlay/enhanced-runs-table'
 import { ScorebugClassic } from '@/components/overlay/scorebug-classic'
 import { ScoreBugBallySports } from '@/components/overlay/ScoreBugBally'
 import { InningScoreOverlay } from '@/components/overlay/inning-score-overlay'
+import { PlayerOverlay } from '@/components/overlay/player-stats-overlay'
 
 interface IOverlaysItemProps {
   item: IOverlays
@@ -80,7 +79,9 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
     <EnhancedRunsTable visible={item.visible} />
   ) : item.id === 'scoreboardMinimal' ? (
     <InningScoreOverlay visible={item.visible} />
-  ) : <></>
+  ) : item.id === 'playerStats' ? (
+    <PlayerOverlay visible={item.visible} />
+    ) : <></>
 }
 
 const ScoreBoard = ({ item }: ScorebugProps) => {

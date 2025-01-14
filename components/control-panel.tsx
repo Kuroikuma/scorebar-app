@@ -20,6 +20,8 @@ import { Label } from "@/components/ui/label"
 import { useTeamsStore } from "@/app/store/teamsStore"
 import { useGameStore } from "@/app/store/gameStore"
 import { useUIStore } from "@/app/store/uiStore"
+import { HitPlay } from "./hitPlay"
+import { ErrorPlay } from "./errorPlay"
 
 export function ControlPanel() {
   const { 
@@ -44,10 +46,9 @@ export function ControlPanel() {
       </CardHeader>
       <CardContent className="space-y-6">
 
-      <div className="space-y-2">
-        <Button onClick={handleHit} className="w-full bg-[#4c3f82] hover:bg-[#5a4b99]">
-        Golpe de hit / Bateador avanza
-        </Button>
+      <div className="flex items-center gap-2">
+        <HitPlay />
+        <ErrorPlay />
       </div>
 
         {/* Scoreboard Style */}

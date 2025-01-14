@@ -16,8 +16,8 @@ export function LineupPanel() {
   const { teams, updatePlayer, submitLineup } = useTeamsStore()
   const { isDHEnabled, setIsDHEnabled } = useGameStore()
   const [newPlayers, setNewPlayers] = useState<[Player, Player]>([
-    { name: '', position: '', number: '', battingOrder: 0 },
-    { name: '', position: '', number: '', battingOrder: 0 }
+    { name: '', position: '', number: '', battingOrder: 0, turnsAtBat: [], defensiveOrder: 0 },
+    { name: '', position: '', number: '', battingOrder: 0, turnsAtBat: [], defensiveOrder: 0 }
   ])
   
   const [editingPlayer, setEditingPlayer] = useState<{ teamIndex: number, playerIndex: number } | null>(null)
@@ -60,7 +60,7 @@ export function LineupPanel() {
       }
       setNewPlayers(prev => {
         const newState = [...prev] as [Player, Player]
-        newState[teamIndex] = { name: '', position: '', number: '', battingOrder: 0 }
+        newState[teamIndex] = { name: '', position: '', number: '', battingOrder: 0, defensiveOrder:0, turnsAtBat:[] }
         return newState
       })
     }

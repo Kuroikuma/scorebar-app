@@ -4,11 +4,42 @@ import { setActiveNumber, setLineupOverlay, SetOverlayContent } from '@/app/serv
 import { useGameStore } from './gameStore'
 import { useConfigStore } from './configStore'
 
+export enum TypeHitting {
+  Single = "Sencillo",//1B
+  Double = "Doble",//2B
+  Triple = "Triple",//3B
+  HomeRun = "Cuadrangular", //HR
+  BaseByBall = "Base por bola",//BB
+  Out = "Out", // También puedes incluir "Out" como un tipo de bateo
+  HitByPitch = "Golpe por lanzamiento", // HBP 
+  ErrorPlay = "Error de juego"
+}
+
+export enum TypeAbbreviatedBatting {
+  Single = "1B",
+  Double = "2B",
+  Triple = "3B",
+  HomeRun = "HR",
+  Out = "O",
+  BaseBayBall = "BB",
+  HitByPitch = "HBP",
+  ErrorPlay = "Err"
+}
+
+export interface ITurnAtBat {
+  inning: number;
+  typeHitting: TypeHitting
+  typeAbbreviatedBatting: TypeAbbreviatedBatting
+  errorPlay: string
+}
+
 export type Player = {
   name: string
   position: string
   number: string
   battingOrder: number
+  turnsAtBat: ITurnAtBat[];
+  defensiveOrder: number;
 }
 
 export type Team = {

@@ -1,7 +1,7 @@
 import { Game, RunsByInning, Status } from '@/app/store/gameStore';
 import axios from 'axios';
 import { setCustomationFieldAll } from './apiOverlays';
-import { Player, useTeamsStore } from '@/app/store/teamsStore';
+import { Player, Team, useTeamsStore } from '@/app/store/teamsStore';
 import { ConfigGame } from '../store/configStore';
 import socket from './socket';
 
@@ -209,6 +209,11 @@ export const handleScaleOverlayServices = async (id: string, scale: number, game
 
 export const handleVisibleOverlayServices = async (id: string, visible: boolean, gameId: string) => {
   const response = await api.put(`/games/overlay/visible`, { visible, id, gameId });
+  return response.data;
+};
+
+export const handlePlayServices = async (id: string, teamIndex: number, team: Team, bases: boolean[]) => {
+  const response = await api.put(`/games/overlay/play`, {  id, teamIndex, team, bases });
   return response.data;
 };
 

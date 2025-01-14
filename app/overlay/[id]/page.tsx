@@ -43,9 +43,9 @@ export default function OverlayPage() {
 
   const [gameId, setGameId] = useState<string | null>(id);
 
-  const { loadOverlay, scoreboardOverlay, scorebugOverlay, formationAOverlay, formationBOverlay, scoreboardMinimalOverlay, handlePositionOverlay } = useGameStore()
+  const { loadOverlay, scoreboardOverlay, scorebugOverlay, formationAOverlay, formationBOverlay, scoreboardMinimalOverlay, playerStatsOverlay, handlePositionOverlay } = useGameStore()
 
-  const overlays = [formationAOverlay, scorebugOverlay, scoreboardOverlay, formationBOverlay, scoreboardMinimalOverlay ]
+  const overlays = [formationAOverlay, scorebugOverlay, scoreboardOverlay, formationBOverlay, scoreboardMinimalOverlay, playerStatsOverlay ]
 
   useEffect(() => {
     if (id) {
