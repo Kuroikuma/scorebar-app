@@ -34,6 +34,20 @@ export function PlayerStatsOverlay() {
   } = usePlayer()
 
   let totalInnings = Array.from({ length: 9 }, (_, i) => i + 1)
+  const adjustIndex = (index: number, total: number) => (index + total) % total
+
+  const totalPlayers = 9
+
+  const anteriorBattingOrder = adjustIndex(battingOrder - 1, totalPlayers)
+  const posteriorBattingOrder = adjustIndex(battingOrder + 1, totalPlayers)
+  const anteriorDelAnteriorBattingOrder = adjustIndex(
+    battingOrder - 2,
+    totalPlayers
+  )
+  const posteriorDelPosteriorBattingOrder = adjustIndex(
+    battingOrder + 2,
+    totalPlayers
+  )
 
   return (
     <>
@@ -69,7 +83,8 @@ export function PlayerStatsOverlay() {
         <div
           className="h-[100px] relative flex overflow-hidden rounded-lg"
           style={{
-            background: 'linear-gradient(90deg, rgba(1,47,85,1) 0%, rgba(0,0,0,1) 100%)',
+            background:
+              'linear-gradient(90deg, rgba(1,47,85,1) 0%, rgba(0,0,0,1) 100%)',
             // background: 'linear-gradient(90deg, rgba(245,10,10,1) 0%, rgba(0,0,255,1) 100%)',
             boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
           }}
@@ -91,17 +106,16 @@ export function PlayerStatsOverlay() {
                 className="text-[40px] font-bold text-white"
                 style={{ textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
               >
-                <img
-                  src={logo}
-                  alt={`logo`}
-                  style={{ objectFit: 'contain' }}
-                />
+                <img src={logo} alt={`logo`} style={{ objectFit: 'contain' }} />
               </div>
             </div>
 
-            <div style={{borderColor: "#335b7b", backgroundColor:"#0a2e4b"}} className="flex flex-col items-center justify-center border-x-[2px] px-2 h-full text-white">
-              <span className="text-2xl">{position}</span>
-              <span className="text-2xl">{number}</span>
+            <div
+              style={{ borderColor: '#335b7b', backgroundColor: '#0a2e4b' }}
+              className="flex flex-col items-center justify-center border-x-[2px] px-2 h-full text-white"
+            >
+              <span className="text-2xl leading-6">{position}</span>
+              <span className="text-2xl font-bold leading-6">{number}</span>
             </div>
 
             <div className="px-4 text-white">
@@ -115,18 +129,33 @@ export function PlayerStatsOverlay() {
               </div>
             </div>
             {/* Inning Indicator */}
-            <div className="relative flex items-center justify-center">
-              <Diamond className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-              <span className="absolute text-[10px] font-bold">
-                {battingOrder}
-              </span>
+            <div
+              style={{ borderColor: '#335b7b' }}
+              className="flex flex-col items-center justify-center border-r-[2px] h-full pr-1"
+            >
+              {[
+                anteriorDelAnteriorBattingOrder,
+                anteriorBattingOrder,
+                battingOrder,
+                posteriorBattingOrder,
+                posteriorDelPosteriorBattingOrder,
+              ].map((order, index) => (
+                <span
+                  key={index}
+                  className={`text-[${index === 2 ? '16px' : '12px'}] ${
+                    index === 2 ? 'text-white font-bold' : 'text-slate-400'
+                  }`}
+                >
+                  {order}
+                </span>
+              ))}
             </div>
           </div>
 
           {/* Performance Indicators */}
-          <div className="flex flex-col items-start justify-center gap-1">
+          <div className="flex flex-col items-start justify-center gap-1 pl-4">
             <motion.div
-              className="text-yellow-400 text-sm font-bold stat-shimmer"
+              className="text-white text-sm font-bold stat-shimmer"
               animate={{ opacity: [1, 0.8, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -134,24 +163,34 @@ export function PlayerStatsOverlay() {
             </motion.div>
 
             <div className="flex items-center gap-1">
-              {totalInnings.map((item, index) => (
-                <motion.div
-                  key={`indicator-${item}`}
-                  className="relative flex items-center justify-center"
-                  transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                >
-                  <Diamond
-                    className={`w-8 h-8 ${
-                      item ? 'text-white/40' : 'text-white/30'
-                    }`}
-                  />
-                  {item && (
-                    <span className="absolute text-[10px] font-bold text-white/70">
-                      1B
-                    </span>
-                  )}
-                </motion.div>
-              ))}
+              {totalInnings.map((item, index) => {
+                const turnAtBat = turnsAtBat.find((turn) => turn.inning === item)
+                return (
+                  <motion.div
+                    key={`indicator-${item}`}
+                    className="relative flex items-center justify-center"
+                    transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                  >
+                    <Diamond
+                      className={`w-14 h-14 ${
+                        turnAtBat
+                          ? 'text-yellow-400'
+                          : 'text-white/30'
+                      }`}
+                    />
+                    {item && (
+                      <>
+                        <span className="absolute text-[18px] font-bold text-white/70">
+                          {turnAtBat ? turnAtBat.typeAbbreviatedBatting : ''}
+                        </span>
+                        <span className='absolute top-0 left-0 text-[14px] font-bold text-white/70'>
+                          {item}
+                        </span>
+                      </>
+                    )}
+                  </motion.div>
+                )
+              })}
             </div>
           </div>
 

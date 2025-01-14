@@ -39,7 +39,14 @@ const usePlayer = (): IReturneUsePlayer => {
   const { position, number, name, battingOrder, turnsAtBat, defensiveOrder } =
     player
 
-  const totalTurnsAtBat = turnsAtBat.length
+  const totalTurnsAtBat = turnsAtBat.filter(
+    (turnAtBat) =>
+      ![
+        TypeAbbreviatedBatting.BaseBayBall,
+        TypeAbbreviatedBatting.HitByPitch,
+        TypeAbbreviatedBatting.ErrorPlay,
+      ].includes(turnAtBat.typeAbbreviatedBatting)
+  ).length
 
   // Filtramos los turnos que representan un hit válido
   const numberOfHits = turnsAtBat.filter(
