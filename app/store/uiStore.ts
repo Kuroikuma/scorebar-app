@@ -1,4 +1,3 @@
-import { setCustomizationField } from '@/app/service/apiOverlays'
 import { create } from 'zustand'
 import { useConfigStore } from './configStore'
 
@@ -35,12 +34,10 @@ export const useUIStore = create<UIState>((set) => ({
   setHorizontalPosition: (position) => {
     set({ horizontalPosition: position })
     const overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string
-    setCustomizationField(overlayId, "Horizontal Position", position)
   },
   setVerticalPosition: (position) => {
     set({ verticalPosition: position })
     const overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string
-    setCustomizationField(overlayId, "Vertical Position", position)
   },
 }))
 

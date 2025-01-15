@@ -3,7 +3,6 @@ import { useTeamsStore } from "@/app/store/teamsStore"
 import { Button } from "./ui/button"
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
 import { AlertCircle } from "lucide-react"
-import { showBattingOrder } from "@/app/service/apiOverlays"
 
 export const StatusGame = () => {
    const { getCurrentBatter, getCurrentPitcher, status, startGame, endGame } = useGameStore()
@@ -12,6 +11,8 @@ export const StatusGame = () => {
     const currentBatter = getCurrentBatter()
     const currentPitcher = getCurrentPitcher()
     const isLineupComplete = teams[0].lineupSubmitted && teams[1].lineupSubmitted
+
+    const showBattingOrder = () => {}
 
   return ( <div className="flex-1 flex flex-col">
     <div className="bg-gray-800 p-4 rounded-md mb-4 text-white">

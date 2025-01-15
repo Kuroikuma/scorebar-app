@@ -1,25 +1,62 @@
 'use client'
 
 import usePlayer from '@/app/hooks/usePlayer'
+import socket from '@/app/service/socket'
 import { useGameStore } from '@/app/store/gameStore'
-import { Player } from '@/app/store/teamsStore'
-import { motion } from 'framer-motion'
+import { useOverlayStore } from '@/app/store/overlayStore'
+import { Team } from '@/app/store/teamsStore'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Diamond } from 'lucide-react'
+import { useEffect } from 'react'
 
 interface PlayerOverlayProps {
   visible: boolean
 }
 
+export interface ISocketDataPlayer {
+  teamIndex: number;
+  strikes: number;
+  balls: number;
+  team: Team;
+  bases: boolean[];
+  socketId: string;
+}
+
 export const PlayerOverlay = ({ visible }: PlayerOverlayProps) => {
+
+  const { id } = useGameStore()
+  const socketId = socket.id
+
+  const { handlePlayerOverlay } = useOverlayStore()
+
+  useEffect(() => {
+    const eventName = `server:handlePlay/${id}`
+
+    const updatePlayerOverlay = (socketData: ISocketDataPlayer) => {
+      if (socketData.socketId !== socketId) {
+        console.log(socketData)
+        
+        handlePlayerOverlay(socketData);
+      }
+    }
+
+    socket.on(eventName, updatePlayerOverlay)
+
+    return () => {
+      socket.off(eventName, updatePlayerOverlay)
+    }
+  }, [id])
+
   return (
     <div className="w-full flex justify-center">
-      <PlayerStatsOverlay />
+      <AnimatePresence initial={false}>
+        {visible ? <PlayerStatsOverlay /> : null}
+      </AnimatePresence>
     </div>
   )
 }
 
 export function PlayerStatsOverlay() {
-  const { inning } = useGameStore()
 
   const {
     position,
@@ -27,7 +64,6 @@ export function PlayerStatsOverlay() {
     name,
     battingOrder,
     turnsAtBat,
-    defensiveOrder,
     totalTurnsAtBat,
     numberOfHits,
     logo,
@@ -81,12 +117,12 @@ export function PlayerStatsOverlay() {
         className="w-[80%] relative"
       >
         <div
-          className="h-[100px] relative flex overflow-hidden rounded-lg"
+          className="h-[100px] relative flex overflow-hidden rounded-lg border-x-[5px] border-b-[5px]"
           style={{
             background:
               'linear-gradient(90deg, rgba(1,47,85,1) 0%, rgba(0,0,0,1) 100%)',
             // background: 'linear-gradient(90deg, rgba(245,10,10,1) 0%, rgba(0,0,255,1) 100%)',
-            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)', borderColor: '#e9ede5'
           }}
         >
           {/* Background Effect */}
@@ -112,7 +148,7 @@ export function PlayerStatsOverlay() {
 
             
 
-            <div className="px-4 text-white">
+            <div style={{ borderColor: '#335b7b' }} className="px-4 text-white border-l-[2px] h-full flex items-center">
               <div className="flex flex-col items-start justify-center">
                 <span className="text-3xl tracking-wider">
                   {name.split(' ')[0]?.toUpperCase()}

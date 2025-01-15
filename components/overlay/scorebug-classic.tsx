@@ -26,11 +26,10 @@ export function ScorebugClassic({ item }: ScorebugClassicProps) {
 
   useEffect(() => {
     const eventName = `server:updateGame/${id}`
+    const socketId = socket.id
     
     const updateScorebugClassic = (socketData: ISocketData) => {
-      if ((socketData.game as any).socketId !== id) {
-        console.log("updateScorebugClassic");
-        
+      if ((socketData.game as any).socketId !== socketId) {
         updateGameOverlay(socketData.game)
       }
     }

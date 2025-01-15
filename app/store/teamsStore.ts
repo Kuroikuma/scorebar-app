@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { advanceBatterService, changeErrors, changeHits, scoreRun, updateLineupTeamService } from '@/app/service/api'
-import { setActiveNumber, setLineupOverlay, SetOverlayContent } from '@/app/service/apiOverlays'
 import { useGameStore } from './gameStore'
 import { useConfigStore } from './configStore'
 
@@ -226,24 +225,12 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
   updateHits: async (newHits, teamIndex) => {
     let { id, } = useGameStore.getState()
     if (id) {
-      const overlayId = useConfigStore.getState().currentConfig?.scoreboard.overlayId as string;
-      const modelId = useConfigStore.getState().currentConfig?.scoreboard.modelId as string;
-      let content = {
-        [`Team ${teamIndex + 1} Hits`]: newHits
-      }
-      SetOverlayContent(overlayId, modelId, content)
       await changeHits(id!, newHits, teamIndex)
     }
   },
   updateErrors: async (newErrors, teamIndex) => {
     let { id } = useGameStore.getState()
     if (id) {
-      const overlayId = useConfigStore.getState().currentConfig?.scoreboard.overlayId as string;
-      const modelId = useConfigStore.getState().currentConfig?.scoreboard.modelId as string;
-      let content = {
-        [`Team ${teamIndex + 1} Errors`]: newErrors
-      }
-      SetOverlayContent(overlayId, modelId, content)
       await changeErrors(id!, newErrors, teamIndex)
     }
   },
@@ -314,7 +301,6 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
         index === teamIndex ? { ...team, lineupSubmitted: true } : team
       )
     }))
-    setLineupOverlay(teams[teamIndex].lineup, teamIndex)
     await updateLineupTeamService({ teamIndex, lineup: teams[teamIndex].lineup, id: useGameStore.getState().id! })
   },
 }))

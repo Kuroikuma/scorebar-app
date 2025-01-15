@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { Game, useGameStore } from './gameStore';
 import { Player, useTeamsStore } from './teamsStore';
 import { ISocketData } from '@/components/scorebug/GameInnings';
+import { ISocketDataPlayer } from '@/components/overlay/player-stats-overlay';
 
 
 
@@ -21,7 +22,7 @@ type OverlayState = {
   changeTeamTextColorOverlay: (teamIndex: number, textColor: string) => void
   changeTeamNameOverlay: (teamIndex: number, name: string) => void
   changeLineupOverlay: (teamIndex: number, lineup: Player[], lineupSubmitted: boolean) => void
-  
+  handlePlayerOverlay: (socketData: ISocketDataPlayer) => void
 }
 
 export const useOverlayStore = create<OverlayState>((set, get) => ({
@@ -134,6 +135,21 @@ export const useOverlayStore = create<OverlayState>((set, get) => ({
     useTeamsStore.setState((state) => ({
       teams: state.teams.map((team, index) => 
         index === teamIndex ? { ...team, lineup: lineup, lineupSubmitted: lineupSubmitted } : team
+      )
+    }))
+  },
+  handlePlayerOverlay: (socketData: ISocketDataPlayer) => {
+    useGameStore.setState((state) => ({
+      ...state,
+      bases: socketData.bases,
+      strikes: socketData.strikes,
+      balls: socketData.balls,
+    }))
+
+    useTeamsStore.setState((state) => ({
+      ...state,
+      teams: state.teams.map((team, index) => 
+        index === socketData.teamIndex ? socketData.team : team
       )
     }))
   }
