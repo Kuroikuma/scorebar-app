@@ -18,7 +18,7 @@ interface TabsLayoutProps {
 }
 
 const CustomizeOverlays = () => {
-  const {  scorebugOverlay, scoreboardOverlay, scoreboardMinimalOverlay, formationAOverlay, formationBOverlay } = useGameStore()
+  const {  scorebugOverlay, scoreboardOverlay, scoreboardMinimalOverlay, formationAOverlay, formationBOverlay, playerStatsOverlay } = useGameStore()
   const [ activeTab, setActiveTab ] = useState<string>("Marc.")
 
   return (
@@ -31,6 +31,7 @@ const CustomizeOverlays = () => {
         {activeTab === "Marc. Min" && <CustomizeOverlay overlay={scoreboardMinimalOverlay} />}
         {activeTab === "Eq. A" && <CustomizeOverlay overlay={formationAOverlay} />}
         {activeTab === "Eq. B" && <CustomizeOverlay overlay={formationBOverlay} />}
+        {activeTab === "Player Stats" && <CustomizeOverlay overlay={playerStatsOverlay} />}
       </CardHeader>
     </Card>
   )
@@ -215,6 +216,12 @@ export function TabsLayout({ activeTab, setActiveTab }: TabsLayoutProps) {
           className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center"
         >
           Eq. B
+        </TabsTrigger>
+        <TabsTrigger
+          value="Player Stats"
+          className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center"
+        >
+          Player Stats
         </TabsTrigger>
       </TabsList>
     </Tabs>

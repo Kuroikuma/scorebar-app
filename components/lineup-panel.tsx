@@ -25,7 +25,6 @@ export function LineupPanel() {
   const allPositions = [
     "P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH"
   ]
-
   const getAvailablePositions = (teamIndex: number) => {
     return allPositions.filter(pos => 
       (isDHEnabled || pos !== "DH") && 
@@ -42,20 +41,25 @@ export function LineupPanel() {
         ? currentLineup.filter(player => player.position !== 'P')
         : currentLineup
 
+        debugger
       if (editingPlayer && editingPlayer.teamIndex === teamIndex) {
+        let defensiveOrder = allPositions.findIndex(pos => pos === newPlayer.position) + 1
         updatePlayer(teamIndex, editingPlayer.playerIndex, {
           ...newPlayer,
-          battingOrder: isDHEnabled && newPlayer.position === 'P' ? 0 : editingPlayer.playerIndex + 1
+          battingOrder: isDHEnabled && newPlayer.position === 'P' ? 0 : editingPlayer.playerIndex + 1,
+          defensiveOrder 
         })
         setEditingPlayer(null)
       } else {
         const playerIndex = currentLineup.length
+        let defensiveOrder = allPositions.findIndex(pos => pos === newPlayer.position) + 1
         const battingOrder = isDHEnabled && newPlayer.position === 'P' 
           ? 0 
           : battingOrderPlayers.length + 1
         updatePlayer(teamIndex, playerIndex, {
           ...newPlayer,
-          battingOrder
+          battingOrder,
+          defensiveOrder
         })
       }
       setNewPlayers(prev => {

@@ -519,6 +519,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       scoreboardMinimalOverlay,
       formationAOverlay,
       formationBOverlay,
+      playerStatsOverlay
     } = get()
 
     if (id === scorebugOverlay.id) {
@@ -533,6 +534,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ formationAOverlay: { ...formationAOverlay, scale: scale } })
     } else if (id === formationBOverlay.id) {
       set({ formationBOverlay: { ...formationBOverlay, scale: scale } })
+    } else if (id === playerStatsOverlay.id) {
+      set({ playerStatsOverlay: { ...playerStatsOverlay, scale: scale } })
     }
 
     if (isSaved) {
@@ -550,6 +553,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       scoreboardMinimalOverlay,
       formationAOverlay,
       formationBOverlay,
+      playerStatsOverlay
     } = get()
 
     if (id === scorebugOverlay.id) {
@@ -567,7 +571,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ formationAOverlay: { ...formationAOverlay, visible: visible } })
     } else if (id === formationBOverlay.id) {
       set({ formationBOverlay: { ...formationBOverlay, visible: visible } })
+    } else if (id === playerStatsOverlay.id) {
+      set({ playerStatsOverlay: { ...playerStatsOverlay, visible: visible } })
     }
+
     if (isSaved) {
       await handleVisibleOverlayServices(
         id,
