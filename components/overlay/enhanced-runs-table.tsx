@@ -49,7 +49,7 @@ export function EnhancedRunsTable({ visible }: EnhancedRunsTableProps) {
                 {innings.map((inningNum) => (
                   <th
                     key={inningNum}
-                    className="px-3 w-[80px] py-2 text-center font-bold"
+                    className="px-3 w-[80px] py-2 text-start font-bold"
                   >
                     {inningNum}
                   </th>
