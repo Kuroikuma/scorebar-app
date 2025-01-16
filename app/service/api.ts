@@ -194,22 +194,22 @@ export const changeErrors = async (id: string, newErrors: number, teamIndex: num
 };
 
 export const handlePositionOverlayServices = async (id: string, data: { x: number; y: number; }, gameId: string) => {
-  const response = await api.put(`/games/overlay/position`, { x: data.x, y: data.y, gameId, id });
+  const response = await api.put(`/overlay/position`, { x: data.x, y: data.y, gameId, id });
   return response.data;
 };
 
 export const handleScaleOverlayServices = async (id: string, scale: number, gameId: string) => {
-  const response = await api.put(`/games/overlay/scale`, { scale, id, gameId });
+  const response = await api.put(`/overlay/scale`, { scale, id, gameId });
   return response.data;
 };
 
 export const handleVisibleOverlayServices = async (id: string, visible: boolean, gameId: string) => {
-  const response = await api.put(`/games/overlay/visible`, { visible, id, gameId });
+  const response = await api.put(`/overlay/visible`, { visible, id, gameId });
   return response.data;
 };
 
 export const handlePlayServices = async (id: string, teamIndex: number, team: Team, bases: boolean[]) => {
-  const response = await api.put(`/games/overlay/play`, {  id, teamIndex, team, bases });
+  const response = await api.put(`/overlay/play`, {  id, teamIndex, team, bases });
   return response.data;
 };
 
