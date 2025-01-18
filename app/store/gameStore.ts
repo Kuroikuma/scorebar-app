@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService, setDHService, handlePositionOverlayServices, handleScaleOverlayServices, handleVisibleOverlayServices, getOverlay, handlePlayServices } from '@/app/service/api'
 import { ITurnAtBat, Player, Team, TypeAbbreviatedBatting, TypeHitting, useTeamsStore } from './teamsStore'
 import { ConfigGame, useConfigStore } from './configStore';
+import { useHistoryStore } from './historiStore';
 
 export type Status = 'upcoming' | 'in_progress' | 'finished';
 
@@ -96,6 +97,7 @@ export type GameState = {
   handleErrorPlay: (defensiveOrder: number) => Promise<void>
   handleOutPlay: () => Promise<void>
   handleBBPlay: () => Promise<void>
+  loadGameHistory: (game: Partial<Omit<Game, "userId">>) => Promise<void>
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -186,7 +188,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ bases })
   },
   changeInning: async (increment, isSaved = true) => {
-    const { inning, isTopInning, id, setScoreBug: setOverLayOne } = get()
+    
+    const { inning, isTopInning, id, setScoreBug: setOverLayOne, balls, strikes, outs, bases } = get()
+
+    if (isSaved) {
+      useHistoryStore.getState().handleStrikeFlowHistory('inning')
+    }
 
     let newInning = inning
     let newIsTopInning = isTopInning
@@ -239,6 +246,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       handleOutPlay,
     } = get()
 
+    if (isSaved) {
+      useHistoryStore.getState().handleStrikeFlowHistory('out')
+    }
+
     await handleOutPlay()
     await advanceBatter()
 
@@ -264,6 +275,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       updateGame,
       setScoreBug: setOverLayOne,
     } = get()
+
+    if (isSaved && outs + 1 === 3) {
+      useHistoryStore.getState().handleStrikeFlowHistory('strike')
+    }
 
     if (newStrikes === 3) {
       if (outs + 1 === 3) {
@@ -296,18 +311,27 @@ export const useGameStore = create<GameState>((set, get) => ({
       handleBBPlay,
     } = get()
 
+    useHistoryStore.getState().handleBallFlowHistory()
+
     if (newBalls === 4) {
       set({ balls: 0, strikes: 0 })
       await handleBBPlay()
       await advanceBatter()
       const newBases = [...bases]
+
+      const allBasesLoaded = newBases.every((base) => base);
+
+      if (allBasesLoaded) {
+        // Anotar carrera del corredor en tercera base
+        await useTeamsStore
+          .getState()
+          .incrementRuns(isTopInning ? 0 : 1, 1, false);
+      }
+
       for (let i = 2; i >= 0; i--) {
         if (newBases[i]) {
           if (i === 2) {
-            // Runner on third scores
-            await useTeamsStore
-              .getState()
-              .incrementRuns(isTopInning ? 0 : 1, 1, false)
+            
           } else {
             newBases[i + 1] = true
           }
@@ -368,10 +392,66 @@ export const useGameStore = create<GameState>((set, get) => ({
     const game = await getGame(id)
     useTeamsStore.getState().setGameId(id)
     useTeamsStore.getState().setTeams(game.teams)
+    useHistoryStore.getState().setPast(game.past)
+    useHistoryStore.getState().setFuture(game.future)
     useConfigStore.getState().setCurrentConfig(game.configId)
     set({ ...game, id: game._id, scoreboardOverlay: game.scoreboardOverlay })
 
     return game
+  },
+  loadGameHistory: async (game) => {
+    const { updateGame } = get();
+    const { setTeams, teams } = useTeamsStore.getState();
+  
+    if (game?.teams) {
+      let offensiveTeamIndex = game.isTopInning ? 0 : 1;
+  
+      const updatedTeams = teams.map((team, index) => {
+        if (index === offensiveTeamIndex) {
+
+          // Obtener el equipo correspondiente desde game.teams basado en el índice
+          const matchingTeam = (game.teams as Team[])[0];
+    
+          // Solo actualizamos las propiedades del equipo que existen en game.teams
+          const updatedTeam = Object.keys(team).reduce((acc, key) => {
+            if (key in matchingTeam) {
+              if (key !== 'lineup') {
+                //@ts-ignore
+                acc[key] = matchingTeam[key as keyof typeof matchingTeam];
+              }
+            } else {
+              //@ts-ignore
+              acc[key] = team[key];
+            }
+            return acc;
+          }, {} as Team);
+    
+          // Actualizar la alineación si es el equipo ofensivo
+
+          if (matchingTeam.hasOwnProperty('lineup')) {
+            let newLineup = team.lineup.map((player) =>
+              player.name === matchingTeam.lineup[0].name
+                ? matchingTeam.lineup[0]
+                : player
+            )
+  
+            updatedTeam.lineup = newLineup;
+          }
+
+          return updatedTeam;
+        } else {
+          return team;
+        }
+      });
+  
+      // Actualizar los equipos en el estado global
+      setTeams(updatedTeams);
+    }
+  
+    // Actualizar el estado global con el juego cargado
+    set({ ...game });
+  
+   await updateGame()
   },
   loadOverlay: async (id) => {
     const game = await getOverlay(id)
@@ -591,14 +671,16 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
+    useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
     const newBases = [true, bases[0], bases[1]]
     const runsScored = bases[2] ? 1 : 0
 
-    let currentBatterNumber = getCurrentBatter()?.battingOrder
+    const currentBatter = getCurrentBatter()
 
-    const currentBatter = currentTeam.lineup.find(
-      (player) => player.battingOrder === currentBatterNumber
-    ) as Player
+      if (!currentBatter) {
+        throw new Error("You can't out play a player that is currently batting")
+      }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -613,7 +695,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     let newLineup = currentTeam.lineup.map((player) =>
-      player.battingOrder === currentBatterNumber ? newCurrentBatter : player
+      player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
     setTeams(
@@ -653,14 +735,16 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
+    useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
     const newBases = [false, true, bases[0]]
     const runsScored = (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0)
 
-    let currentBatterNumber = parseInt(getCurrentBatter()?.number as string)
+    const currentBatter = getCurrentBatter()
 
-    const currentBatter = currentTeam.lineup.find(
-      (player) => player.battingOrder === currentBatterNumber
-    ) as Player
+      if (!currentBatter) {
+        throw new Error("You can't out play a player that is currently batting")
+      }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -675,7 +759,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     let newLineup = currentTeam.lineup.map((player) =>
-      player.battingOrder === currentBatterNumber ? newCurrentBatter : player
+      player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
     setTeams(
@@ -716,15 +800,17 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
+    useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
     const newBases = [false, false, true]
     const runsScored =
       (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0) + (bases[0] ? 1 : 0)
 
-    let currentBatterNumber = parseInt(getCurrentBatter()?.number as string)
+      const currentBatter = getCurrentBatter()
 
-    const currentBatter = currentTeam.lineup.find(
-      (player) => player.battingOrder === currentBatterNumber
-    ) as Player
+      if (!currentBatter) {
+        throw new Error("You can't out play a player that is currently batting")
+      }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -739,7 +825,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     let newLineup = currentTeam.lineup.map((player) =>
-      player.battingOrder === currentBatterNumber ? newCurrentBatter : player
+      player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
     setTeams(
@@ -780,14 +866,16 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
+    useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
     const runsScored =
       1 + (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0) + (bases[0] ? 1 : 0)
 
-    let currentBatterNumber = parseInt(getCurrentBatter()?.number as string)
+      const currentBatter = getCurrentBatter()
 
-    const currentBatter = currentTeam.lineup.find(
-      (player) => player.battingOrder === currentBatterNumber
-    ) as Player
+      if (!currentBatter) {
+        throw new Error("You can't out play a player that is currently batting")
+      }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -802,7 +890,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     let newLineup = currentTeam.lineup.map((player) =>
-      player.battingOrder === currentBatterNumber ? newCurrentBatter : player
+      player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
     setTeams(
@@ -842,6 +930,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
+    useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
     const newBases = [...bases]
     let runsScored = 0
 
@@ -855,11 +945,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       runsScored = 1
     }
 
-    let currentBatterNumber = parseInt(getCurrentBatter()?.number as string)
+    const currentBatter = getCurrentBatter()
 
-    const currentBatter = currentTeam.lineup.find(
-      (player) => player.battingOrder === currentBatterNumber
-    ) as Player
+    if (!currentBatter) {
+      throw new Error("You can't out play a player that is currently batting")
+    }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -874,7 +964,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     let newLineup = currentTeam.lineup.map((player) =>
-      player.battingOrder === currentBatterNumber ? newCurrentBatter : player
+      player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
     setTeams(
@@ -905,14 +995,16 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { isTopInning, getCurrentBatter, bases } = get()
     const { teams, advanceBatter, setTeams } = useTeamsStore.getState()
 
+    useHistoryStore.getState().handleStrikeFlowHistory('error')
+
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
-    let currentBatterNumber = parseInt(getCurrentBatter()?.number as string)
+    const currentBatter = getCurrentBatter()
 
-    const currentBatter = currentTeam.lineup.find(
-      (player) => player.battingOrder === currentBatterNumber
-    ) as Player
+    if (!currentBatter) {
+      throw new Error("You can't out play a player that is currently batting")
+    }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -927,7 +1019,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     let newLineup = currentTeam.lineup.map((player) =>
-      player.battingOrder === currentBatterNumber ? newCurrentBatter : player
+      player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
     setTeams(
@@ -958,11 +1050,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
-    let currentBatterNumber = parseInt(getCurrentBatter()?.number as string)
 
-    const currentBatter = currentTeam.lineup.find(
-      (player) => player.battingOrder === currentBatterNumber
-    ) as Player
+    const currentBatter = getCurrentBatter()
+
+    if (!currentBatter) {
+      throw new Error("You can't out play a player that is currently batting")
+    }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -977,7 +1070,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     let newLineup = currentTeam.lineup.map((player) =>
-      player.battingOrder === currentBatterNumber ? newCurrentBatter : player
+      player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
     setTeams(
@@ -1006,11 +1099,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
-    let currentBatterNumber = parseInt(getCurrentBatter()?.number as string)
+    const currentBatter = getCurrentBatter()
 
-    const currentBatter = currentTeam.lineup.find(
-      (player) => player.battingOrder === currentBatterNumber
-    ) as Player
+    if (!currentBatter) {
+      throw new Error("You can't out play a player that is currently batting")
+    }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -1025,7 +1118,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     let newLineup = currentTeam.lineup.map((player) =>
-      player.battingOrder === currentBatterNumber ? newCurrentBatter : player
+      player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
     setTeams(

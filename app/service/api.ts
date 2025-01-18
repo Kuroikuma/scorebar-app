@@ -193,6 +193,11 @@ export const changeErrors = async (id: string, newErrors: number, teamIndex: num
   return response.data;
 };
 
+export const changePastAndFutureGame = async (id: string, past:Partial<Omit<Game, "userId">>[] , future:Partial<Omit<Game, "userId">>[]) => {
+  const response = await api.put(`/games/pastAndFuture/game`, { past, future, gameId: id });
+  return response.data;
+};
+
 export const handlePositionOverlayServices = async (id: string, data: { x: number; y: number; }, gameId: string) => {
   const response = await api.put(`/overlay/position`, { x: data.x, y: data.y, gameId, id });
   return response.data;

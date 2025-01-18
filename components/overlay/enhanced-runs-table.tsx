@@ -104,7 +104,7 @@ export function EnhancedRunsTable({ visible }: EnhancedRunsTableProps) {
                         <div
                           className={`${
                             isCurrentInning ? 'bg-[#4c3f82]' : 'bg-[#2d2b3b]'
-                          } flex h-[30px] w-[30px] items-center justify-center`}
+                          } flex h-[30px] w-[30px] items-center justify-center rounded-md`}
                         >
                           <AnimatePresence mode="popLayout">
                             <motion.div

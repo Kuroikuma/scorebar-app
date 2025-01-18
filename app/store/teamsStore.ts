@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { advanceBatterService, changeErrors, changeHits, scoreRun, updateLineupTeamService } from '@/app/service/api'
 import { useGameStore } from './gameStore'
 import { useConfigStore } from './configStore'
+import { useHistoryStore } from './historiStore';
 
 export enum TypeHitting {
   Single = "Sencillo",//1B
@@ -119,6 +120,11 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     useGameStore.getState().changeRunsByInning(teamIndex, newRuns, false)
   },
   incrementRuns: async (teamIndex, newRuns, isSaved=true) => {
+
+    if (isSaved) {
+      useHistoryStore.getState().handleRunsHistory(teamIndex)
+    }
+    
     set((state) => ({
       teams: state.teams.map((team, index) => 
         index === teamIndex ? { ...team, runs: team.runs + newRuns } : team
