@@ -16,6 +16,7 @@ type HistoryState = {
   handleRunsHistory: (teamIndex: number) => void
   setPast: (past: Partial<Omit<Game, "userId">>[]) => void
   setFuture: (future: Partial<Omit<Game, "userId">>[]) => void
+  handleBasesHistory: () => void
 }
 
 
@@ -292,6 +293,14 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
       }],
       runsByInning: runsByInning,
     }
+      
+    setStateWithHistory(newState)
+  },
+  handleBasesHistory: () => {
+    const { bases } = useGameStore.getState()
+    const { setStateWithHistory } = get()
+
+    let newState:Partial<Omit<Game, "userId">> = { bases}
       
     setStateWithHistory(newState)
   }

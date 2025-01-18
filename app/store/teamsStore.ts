@@ -73,7 +73,7 @@ export type TeamsState = {
   decrementHits: (newHits:number) => Promise<void>
   decrementErrors: (newErrors:number) => Promise<void>
   updateLineup: (teamIndex: number, lineup: Player[]) => void
-  advanceBatter: (teamIndex: number, isSaved?: boolean) => void
+  advanceBatter: (teamIndex: number, isSaved?: boolean) => Promise<void>
   updatePlayer: (teamIndex: number, playerIndex: number, player: Player | null) => void
   submitLineup: (teamIndex: number) => Promise<void>
   changeTeamShortName: (teamIndex: any, newShortName: any) => Promise<void>
@@ -244,7 +244,7 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     teams: state.teams.map((team, index) =>
       index === teamIndex ? { ...team, lineup } : team
     )
-  })),//advanceBatterService
+  })),
   advanceBatter: async (teamIndex, isSaved=true) => {
     let nextBatter = 1;
 

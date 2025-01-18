@@ -6,6 +6,18 @@ import { useHistoryStore } from './historiStore';
 
 export type Status = 'upcoming' | 'in_progress' | 'finished';
 
+// Función auxiliar para registrar en el historial (evita repetición)
+const registerHistory = (type: 'inning' | 'out' | 'strike') => {
+  useHistoryStore.getState().handleStrikeFlowHistory(type);
+};
+
+let __initOverlays = {
+  x: 100,
+  y: 100,
+  scale: 100,
+  visible: false,
+};
+
 export type IOverlays = {
   visible: boolean;
   x: number;
@@ -79,7 +91,7 @@ export type GameState = {
   setIsDHEnabled: (enabled: boolean) => Promise<void>
   getCurrentBatter: () => Player | null
   getCurrentPitcher: () => { name: string; number: string } | null
-  advanceBatter: () => Promise<void>
+  advanceBatter: (isSaved?: boolean) => Promise<void>
   scoreboardOverlay: IOverlays;
   scorebugOverlay: IOverlays;
   formationAOverlay: IOverlays;
@@ -95,7 +107,7 @@ export type GameState = {
   handleHomeRun: () => Promise<void>
   handleHitByPitch: () => Promise<void>
   handleErrorPlay: (defensiveOrder: number) => Promise<void>
-  handleOutPlay: () => Promise<void>
+  handleOutPlay: ( isSaved:boolean) => Promise<void>
   handleBBPlay: () => Promise<void>
   loadGameHistory: (game: Partial<Omit<Game, "userId">>) => Promise<void>
 }
@@ -115,45 +127,27 @@ export const useGameStore = create<GameState>((set, get) => ({
   hits: 0,
   errorsGame: 0,
   scoreboardOverlay: {
-    x: 100,
-    y: 100,
-    scale: 100,
-    visible: false,
+    ...__initOverlays,
     id: 'scoreboard',
   },
   scorebugOverlay: {
-    x: 200,
-    y: 90,
-    scale: 70,
-    visible: false,
+    ...__initOverlays,
     id: 'scorebug',
   },
   formationAOverlay: {
-    x: 0,
-    y: 0,
-    scale: 100,
-    visible: false,
+    ...__initOverlays,
     id: 'formationA',
   },
   formationBOverlay: {
-    x: 0,
-    y: 0,
-    scale: 100,
-    visible: false,
+    ...__initOverlays,
     id: 'formationB',
   },
   scoreboardMinimalOverlay: {
-    x: 0,
-    y: 0,
-    scale: 100,
-    visible: false,
+    ...__initOverlays,
     id: 'scoreboardMinimal',
   },
   playerStatsOverlay: {
-    x: 0,
-    y: 0,
-    scale: 100,
-    visible: false,
+    ...__initOverlays,
     id: 'playerStats',
   },
   setInning: (inning) => set({ inning }),
@@ -177,6 +171,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   setBase: async (base, index) => {
+    useHistoryStore.getState().handleBasesHistory()
     let bases = [...get().bases]
     bases[index] = base
     set({ bases })
@@ -189,10 +184,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   changeInning: async (increment, isSaved = true) => {
     
-    const { inning, isTopInning, id, setScoreBug: setOverLayOne, balls, strikes, outs, bases } = get()
+    const { inning, isTopInning, id } = get()
 
     if (isSaved) {
-      useHistoryStore.getState().handleStrikeFlowHistory('inning')
+      registerHistory('inning')
     }
 
     let newInning = inning
@@ -222,36 +217,18 @@ export const useGameStore = create<GameState>((set, get) => ({
       outs: 0,
       bases: [false, false, false],
     })
-    let contend = {
-      '1st Base Runner': false,
-      '2nd Base Runner': false,
-      '3rd Base Runner': false,
-      Balls: 0,
-      Inning: newInning,
-      Outs: '0 OUT',
-      Strikes: 0,
-      topOrBottomInning: newIsTopInning ? 'top' : 'bottom',
-    }
+    
     if (id && isSaved) {
-      await setOverLayOne(contend)
       await changeInningService(id, newInning, newIsTopInning)
     }
   },
   handleOutsChange: async (newOuts, isSaved = true) => {
-    const {
-      changeInning,
-      updateGame,
-      setScoreBug: setOverLayOne,
-      advanceBatter,
-      handleOutPlay,
-    } = get()
+    const { changeInning, updateGame, advanceBatter, handleOutPlay, id } = get()
 
-    if (isSaved) {
-      useHistoryStore.getState().handleStrikeFlowHistory('out')
-    }
+    if (isSaved) registerHistory('out')
 
-    await handleOutPlay()
-    await advanceBatter()
+    await handleOutPlay(isSaved)
+    await advanceBatter(isSaved)
 
     if (newOuts === 3) {
       set({ outs: 0, balls: 0, strikes: 0 })
@@ -261,42 +238,37 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     } else {
       set({ outs: newOuts, balls: 0, strikes: 0 })
-      if ((get().id, isSaved)) {
+      if (id && isSaved) {
         await changeOutCount(get().id!, newOuts)
-        await setOverLayOne({ Outs: `${newOuts} OUT`, Strikes: 0, Balls: 0 })
       }
     }
   },
   handleStrikeChange: async (newStrikes, isSaved = true) => {
-    const {
-      outs,
-      id,
-      handleOutsChange,
-      updateGame,
-      setScoreBug: setOverLayOne,
-    } = get()
+    const { outs, id, handleOutsChange, updateGame } = get()
 
-    if (isSaved && outs + 1 === 3) {
-      useHistoryStore.getState().handleStrikeFlowHistory('strike')
+    const nextOuts = outs + 1;
+
+    if (isSaved && nextOuts === 3) {
+      registerHistory('strike')
+    }
+
+    if (isSaved && newStrikes < 3) {
+      registerHistory('strike')
     }
 
     if (newStrikes === 3) {
-      if (outs + 1 === 3) {
-        await handleOutsChange(outs + 1, false)
+      if (nextOuts === 3) {
+        await handleOutsChange(nextOuts, false)
       } else {
-        await handleOutsChange(outs + 1, true)
+        await handleOutsChange(nextOuts, true)
       }
 
-      if (isSaved && outs + 1 === 3) {
+      if (isSaved && nextOuts === 3) {
         await updateGame()
-      } else {
-        set({ strikes: 0 })
-        await setOverLayOne({ Strikes: 0 })
-        await changeStrikeCount(id!, 0)
-      }
+      } 
+
     } else {
       set({ strikes: newStrikes })
-      await setOverLayOne({ Strikes: newStrikes })
       await changeStrikeCount(id!, newStrikes)
     }
   },
@@ -306,7 +278,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       isTopInning,
       id,
       updateGame,
-      setScoreBug: setOverLayOne,
       advanceBatter,
       handleBBPlay,
     } = get()
@@ -344,7 +315,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     } else {
       set({ balls: newBalls })
-      await setOverLayOne({ Balls: newBalls })
       await changeBallCount(id!, newBalls)
     }
   },
@@ -359,11 +329,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   changeIsTopInning: async (isTopInning) => {
-    const { setScoreBug: setOverLayOne, id } = get()
+    const {  id } = get()
     set({ isTopInning })
     if (get().id) {
-      let content = { topOrBottomInning: isTopInning ? 'top' : 'bottom' }
-      await setOverLayOne(content)
       await changeInningService(id!, get().inning, isTopInning)
     }
   },
@@ -548,10 +516,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     const pitcher = team.lineup.find((player) => player.position === 'P')
     return pitcher ? { name: pitcher.name, number: pitcher.number } : null
   },
-  advanceBatter: async () => {
+  advanceBatter: async (isSaved) => {
     const { isTopInning } = get()
     const teamIndex = isTopInning ? 0 : 1
-    await useTeamsStore.getState().advanceBatter(teamIndex)
+    await useTeamsStore.getState().advanceBatter(teamIndex, isSaved)
   },
 
   handlePositionOverlay: async (
@@ -1043,7 +1011,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     )
     advanceBatter(teamIndex)
   },
-  handleOutPlay: async () => {
+  handleOutPlay: async (isSaved = true) => {
     const { isTopInning, getCurrentBatter, bases } = get()
     const { teams, setTeams } = useTeamsStore.getState()
 
@@ -1085,12 +1053,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       ...teams[teamIndex],
       lineup: newLineup,
     }
-    await handlePlayServices(
-      useGameStore.getState().id!,
-      teamIndex,
-      newTeam,
-      bases
-    )
+
+
+
+    if (isSaved) {
+      await handlePlayServices(
+        useGameStore.getState().id!,
+        teamIndex,
+        newTeam,
+        bases
+      )
+    }
   },
   handleBBPlay: async () => {
     const { isTopInning, getCurrentBatter, bases } = get()
