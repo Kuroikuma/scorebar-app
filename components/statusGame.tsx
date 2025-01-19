@@ -25,6 +25,9 @@ export const StatusGame = () => {
   const isLineupComplete = teams[0].lineupSubmitted && teams[1].lineupSubmitted
   const [segShow, setSegShow] = useState<number>(10)
 
+  console.log(isLineupComplete);
+  
+
   const showBattingOrder = () => {
     handleVisibleOverlay('playerStats', true)
     // Limpiar temporizador anterior si existe

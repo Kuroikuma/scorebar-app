@@ -499,6 +499,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { isTopInning, isDHEnabled } = get()
     const teamIndex = isTopInning ? 0 : 1
     const team = useTeamsStore.getState().teams[teamIndex]
+    const teams = useTeamsStore.getState().teams
+
+    const isLineupComplete = teams[0].lineupSubmitted && teams[1].lineupSubmitted
+
+    if (!isLineupComplete) return null
+
     let currentBatterIndex = team.currentBatter
     if (isDHEnabled) {
       // Skip pitcher if DH is enabled
@@ -512,6 +518,13 @@ export const useGameStore = create<GameState>((set, get) => ({
   getCurrentPitcher: () => {
     const { isTopInning } = get()
     const teamIndex = isTopInning ? 1 : 0
+
+    const teams = useTeamsStore.getState().teams
+
+    const isLineupComplete = teams[0].lineupSubmitted && teams[1].lineupSubmitted
+
+    if (!isLineupComplete) return null
+
     const team = useTeamsStore.getState().teams[teamIndex]
     const pitcher = team.lineup.find((player) => player.position === 'P')
     return pitcher ? { name: pitcher.name, number: pitcher.number } : null
