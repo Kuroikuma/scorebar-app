@@ -55,7 +55,7 @@ const TeamScore = () => {
           className="flex  justify-between items-center gap-2"
         >
           <div className="flex items-center gap-2">
-            <TeamLogo logo={team.logo} name={team.name} />
+            <TeamLogo logo={team.logo ?? ""} name={team.name} />
             <TeamName name={team.name} />
           </div>
           <Runs team={team} />

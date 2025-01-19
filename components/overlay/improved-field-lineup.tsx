@@ -122,7 +122,7 @@ export const BaseballFormationOverlay = ({ overlayId, visible }: BaseballFormati
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0 }}  
             >
-              <BaseballFormation lineup={lineup} logo={logo} />
+              <BaseballFormation lineup={lineup} logo={logo ?? ""} />
             </motion.div>
         ) : null}
     </AnimatePresence>
