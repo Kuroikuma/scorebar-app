@@ -23,7 +23,7 @@ export function Logo({ team }: LogoProps) {
             textShadow: '0 2px 4px rgba(0,0,0,0.1)',
           }}
         >
-          <img src={team.logo} alt="" />
+          <img src={team.logo as string} alt="" />
         </div>
       </motion.div>
     </div>
