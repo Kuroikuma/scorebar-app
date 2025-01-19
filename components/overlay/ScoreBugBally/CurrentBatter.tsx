@@ -37,10 +37,16 @@ const CurrentBatter = ({ teamIndex }: ICurrentBatterProps) => {
 
   return (
     <div className="px-4 flex items-center border-r border-white/20">
-      {currentBatter && (
+      {currentBatter ? (
         <div className="text-sm">
           <span className="font-bold mr-2 text-2xl truncate ...">
            {currentBatter.number}. {currentBatter.name.split(' ').pop()?.toUpperCase()}
+          </span>
+        </div>
+      ) : (
+        <div className="text-sm">
+          <span className="font-bold mr-2 text-2xl truncate ...">
+           Bateador
           </span>
         </div>
       )}

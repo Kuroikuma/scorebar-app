@@ -48,7 +48,7 @@ export type Team = {
   runs: number
   color: string
   textColor: string
-  logo?: string
+  logo: string | null
   lineup: Player[]
   currentBatter: number
   lineupSubmitted: boolean

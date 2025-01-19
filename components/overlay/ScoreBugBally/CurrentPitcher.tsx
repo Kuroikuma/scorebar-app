@@ -6,10 +6,16 @@ const CurrentPitcher = () => {
 
   return (
     <div className="px-4 flex items-center">
-      {currentPitcher && (
+      {currentPitcher ? (
         <div className="text-sm">
           <span className="font-bold text-2xl truncate ...">
             P. {currentPitcher.name.split(' ').pop()?.toUpperCase()}
+          </span>
+        </div>
+      ) : (
+        <div className="text-sm">
+          <span className="font-bold text-2xl truncate ...">
+            Lanzador
           </span>
         </div>
       )}

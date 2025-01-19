@@ -5,7 +5,7 @@ import { darkenColor } from '@/app/lib/utils'
 import { useEffect } from 'react'
 import socket from '@/app/service/socket'
 import { useOverlayStore } from '@/app/store/overlayStore'
-import { Player } from '@/app/store/teamsStore'
+import { Player, useTeamsStore } from '@/app/store/teamsStore'
 
 interface CurrentPlayerProps {
   teamIndex: number
@@ -20,8 +20,10 @@ interface ISocketData {
 
 const CurrentPlayer = ({ teamIndex, color }: CurrentPlayerProps) => {
   const { isTopInning, id } = useGameStore()
+  const { teams } = useTeamsStore()
 
   const { changeLineupOverlay } = useOverlayStore();
+  const isLineupComplete = teams[0].lineupSubmitted && teams[1].lineupSubmitted
 
   useEffect(() => {
     const eventName = `server:updateLineupTeam/${id}`
@@ -41,7 +43,7 @@ const CurrentPlayer = ({ teamIndex, color }: CurrentPlayerProps) => {
 
   return (
     <div className='px-[6px] pt-[6px]'>
-      <div className='border-x-4 border-t-4 border-white' style={{ backgroundColor: darkenColor(color, 50) }}>
+      <div className='border-x-4 h-9 border-t-4 border-white' style={{ backgroundColor: darkenColor(color, 50) }}>
       {teamIndex === 0 ? (
         isTopInning ? (
           <CurrentBatter teamIndex={teamIndex} />

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { CalendarIcon, CheckIcon, PlayIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RunsByInning } from '@/app/store/gameStore';
+import NewGame from './new/page';
 
 interface Game {
   _id: string | null;
@@ -69,9 +70,7 @@ export default function GamesList() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">My Games</h1>
-        <Link href="/games/new">
-          <Button>Create New Game</Button>
-        </Link>
+        <NewGame />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {games.map((game: Game) => (
