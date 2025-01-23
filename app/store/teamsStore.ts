@@ -3,6 +3,7 @@ import { advanceBatterService, changeErrors, changeHits, scoreRun, updateLineupT
 import { useGameStore } from './gameStore'
 import { useConfigStore } from './configStore'
 import { useHistoryStore } from './historiStore';
+import { toast } from 'sonner';
 
 export enum TypeHitting {
   Single = "Sencillo",//1B
@@ -247,6 +248,15 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
   })),
   advanceBatter: async (teamIndex, isSaved=true) => {
     let nextBatter = 1;
+
+    const { getCurrentBatter } = useGameStore.getState()
+
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
 
     set((state) => {
       const isDHEnabled = useGameStore.getState().isDHEnabled;

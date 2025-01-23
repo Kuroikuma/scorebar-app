@@ -73,6 +73,7 @@ export const StatusGame = () => {
         </Alert>
       )}
       {status === 'in_progress' && (
+        <>
         <div className="bg-gray-800 p-4 rounded-md mb-4 text-white">
           <div className="flex justify-between">
             <div>
@@ -93,23 +94,24 @@ export const StatusGame = () => {
             </div>
           </div>
         </div>
+        <div className="flex flex-col justify-center w-full gap-2 mb-4">
+          <p className='text-white'>Tiempo de mostrar bateador al turno {segShow} seg.</p>
+          <Slider
+            defaultValue={[segShow]}
+            max={100}
+            step={1}
+            className={cn("w-full")}
+            onValueChange={(value) => setSegShow(value[0])}
+          />
+        </div>
+        <Button
+          onClick={showBattingOrder}
+          className="bg-green-500 hover:bg-green-600"
+        >
+          Mostrar bateador al turno
+        </Button>
+        </>
       )}
-      <div className="flex flex-col justify-center w-full gap-2 mb-4">
-        <p className='text-white'>Tiempo de mostrar bateador al turno {segShow} seg.</p>
-        <Slider
-          defaultValue={[segShow]}
-          max={100}
-          step={1}
-          className={cn("w-full")}
-          onValueChange={(value) => setSegShow(value[0])}
-        />
-      </div>
-      <Button
-        onClick={showBattingOrder}
-        className="bg-green-500 hover:bg-green-600"
-      >
-        Mostrar bateador al turno
-      </Button>
     </div>
   )
 }

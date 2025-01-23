@@ -3,6 +3,7 @@ import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeO
 import { ITurnAtBat, Player, Team, TypeAbbreviatedBatting, TypeHitting, useTeamsStore } from './teamsStore'
 import { ConfigGame, useConfigStore } from './configStore';
 import { useHistoryStore } from './historiStore';
+import { toast } from 'sonner';
 
 export type Status = 'upcoming' | 'in_progress' | 'finished';
 
@@ -652,16 +653,19 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
     const newBases = [true, bases[0], bases[1]]
     const runsScored = bases[2] ? 1 : 0
 
-    const currentBatter = getCurrentBatter()
 
-      if (!currentBatter) {
-        throw new Error("You can't out play a player that is currently batting")
-      }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -716,16 +720,17 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
     const newBases = [false, true, bases[0]]
     const runsScored = (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0)
-
-    const currentBatter = getCurrentBatter()
-
-      if (!currentBatter) {
-        throw new Error("You can't out play a player that is currently batting")
-      }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -781,17 +786,19 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
     const newBases = [false, false, true]
     const runsScored =
       (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0) + (bases[0] ? 1 : 0)
-
-      const currentBatter = getCurrentBatter()
-
-      if (!currentBatter) {
-        throw new Error("You can't out play a player that is currently batting")
-      }
+    
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -847,16 +854,17 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
     const runsScored =
       1 + (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0) + (bases[0] ? 1 : 0)
-
-      const currentBatter = getCurrentBatter()
-
-      if (!currentBatter) {
-        throw new Error("You can't out play a player that is currently batting")
-      }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -911,6 +919,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
     const newBases = [...bases]
@@ -924,12 +939,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       newBases[2] = true
     } else {
       runsScored = 1
-    }
-
-    const currentBatter = getCurrentBatter()
-
-    if (!currentBatter) {
-      throw new Error("You can't out play a player that is currently batting")
     }
 
     let turnsAtBat: ITurnAtBat = {
@@ -976,16 +985,17 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { isTopInning, getCurrentBatter, bases } = get()
     const { teams, advanceBatter, setTeams } = useTeamsStore.getState()
 
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
     useHistoryStore.getState().handleStrikeFlowHistory('error')
 
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
-
-    const currentBatter = getCurrentBatter()
-
-    if (!currentBatter) {
-      throw new Error("You can't out play a player that is currently batting")
-    }
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -1031,11 +1041,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const currentTeam = teams[teamIndex]
 
-
     const currentBatter = getCurrentBatter()
 
-    if (!currentBatter) {
-      throw new Error("You can't out play a player that is currently batting")
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
     }
 
     let turnsAtBat: ITurnAtBat = {
@@ -1088,7 +1098,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     const currentBatter = getCurrentBatter()
 
     if (!currentBatter) {
-      throw new Error("You can't out play a player that is currently batting")
+      toast.error("El lineup no tiene jugador actualmente")
+      return
     }
 
     let turnsAtBat: ITurnAtBat = {

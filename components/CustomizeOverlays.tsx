@@ -1,12 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
-import { Minus, Plus } from 'lucide-react'
+import { Minus, Plus, Clipboard } from 'lucide-react'
 import { Input } from './ui/input'
 import { IOverlays, useGameStore } from '@/app/store/gameStore'
 import { Label } from './ui/label'
 import { Switch } from './ui/switch'
 import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
+import { toast } from 'sonner'
 
 interface CustomizeOverlayProps {
   overlay: IOverlays
@@ -18,13 +19,29 @@ interface TabsLayoutProps {
 }
 
 const CustomizeOverlays = () => {
-  const {  scorebugOverlay, scoreboardOverlay, scoreboardMinimalOverlay, formationAOverlay, formationBOverlay, playerStatsOverlay } = useGameStore()
+  const {  scorebugOverlay, scoreboardOverlay, scoreboardMinimalOverlay, formationAOverlay, formationBOverlay, playerStatsOverlay, id } = useGameStore()
   const [ activeTab, setActiveTab ] = useState<string>("Marc.")
+
+  const copyToClipboard = async (): Promise<void> => {
+    try {
+      let overlaURL = `https://scoreboard-app-pi.vercel.app/overlay/${id}`
+      await navigator.clipboard.writeText(overlaURL);
+      toast.info("Overlay URL copiado al portapapeles");
+    } catch (err) {
+      console.error("Error al copiar al portapapeles:", err);
+    }
+  };
 
   return (
     <Card className="bg-[#1a1625] border-[#2d2b3b] text-white">
       <CardHeader>
-        <CardTitle className="text-lg font-medium">Customize Overlay</CardTitle>
+        <div className="flex justify-between">
+          <CardTitle className="text-lg font-medium">Customize Overlay</CardTitle>
+          <Button variant="ghost" onClick={() => copyToClipboard()}>
+            <Clipboard className="h-4 w-4" />
+            Copiar Overlay
+          </Button>
+        </div>
         <TabsLayout activeTab={activeTab} setActiveTab={setActiveTab} />
         {activeTab === "Marc." && <CustomizeOverlay overlay={scorebugOverlay} />}
         {activeTab === "M. x Inn." && <CustomizeOverlay overlay={scoreboardOverlay} />}

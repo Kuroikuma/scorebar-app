@@ -37,10 +37,6 @@ export function ControlPanel() {
   let hits = teams[teamIndex].hits;
   let errors = teams[teamIndex].errorsGame;
 
-  const handleHit = () => {
-    // Logic for handling a hit (you can customize this based on your needs)
-    advanceBatter()
-  }
   
   return (
     <Card className="bg-[#1a1625] border-[#2d2b3b] text-white">

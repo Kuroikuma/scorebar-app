@@ -12,13 +12,14 @@ import socket from '@/app/service/socket'
 
 interface ScorebugClassicProps {
   item: IOverlays
+  styleName: "short" | "long"
 }
 
 interface ISocketData {
   game: Omit<Game, "userId">
 }
 
-export function ScorebugClassic({ item }: ScorebugClassicProps) {
+export function ScorebugClassic({ item, styleName = 'long' }: ScorebugClassicProps) {
   const { primaryColor, primaryTextColor } = useUIStore()
 
   const { updateGameOverlay } = useOverlayStore();
@@ -55,7 +56,7 @@ export function ScorebugClassic({ item }: ScorebugClassicProps) {
             transition={{ duration: 0.5, ease: 'easeInOut' }}
           >
             <div className="flex justify-between">
-              <TeamScore />
+              <TeamScore styleName={styleName} />
               <Bases />
             </div>
           </motion.div>
