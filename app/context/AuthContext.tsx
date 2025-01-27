@@ -8,6 +8,9 @@ export interface User {
   username: string;
   email: string;
   password: string;
+  avatar: string;
+  companyLogo: string;
+  advertisements: string[];
 }
 
 interface AuthContextType {

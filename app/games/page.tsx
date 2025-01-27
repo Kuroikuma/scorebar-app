@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Game, RunsByInning } from '@/app/store/gameStore'
 import NewGame from './new/page'
 import { GameCard } from './gameCard'
+import { Header } from '@/components/header'
 
 export default function GamesList() {
   const { user, loading } = useAuth()
@@ -55,6 +56,7 @@ export default function GamesList() {
 
   return (
     <div className='h-screen w-screen bg-black'>
+      <Header />
       <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">My Games</h1>
