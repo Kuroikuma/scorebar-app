@@ -158,10 +158,10 @@ export default function NewGame() {
           Crear Nuevo Juego
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-[#1f2937] text-white">
         <DialogHeader>
           <DialogTitle>Crear Nuevo Juego</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-white">
             Rellene los detalles para crear un nuevo juego.
           </DialogDescription>
         </DialogHeader>
@@ -192,7 +192,7 @@ export default function NewGame() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm text-black">
+                <Label className="text-sm">
                   Team 1 Logo
                 </Label>
                 <div className="flex gap-2 items-center">
@@ -205,7 +205,7 @@ export default function NewGame() {
                   />
                   <Button
                     variant="outline"
-                    className="bg-[#2d2b3b] hover:bg-[#363447] border-0 text-white"
+                    className="bg-[#2d2b3b] hover:bg-[#363447] hover:text-white border-0 text-white"
                     onClick={() =>
                       document.getElementById(`team-${0}-logo`)?.click()
                     }
@@ -268,7 +268,7 @@ export default function NewGame() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm text-black">
+                <Label className="text-sm">
                   Team 2 Logo
                 </Label>
                 <div className="flex gap-2 items-center">
@@ -330,6 +330,7 @@ export default function NewGame() {
               id="date"
               type="date"
               value={gameDate}
+              className='text-white'
               onChange={(e) => setGameDate(e.target.value)}
               required
             />

@@ -54,9 +54,10 @@ export default function GamesList() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className='h-screen w-screen bg-black'>
+      <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">My Games</h1>
+        <h1 className="text-3xl font-bold text-white">My Games</h1>
         <NewGame />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -64,6 +65,7 @@ export default function GamesList() {
           <GameCard key={game.id} game={game} />
         ))}
       </div>
+    </div>
     </div>
   )
 }
