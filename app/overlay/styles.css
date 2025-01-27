@@ -1,0 +1,6 @@
+.bounds {
+  width: 100vw;
+  height: 100vh;
+  position: relative; /* Asegura límites para elementos absolutos */
+  overflow: hidden;
+}

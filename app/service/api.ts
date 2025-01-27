@@ -1,8 +1,8 @@
 import { Game, RunsByInning, Status } from '@/app/store/gameStore';
 import axios from 'axios';
-import { setCustomationFieldAll } from './apiOverlays';
-import { Player, useTeamsStore } from '@/app/store/teamsStore';
+import { Player, Team, useTeamsStore } from '@/app/store/teamsStore';
 import { ConfigGame } from '../store/configStore';
+import socket from './socket';
 
 interface IUpdateLineupTeam {
   teamIndex: number;
@@ -14,11 +14,18 @@ const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api',
 });
 
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers['Access-Control-Allow-Origin'] = '*';
     config.headers.Authorization = `Bearer ${token}`;
+
+    if (!config.data) {
+      config.data = {};
+    }
+
+    config.data.socketId = socket.id || "";
   }
   return config;
 });
@@ -50,6 +57,11 @@ export const getGame = async (id: string) => {
   return response.data;
 };
 
+export const getOverlay = async (id: string) => {
+  const response = await api.get(`/overlay/${id}`);
+  return response.data;
+};
+
 export const getAllGames = async () => {
   const response = await api.get('/games');
   return response.data;
@@ -67,15 +79,18 @@ export const scoreRun = async (id: string, teamIndex: number, newRuns: number) =
 export const changeTeamNameService = async (id: string, teamIndex: number, newName: string) => {
   const newColor = useTeamsStore.getState().teams[teamIndex].color;
   const newTextColor = useTeamsStore.getState().teams[teamIndex].textColor;
-  setCustomationFieldAll(`Team ${teamIndex + 1} Name`, newName, newColor, newTextColor);
   const response = await api.put(`/games/${id}/team/${teamIndex}`, { newName });
+  return response.data;
+};
+
+export const changeTeamShortNameService = async (id: string, teamIndex: number, newName: string) => {
+  const response = await api.put(`/games/${id}/teamShortName/${teamIndex}`, { newName });
   return response.data;
 };
 
 export const changeTeamColorService = async (id: string, teamIndex: number, newColor: string) => {
   const newName = useTeamsStore.getState().teams[teamIndex].name;
   const newTextColor = useTeamsStore.getState().teams[teamIndex].textColor;
-  setCustomationFieldAll(`Team ${teamIndex + 1} Color`, newName, newColor, newTextColor);
   const response = await api.put(`/games/${id}/team/${teamIndex}/color`, { newColor });
   return response.data;
 };
@@ -83,7 +98,6 @@ export const changeTeamColorService = async (id: string, teamIndex: number, newC
 export const changeTeamTextColorService = async (id: string, teamIndex: number, newTextColor: string) => {
   const newName = useTeamsStore.getState().teams[teamIndex].name;
   const newColor = useTeamsStore.getState().teams[teamIndex].color;
-  setCustomationFieldAll(`Team ${teamIndex + 1} Text Color`, newName, newColor, newTextColor);
   const response = await api.put(`/games/${id}/team/${teamIndex}/textColor`, { newTextColor: newTextColor });
   return response.data;
 };
@@ -176,6 +190,31 @@ export const changeHits = async (id: string, newHits: number, teamIndex: number)
 
 export const changeErrors = async (id: string, newErrors: number, teamIndex: number) => {
   const response = await api.put(`/games/errors/${id}`, { newErrors, teamIndex });
+  return response.data;
+};
+
+export const changePastAndFutureGame = async (id: string, past:Partial<Omit<Game, "userId">>[] , future:Partial<Omit<Game, "userId">>[]) => {
+  const response = await api.put(`/games/pastAndFuture/game`, { past, future, gameId: id });
+  return response.data;
+};
+
+export const handlePositionOverlayServices = async (id: string, data: { x: number; y: number; }, gameId: string) => {
+  const response = await api.put(`/overlay/position`, { x: data.x, y: data.y, gameId, id });
+  return response.data;
+};
+
+export const handleScaleOverlayServices = async (id: string, scale: number, gameId: string) => {
+  const response = await api.put(`/overlay/scale`, { scale, id, gameId });
+  return response.data;
+};
+
+export const handleVisibleOverlayServices = async (id: string, visible: boolean, gameId: string) => {
+  const response = await api.put(`/overlay/visible`, { visible, id, gameId });
+  return response.data;
+};
+
+export const handlePlayServices = async (id: string, teamIndex: number, team: Team, bases: boolean[]) => {
+  const response = await api.put(`/overlay/play`, {  id, teamIndex, team, bases });
   return response.data;
 };
 

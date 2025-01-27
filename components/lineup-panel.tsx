@@ -16,8 +16,8 @@ export function LineupPanel() {
   const { teams, updatePlayer, submitLineup } = useTeamsStore()
   const { isDHEnabled, setIsDHEnabled } = useGameStore()
   const [newPlayers, setNewPlayers] = useState<[Player, Player]>([
-    { name: '', position: '', number: '', battingOrder: 0 },
-    { name: '', position: '', number: '', battingOrder: 0 }
+    { name: '', position: '', number: '', battingOrder: 0, turnsAtBat: [], defensiveOrder: 0 },
+    { name: '', position: '', number: '', battingOrder: 0, turnsAtBat: [], defensiveOrder: 0 }
   ])
   
   const [editingPlayer, setEditingPlayer] = useState<{ teamIndex: number, playerIndex: number } | null>(null)
@@ -25,7 +25,6 @@ export function LineupPanel() {
   const allPositions = [
     "P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH"
   ]
-
   const getAvailablePositions = (teamIndex: number) => {
     return allPositions.filter(pos => 
       (isDHEnabled || pos !== "DH") && 
@@ -42,25 +41,30 @@ export function LineupPanel() {
         ? currentLineup.filter(player => player.position !== 'P')
         : currentLineup
 
+        debugger
       if (editingPlayer && editingPlayer.teamIndex === teamIndex) {
+        let defensiveOrder = allPositions.findIndex(pos => pos === newPlayer.position) + 1
         updatePlayer(teamIndex, editingPlayer.playerIndex, {
           ...newPlayer,
-          battingOrder: isDHEnabled && newPlayer.position === 'P' ? 0 : editingPlayer.playerIndex + 1
+          battingOrder: isDHEnabled && newPlayer.position === 'P' ? 0 : editingPlayer.playerIndex + 1,
+          defensiveOrder 
         })
         setEditingPlayer(null)
       } else {
         const playerIndex = currentLineup.length
+        let defensiveOrder = allPositions.findIndex(pos => pos === newPlayer.position) + 1
         const battingOrder = isDHEnabled && newPlayer.position === 'P' 
           ? 0 
           : battingOrderPlayers.length + 1
         updatePlayer(teamIndex, playerIndex, {
           ...newPlayer,
-          battingOrder
+          battingOrder,
+          defensiveOrder
         })
       }
       setNewPlayers(prev => {
         const newState = [...prev] as [Player, Player]
-        newState[teamIndex] = { name: '', position: '', number: '', battingOrder: 0 }
+        newState[teamIndex] = { name: '', position: '', number: '', battingOrder: 0, defensiveOrder:0, turnsAtBat:[] }
         return newState
       })
     }

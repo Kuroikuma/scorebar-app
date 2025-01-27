@@ -1,10 +1,31 @@
 import { create } from 'zustand'
-import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService, setDHService } from '@/app/service/api'
-import { Team, useTeamsStore } from './teamsStore'
-import { resetOverlays, setInningMinimal, SetOverlayContent, updateOverlayContent } from '@/app/service/apiOverlays'
+import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService, setDHService, handlePositionOverlayServices, handleScaleOverlayServices, handleVisibleOverlayServices, getOverlay, handlePlayServices } from '@/app/service/api'
+import { ITurnAtBat, Player, Team, TypeAbbreviatedBatting, TypeHitting, useTeamsStore } from './teamsStore'
 import { ConfigGame, useConfigStore } from './configStore';
+import { useHistoryStore } from './historiStore';
+import { toast } from 'sonner';
 
 export type Status = 'upcoming' | 'in_progress' | 'finished';
+
+// Función auxiliar para registrar en el historial (evita repetición)
+const registerHistory = (type: 'inning' | 'out' | 'strike') => {
+  useHistoryStore.getState().handleStrikeFlowHistory(type);
+};
+
+let __initOverlays = {
+  x: 100,
+  y: 100,
+  scale: 100,
+  visible: false,
+};
+
+export type IOverlays = {
+  visible: boolean;
+  x: number;
+  y: number;
+  scale: number;
+  id: string;
+}
 
 export interface Game {
   id: string | null;
@@ -21,6 +42,12 @@ export interface Game {
   configId: string | ConfigGame;
   date: string | Date;
   isDHEnabled: boolean;
+  scoreboardOverlay: IOverlays;
+  scorebugOverlay: IOverlays;
+  formationAOverlay: IOverlays;
+  formationBOverlay: IOverlays;
+  scoreboardMinimalOverlay: IOverlays;
+  playerStatsOverlay: IOverlays;
 }
 
 export interface RunsByInning {
@@ -51,7 +78,8 @@ export type GameState = {
   handleStrikeChange: (newStrikes: number, isSaved?: boolean) => Promise<void>
   handleBallChange: (newBalls: number, isSaved?: boolean) => Promise<void>
   changeGameStatus: (newStatus: 'upcoming' | 'in_progress' | 'finished') => void
-  loadGame: (id: string) => Promise<void>
+  loadGame: (id: string) => Promise<any>
+  loadOverlay: (id: string) => Promise<any>
   updateGame: () => Promise<void>
   setScoreBug: (content: any) => Promise<void>
   changeIsTopInning: (isTopInning: boolean) => Promise<void>
@@ -62,9 +90,27 @@ export type GameState = {
   endGame: () => void
   isDHEnabled: boolean
   setIsDHEnabled: (enabled: boolean) => Promise<void>
-  getCurrentBatter: () => { name: string; number: string } | null
+  getCurrentBatter: () => Player | null
   getCurrentPitcher: () => { name: string; number: string } | null
-  advanceBatter: () => Promise<void>
+  advanceBatter: (isSaved?: boolean) => Promise<void>
+  scoreboardOverlay: IOverlays;
+  scorebugOverlay: IOverlays;
+  formationAOverlay: IOverlays;
+  formationBOverlay: IOverlays;
+  scoreboardMinimalOverlay: IOverlays;
+  playerStatsOverlay: IOverlays;
+  handlePositionOverlay: (id: string, data: { x: number; y: number; }, isSaved?: boolean) => Promise<void>
+  handleScaleOverlay: (id: string, scale: number, isSaved?: boolean) => Promise<void>
+  handleVisibleOverlay: (id: string, visible: boolean, isSaved?: boolean) => Promise<void>
+  handleSingle: () => Promise<void>
+  handleDouble: () => Promise<void>
+  handleTriple: () => Promise<void>
+  handleHomeRun: () => Promise<void>
+  handleHitByPitch: () => Promise<void>
+  handleErrorPlay: (defensiveOrder: number) => Promise<void>
+  handleOutPlay: ( isSaved:boolean) => Promise<void>
+  handleBBPlay: () => Promise<void>
+  loadGameHistory: (game: Partial<Omit<Game, "userId">>) => Promise<void>
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -81,6 +127,30 @@ export const useGameStore = create<GameState>((set, get) => ({
   runsByInning: {},
   hits: 0,
   errorsGame: 0,
+  scoreboardOverlay: {
+    ...__initOverlays,
+    id: 'scoreboard',
+  },
+  scorebugOverlay: {
+    ...__initOverlays,
+    id: 'scorebug',
+  },
+  formationAOverlay: {
+    ...__initOverlays,
+    id: 'formationA',
+  },
+  formationBOverlay: {
+    ...__initOverlays,
+    id: 'formationB',
+  },
+  scoreboardMinimalOverlay: {
+    ...__initOverlays,
+    id: 'scoreboardMinimal',
+  },
+  playerStatsOverlay: {
+    ...__initOverlays,
+    id: 'playerStats',
+  },
   setInning: (inning) => set({ inning }),
   setIsTopInning: (isTop) => set({ isTopInning: isTop }),
   setBalls: async (balls) => {
@@ -102,22 +172,24 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   setBase: async (base, index) => {
+    useHistoryStore.getState().handleBasesHistory()
     let bases = [...get().bases]
-    let overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
-    let contentId = useConfigStore.getState().currentConfig?.scorebug.modelId as string;
     bases[index] = base
     set({ bases })
     if (get().id) {
-      let baseStr = index === 0 ? "1st" : index === 1 ? "2nd" : "3rd"
-      await SetOverlayContent(overlayId, contentId, { [`${baseStr} Base Runner`]: base })
       await changeBaseRunner(get().id!, index, base)
     }
   },
   setBases: async (bases) => {
     set({ bases })
   },
-  changeInning: async (increment, isSaved=true) => {
-    const { inning, isTopInning, id, setScoreBug: setOverLayOne } = get()
+  changeInning: async (increment, isSaved = true) => {
+    
+    const { inning, isTopInning, id } = get()
+
+    if (isSaved) {
+      registerHistory('inning')
+    }
 
     let newInning = inning
     let newIsTopInning = isTopInning
@@ -125,7 +197,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (!isTopInning) {
         newInning = inning + 1
         newIsTopInning = true
-        setInningMinimal(newInning)
       } else {
         newIsTopInning = false
       }
@@ -134,39 +205,31 @@ export const useGameStore = create<GameState>((set, get) => ({
         if (inning > 1) {
           newInning = inning - 1
           newIsTopInning = false
-          setInningMinimal(newInning)
         }
       } else {
         newIsTopInning = true
       }
     }
-    set({ 
-      inning: newInning, 
+    set({
+      inning: newInning,
       isTopInning: newIsTopInning,
       balls: 0,
       strikes: 0,
       outs: 0,
-      bases: [false, false, false]
+      bases: [false, false, false],
     })
-    let contend = {
-      "1st Base Runner": false,
-      "2nd Base Runner": false,
-      "3rd Base Runner": false,
-      "Balls": 0,
-      "Inning": newInning,
-      "Outs": "0 OUT",
-      "Strikes": 0,
-      "topOrBottomInning": newIsTopInning ? "top" : "bottom",
-    }
+    
     if (id && isSaved) {
-      await setOverLayOne(contend)
       await changeInningService(id, newInning, newIsTopInning)
     }
   },
-  handleOutsChange: async (newOuts, isSaved=true) => {
-    const { changeInning, updateGame, setScoreBug: setOverLayOne, advanceBatter  } = get()
+  handleOutsChange: async (newOuts, isSaved = true) => {
+    const { changeInning, updateGame, advanceBatter, handleOutPlay, id } = get()
 
-    await advanceBatter()
+    if (isSaved) registerHistory('out')
+
+    await handleOutPlay(isSaved)
+    await advanceBatter(isSaved)
 
     if (newOuts === 3) {
       set({ outs: 0, balls: 0, strikes: 0 })
@@ -174,42 +237,73 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (isSaved) {
         await updateGame()
       }
-
     } else {
       set({ outs: newOuts, balls: 0, strikes: 0 })
-      if (get().id, isSaved) {
+      if (id && isSaved) {
         await changeOutCount(get().id!, newOuts)
-        await setOverLayOne({ Outs: `${newOuts} OUT`, Strikes: 0, Balls: 0 })
       }
     }
   },
-  handleStrikeChange: async (newStrikes, isSaved=true) => {
-    const { outs, id, handleOutsChange, updateGame, setScoreBug: setOverLayOne } = get()
+  handleStrikeChange: async (newStrikes, isSaved = true) => {
+    const { outs, id, handleOutsChange, updateGame } = get()
+
+    const nextOuts = outs + 1;
+
+    if (isSaved && nextOuts === 3) {
+      registerHistory('strike')
+    }
+
+    if (isSaved && newStrikes < 3) {
+      registerHistory('strike')
+    }
 
     if (newStrikes === 3) {
-      await handleOutsChange(outs + 1, false)
-
-      if (isSaved) {
-        await updateGame()
+      if (nextOuts === 3) {
+        await handleOutsChange(nextOuts, false)
+      } else {
+        await handleOutsChange(nextOuts, true)
       }
+
+      if (isSaved && nextOuts === 3) {
+        await updateGame()
+      } 
+
     } else {
       set({ strikes: newStrikes })
-      await setOverLayOne({ Strikes: newStrikes })
       await changeStrikeCount(id!, newStrikes)
     }
   },
-  handleBallChange: async (newBalls, isSaved=true) => {
-    const { bases, isTopInning, id, updateGame, setScoreBug: setOverLayOne, advanceBatter } = get()
-   
+  handleBallChange: async (newBalls, isSaved = true) => {
+    const {
+      bases,
+      isTopInning,
+      id,
+      updateGame,
+      advanceBatter,
+      handleBBPlay,
+    } = get()
+
+    useHistoryStore.getState().handleBallFlowHistory()
+
     if (newBalls === 4) {
       set({ balls: 0, strikes: 0 })
+      await handleBBPlay()
       await advanceBatter()
       const newBases = [...bases]
+
+      const allBasesLoaded = newBases.every((base) => base);
+
+      if (allBasesLoaded) {
+        // Anotar carrera del corredor en tercera base
+        await useTeamsStore
+          .getState()
+          .incrementRuns(isTopInning ? 0 : 1, 1, false);
+      }
+
       for (let i = 2; i >= 0; i--) {
         if (newBases[i]) {
           if (i === 2) {
-            // Runner on third scores
-            await useTeamsStore.getState().incrementRuns(isTopInning ? 0 : 1, 1, false)
+            
           } else {
             newBases[i + 1] = true
           }
@@ -222,62 +316,127 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     } else {
       set({ balls: newBalls })
-      await setOverLayOne({ Balls: newBalls })
       await changeBallCount(id!, newBalls)
     }
   },
   changeGameStatus: async (newStatus) => {
     set({ status: newStatus })
     if (get().id) {
-      if (newStatus === "finished") {
-        resetOverlays()
+      if (newStatus === 'finished') {
+        // aqui se deben resetear los overlays
       }
 
       await changeStatusService(get().id!, newStatus)
     }
   },
   changeIsTopInning: async (isTopInning) => {
-    const { setScoreBug: setOverLayOne, id } = get()
+    const {  id } = get()
     set({ isTopInning })
     if (get().id) {
-      let content = { "topOrBottomInning": isTopInning ? "top" : "bottom" }
-      await setOverLayOne(content)
       await changeInningService(id!, get().inning, isTopInning)
     }
   },
-  changeRunsByInning: async (teamIndex, newRuns, isSaved=true) => {
+  changeRunsByInning: async (teamIndex, newRuns, isSaved = true) => {
     const { id, runsByInning, inning, setScoreBoard } = get()
 
-    const inningKey = `${inning}T${teamIndex + 1}`; // Ejemplo: "3T1" o "3T2"
-
-    debugger
+    const inningKey = `${inning}T${teamIndex + 1}` // Ejemplo: "3T1" o "3T2"
 
     // Actualiza las carreras por inning
     const updatedRunsByInning = {
       ...runsByInning,
       [inningKey]: (runsByInning[inningKey] || 0) + newRuns,
-    };
-    set({ runsByInning: updatedRunsByInning });
-    
-    setScoreBoard({[inningKey]: (runsByInning[inningKey] || 0) + newRuns})
+    }
+    set({ runsByInning: updatedRunsByInning })
+
+    // setScoreBoard({[inningKey]: (runsByInning[inningKey] || 0) + newRuns})
 
     if (id && isSaved) {
-      await changeRunsByInningService(id, {[inningKey]: (runsByInning[inningKey] || 0) + newRuns})
+      await changeRunsByInningService(id, {
+        ...runsByInning,
+        [inningKey]: (runsByInning[inningKey] || 0) + newRuns,
+      })
     }
   },
   loadGame: async (id) => {
     const game = await getGame(id)
     useTeamsStore.getState().setGameId(id)
     useTeamsStore.getState().setTeams(game.teams)
+    useHistoryStore.getState().setPast(game.past)
+    useHistoryStore.getState().setFuture(game.future)
     useConfigStore.getState().setCurrentConfig(game.configId)
-    set({...game, id: game._id})
+    set({ ...game, id: game._id, scoreboardOverlay: game.scoreboardOverlay })
+
+    return game
+  },
+  loadGameHistory: async (game) => {
+    const { updateGame } = get();
+    const { setTeams, teams } = useTeamsStore.getState();
+  
+    if (game?.teams) {
+      let offensiveTeamIndex = game.isTopInning ? 0 : 1;
+  
+      const updatedTeams = teams.map((team, index) => {
+        if (index === offensiveTeamIndex) {
+
+          // Obtener el equipo correspondiente desde game.teams basado en el índice
+          const matchingTeam = (game.teams as Team[])[0];
+    
+          // Solo actualizamos las propiedades del equipo que existen en game.teams
+          const updatedTeam = Object.keys(team).reduce((acc, key) => {
+            if (key in matchingTeam) {
+              if (key !== 'lineup') {
+                //@ts-ignore
+                acc[key] = matchingTeam[key as keyof typeof matchingTeam];
+              }
+            } else {
+              //@ts-ignore
+              acc[key] = team[key];
+            }
+            return acc;
+          }, {} as Team);
+    
+          // Actualizar la alineación si es el equipo ofensivo
+
+          if (matchingTeam.hasOwnProperty('lineup')) {
+            let newLineup = team.lineup.map((player) =>
+              player.name === matchingTeam.lineup[0].name
+                ? matchingTeam.lineup[0]
+                : player
+            )
+  
+            updatedTeam.lineup = newLineup;
+          }
+
+          return updatedTeam;
+        } else {
+          return team;
+        }
+      });
+  
+      // Actualizar los equipos en el estado global
+      setTeams(updatedTeams);
+    }
+  
+    // Actualizar el estado global con el juego cargado
+    set({ ...game });
+  
+   await updateGame()
+  },
+  loadOverlay: async (id) => {
+    const game = await getOverlay(id)
+    useTeamsStore.getState().setGameId(id)
+    useTeamsStore.getState().setTeams(game.teams)
+    useConfigStore.getState().setCurrentConfig(game.configId)
+    set({ ...game, id: game._id, scoreboardOverlay: game.scoreboardOverlay })
+
+    return game
   },
   updateGame: async () => {
     const teamState = useTeamsStore.getState()
     const gameState = get()
     const id = gameState.id
 
-    let game:Omit<Game, 'userId'> = {
+    let game: Omit<Game, 'userId'> = {
       balls: gameState.balls,
       strikes: gameState.strikes,
       outs: gameState.outs,
@@ -291,38 +450,37 @@ export const useGameStore = create<GameState>((set, get) => ({
       configId: useConfigStore.getState().currentConfig?._id as string,
       date: gameState.date as string,
       isDHEnabled: gameState.isDHEnabled,
+      scoreboardOverlay: gameState.scoreboardOverlay,
+      scorebugOverlay: gameState.scorebugOverlay,
+      formationAOverlay: gameState.formationAOverlay,
+      formationBOverlay: gameState.formationBOverlay,
+      scoreboardMinimalOverlay: gameState.scoreboardMinimalOverlay,
+      playerStatsOverlay: gameState.playerStatsOverlay,
     }
-
-    let overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
-    let contentId = useConfigStore.getState().currentConfig?.scorebug.modelId as string;
-
-    await updateOverlayContent(overlayId, contentId, game)
 
     await updateGameService(id!, game)
   },
 
   setScoreBug: async (content) => {
-    let overlayId = useConfigStore.getState().currentConfig?.scorebug.overlayId as string;
-    let contentId = useConfigStore.getState().currentConfig?.scorebug.modelId as string;
-
-    await SetOverlayContent(overlayId, contentId, content)
+    let overlayId = useConfigStore.getState().currentConfig?.scorebug
+      .overlayId as string
+    let contentId = useConfigStore.getState().currentConfig?.scorebug
+      .modelId as string
   },
   setScoreBoard: async (content) => {
-    let overlayId = useConfigStore.getState().currentConfig?.scoreboard.overlayId as string;
-    let contentId = useConfigStore.getState().currentConfig?.scoreboard.modelId as string;
+   
 
-    await SetOverlayContent(overlayId, contentId, content)
   },
   setScoreBoardMinimal: async (content) => {
-    let overlayId = useConfigStore.getState().currentConfig?.scoreboardMinimal.overlayId as string;
-    let contentId = useConfigStore.getState().currentConfig?.scoreboardMinimal.modelId as string;
+    let overlayId = useConfigStore.getState().currentConfig?.scoreboardMinimal
+      .overlayId as string
+    let contentId = useConfigStore.getState().currentConfig?.scoreboardMinimal
+      .modelId as string
 
-    await SetOverlayContent(overlayId, contentId, content)
   },
   gameOver: async () => {
     const { id } = get()
     if (id) {
-      resetOverlays()
     }
   },
   startGame: () => {
@@ -333,17 +491,21 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { changeGameStatus } = get()
     changeGameStatus('finished')
   },
-  isDHEnabled: false,//setDHService
+  isDHEnabled: false, //setDHService
   setIsDHEnabled: async (enabled) => {
     set({ isDHEnabled: enabled })
     await setDHService(get().id!)
   },
   getCurrentBatter: () => {
-    console.log('getCurrentBatter');
-    
     const { isTopInning, isDHEnabled } = get()
     const teamIndex = isTopInning ? 0 : 1
     const team = useTeamsStore.getState().teams[teamIndex]
+    const teams = useTeamsStore.getState().teams
+
+    const isLineupComplete = teams[0].lineupSubmitted && teams[1].lineupSubmitted
+
+    if (!isLineupComplete) return null
+
     let currentBatterIndex = team.currentBatter
     if (isDHEnabled) {
       // Skip pitcher if DH is enabled
@@ -352,18 +514,627 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
     const currentBatter = team.lineup[currentBatterIndex]
-    return currentBatter ? { name: currentBatter.name, number: currentBatter.number } : null
+    return currentBatter ? currentBatter : null
   },
   getCurrentPitcher: () => {
     const { isTopInning } = get()
     const teamIndex = isTopInning ? 1 : 0
+
+    const teams = useTeamsStore.getState().teams
+
+    const isLineupComplete = teams[0].lineupSubmitted && teams[1].lineupSubmitted
+
+    if (!isLineupComplete) return null
+
     const team = useTeamsStore.getState().teams[teamIndex]
-    const pitcher = team.lineup.find(player => player.position === 'P')
+    const pitcher = team.lineup.find((player) => player.position === 'P')
     return pitcher ? { name: pitcher.name, number: pitcher.number } : null
   },
-  advanceBatter: async () => {
+  advanceBatter: async (isSaved) => {
     const { isTopInning } = get()
     const teamIndex = isTopInning ? 0 : 1
-    await useTeamsStore.getState().advanceBatter(teamIndex)
+    await useTeamsStore.getState().advanceBatter(teamIndex, isSaved)
+  },
+
+  handlePositionOverlay: async (
+    id: string,
+    data: { x: number; y: number },
+    isSaved = true
+  ) => {
+    const {
+      formationAOverlay,
+      formationBOverlay,
+      scoreboardOverlay,
+      scoreboardMinimalOverlay,
+      scorebugOverlay,
+      playerStatsOverlay
+    } = get()
+
+    if (id === formationAOverlay.id) {
+      set({ formationAOverlay: { ...formationAOverlay, x: data.x, y: data.y } })
+    } else if (id === formationBOverlay.id) {
+      set({ formationBOverlay: { ...formationBOverlay, x: data.x, y: data.y } })
+    } else if (id === scoreboardOverlay.id) {
+      set({ scoreboardOverlay: { ...scoreboardOverlay, x: data.x, y: data.y } })
+    } else if (id === scoreboardMinimalOverlay.id) {
+      set({
+        scoreboardMinimalOverlay: {
+          ...scoreboardMinimalOverlay,
+          x: data.x,
+          y: data.y,
+        },
+      })
+    } else if (id === scorebugOverlay.id) {
+      set({ scorebugOverlay: { ...scorebugOverlay, x: data.x, y: data.y } })
+    } else if (id === playerStatsOverlay.id) {
+      set({ playerStatsOverlay: { ...playerStatsOverlay, x: data.x, y: data.y } })
+    }
+
+    if (isSaved) {
+      await handlePositionOverlayServices(id, data, useGameStore.getState().id!)
+    }
+  },
+  handleScaleOverlay: async (id: string, scale: number, isSaved = true) => {
+    const {
+      scorebugOverlay,
+      scoreboardOverlay,
+      scoreboardMinimalOverlay,
+      formationAOverlay,
+      formationBOverlay,
+      playerStatsOverlay
+    } = get()
+
+    if (id === scorebugOverlay.id) {
+      set({ scorebugOverlay: { ...scorebugOverlay, scale: scale } })
+    } else if (id === scoreboardOverlay.id) {
+      set({ scoreboardOverlay: { ...scoreboardOverlay, scale: scale } })
+    } else if (id === scoreboardMinimalOverlay.id) {
+      set({
+        scoreboardMinimalOverlay: { ...scoreboardMinimalOverlay, scale: scale },
+      })
+    } else if (id === formationAOverlay.id) {
+      set({ formationAOverlay: { ...formationAOverlay, scale: scale } })
+    } else if (id === formationBOverlay.id) {
+      set({ formationBOverlay: { ...formationBOverlay, scale: scale } })
+    } else if (id === playerStatsOverlay.id) {
+      set({ playerStatsOverlay: { ...playerStatsOverlay, scale: scale } })
+    }
+
+    if (isSaved) {
+      await handleScaleOverlayServices(id, scale, useGameStore.getState().id!)
+    }
+  },
+  handleVisibleOverlay: async (
+    id: string,
+    visible: boolean,
+    isSaved = true
+  ) => {
+    const {
+      scorebugOverlay,
+      scoreboardOverlay,
+      scoreboardMinimalOverlay,
+      formationAOverlay,
+      formationBOverlay,
+      playerStatsOverlay
+    } = get()
+
+    if (id === scorebugOverlay.id) {
+      set({ scorebugOverlay: { ...scorebugOverlay, visible: visible } })
+    } else if (id === scoreboardOverlay.id) {
+      set({ scoreboardOverlay: { ...scoreboardOverlay, visible: visible } })
+    } else if (id === scoreboardMinimalOverlay.id) {
+      set({
+        scoreboardMinimalOverlay: {
+          ...scoreboardMinimalOverlay,
+          visible: visible,
+        },
+      })
+    } else if (id === formationAOverlay.id) {
+      set({ formationAOverlay: { ...formationAOverlay, visible: visible } })
+    } else if (id === formationBOverlay.id) {
+      set({ formationBOverlay: { ...formationBOverlay, visible: visible } })
+    } else if (id === playerStatsOverlay.id) {
+      set({ playerStatsOverlay: { ...playerStatsOverlay, visible: visible } })
+    }
+
+    if (isSaved) {
+      await handleVisibleOverlayServices(
+        id,
+        visible,
+        useGameStore.getState().id!
+      )
+    }
+  },
+
+  // Acción para manejar un sencillo (Single)
+  handleSingle: async () => {
+    const { bases, isTopInning, getCurrentBatter } = get()
+    const { teams, setTeams, advanceBatter } = useTeamsStore.getState()
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
+    useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
+    const newBases = [true, bases[0], bases[1]]
+    const runsScored = bases[2] ? 1 : 0
+
+
+
+    let turnsAtBat: ITurnAtBat = {
+      inning: useGameStore.getState().inning,
+      typeHitting: TypeHitting.Single,
+      typeAbbreviatedBatting: TypeAbbreviatedBatting.Single,
+      errorPlay: '',
+    }
+
+    let newCurrentBatter = {
+      ...currentBatter,
+      turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
+    }
+
+    let newLineup = currentTeam.lineup.map((player) =>
+      player.name === currentBatter?.name ? newCurrentBatter : player
+    )
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? {
+              ...team,
+              runs: team.runs + runsScored,
+              hits: team.hits + 1,
+              lineup: newLineup,
+            }
+          : team
+      )
+    )
+
+    set({ bases: newBases, strikes: 0, balls: 0 })
+
+    let newTeam = {
+      ...teams[teamIndex],
+      runs: teams[teamIndex].runs + runsScored,
+      hits: teams[teamIndex].hits + 1,
+      lineup: newLineup,
+    }
+    await handlePlayServices(
+      useGameStore.getState().id!,
+      teamIndex,
+      newTeam,
+      newBases
+    )
+    advanceBatter(teamIndex)
+  },
+
+  // Acción para manejar un doble (Double)
+  handleDouble: async () => {
+    const { bases, isTopInning, getCurrentBatter } = get()
+    const { teams, setTeams, advanceBatter } = useTeamsStore.getState()
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
+    useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
+    const newBases = [false, true, bases[0]]
+    const runsScored = (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0)
+
+    let turnsAtBat: ITurnAtBat = {
+      inning: useGameStore.getState().inning,
+      typeHitting: TypeHitting.Double,
+      typeAbbreviatedBatting: TypeAbbreviatedBatting.Double,
+      errorPlay: '',
+    }
+
+    let newCurrentBatter = {
+      ...currentBatter,
+      turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
+    }
+
+    let newLineup = currentTeam.lineup.map((player) =>
+      player.name === currentBatter?.name ? newCurrentBatter : player
+    )
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? {
+              ...team,
+              runs: team.runs + runsScored,
+              hits: team.hits + 1,
+              newLineup,
+            }
+          : team
+      )
+    )
+
+    set({ bases: newBases, strikes: 0, balls: 0 })
+
+    let newTeam = {
+      ...teams[teamIndex],
+      runs: teams[teamIndex].runs + runsScored,
+      hits: teams[teamIndex].hits + 1,
+      lineup: newLineup,
+    }
+    await handlePlayServices(
+      useGameStore.getState().id!,
+      teamIndex,
+      newTeam,
+      newBases
+    )
+
+    advanceBatter(teamIndex)
+  },
+
+  // Acción para manejar un triple (Triple)
+  handleTriple: async () => {
+    const { bases, isTopInning, getCurrentBatter } = get()
+    const { teams, setTeams, advanceBatter } = useTeamsStore.getState()
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
+    useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
+    const newBases = [false, false, true]
+    const runsScored =
+      (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0) + (bases[0] ? 1 : 0)
+    
+
+    let turnsAtBat: ITurnAtBat = {
+      inning: useGameStore.getState().inning,
+      typeHitting: TypeHitting.Triple,
+      typeAbbreviatedBatting: TypeAbbreviatedBatting.Triple,
+      errorPlay: '',
+    }
+
+    let newCurrentBatter = {
+      ...currentBatter,
+      turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
+    }
+
+    let newLineup = currentTeam.lineup.map((player) =>
+      player.name === currentBatter?.name ? newCurrentBatter : player
+    )
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? {
+              ...team,
+              runs: team.runs + runsScored,
+              hits: team.hits + 1,
+              newLineup,
+            }
+          : team
+      )
+    )
+
+    set({ bases: newBases, strikes: 0, balls: 0 })
+
+    let newTeam = {
+      ...teams[teamIndex],
+      runs: teams[teamIndex].runs + runsScored,
+      hits: teams[teamIndex].hits + 1,
+      lineup: newLineup,
+    }
+    await handlePlayServices(
+      useGameStore.getState().id!,
+      teamIndex,
+      newTeam,
+      newBases
+    )
+
+    advanceBatter(teamIndex)
+  },
+
+  // Acción para manejar un cuadrangular (HomeRun)
+  handleHomeRun: async () => {
+    const { bases, isTopInning, getCurrentBatter } = get()
+    const { teams, setTeams, advanceBatter } = useTeamsStore.getState()
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
+    useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
+    const runsScored =
+      1 + (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0) + (bases[0] ? 1 : 0)
+
+    let turnsAtBat: ITurnAtBat = {
+      inning: useGameStore.getState().inning,
+      typeHitting: TypeHitting.HomeRun,
+      typeAbbreviatedBatting: TypeAbbreviatedBatting.HomeRun,
+      errorPlay: '',
+    }
+
+    let newCurrentBatter = {
+      ...currentBatter,
+      turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
+    }
+
+    let newLineup = currentTeam.lineup.map((player) =>
+      player.name === currentBatter?.name ? newCurrentBatter : player
+    )
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? {
+              ...team,
+              runs: team.runs + runsScored,
+              hits: team.hits + 1,
+              newLineup,
+            }
+          : team
+      )
+    )
+
+    set({ bases: [false, false, false], strikes: 0, balls: 0 })
+
+    let newTeam = {
+      ...teams[teamIndex],
+      runs: teams[teamIndex].runs + runsScored,
+      hits: teams[teamIndex].hits + 1,
+      lineup: newLineup,
+    }
+    await handlePlayServices(useGameStore.getState().id!, teamIndex, newTeam, [
+      false,
+      false,
+      false,
+    ])
+
+    advanceBatter(teamIndex)
+  },
+
+  // Acción para manejar un golpe por lanzamiento (HitByPitch)
+  handleHitByPitch: async () => {
+    const { bases, isTopInning, getCurrentBatter } = get()
+    const { teams, setTeams, advanceBatter } = useTeamsStore.getState()
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
+    useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
+    const newBases = [...bases]
+    let runsScored = 0
+
+    if (!bases[0]) {
+      newBases[0] = true
+    } else if (!bases[1]) {
+      newBases[1] = true
+    } else if (!bases[2]) {
+      newBases[2] = true
+    } else {
+      runsScored = 1
+    }
+
+    let turnsAtBat: ITurnAtBat = {
+      inning: useGameStore.getState().inning,
+      typeHitting: TypeHitting.HitByPitch,
+      typeAbbreviatedBatting: TypeAbbreviatedBatting.HitByPitch,
+      errorPlay: '',
+    }
+
+    let newCurrentBatter = {
+      ...currentBatter,
+      turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
+    }
+
+    let newLineup = currentTeam.lineup.map((player) =>
+      player.name === currentBatter?.name ? newCurrentBatter : player
+    )
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? { ...team, runs: team.runs + runsScored, lineup: newLineup }
+          : team
+      )
+    )
+
+    set({ bases: newBases, strikes: 0, balls: 0 })
+
+    let newTeam = {
+      ...teams[teamIndex],
+      runs: teams[teamIndex].runs + runsScored,
+      lineup: newLineup,
+    }
+    await handlePlayServices(
+      useGameStore.getState().id!,
+      teamIndex,
+      newTeam,
+      newBases
+    )
+
+    advanceBatter(teamIndex)
+  },
+  handleErrorPlay: async (defensiveOrder: number) => {
+    const { isTopInning, getCurrentBatter, bases } = get()
+    const { teams, advanceBatter, setTeams } = useTeamsStore.getState()
+
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
+    useHistoryStore.getState().handleStrikeFlowHistory('error')
+
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+
+    let turnsAtBat: ITurnAtBat = {
+      inning: useGameStore.getState().inning,
+      typeHitting: TypeHitting.ErrorPlay,
+      typeAbbreviatedBatting: TypeAbbreviatedBatting.ErrorPlay,
+      errorPlay: `E${defensiveOrder}`,
+    }
+
+    let newCurrentBatter = {
+      ...currentBatter,
+      turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
+    }
+
+    let newLineup = currentTeam.lineup.map((player) =>
+      player.name === currentBatter?.name ? newCurrentBatter : player
+    )
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? { ...team, lineup: newLineup, errorsGame: team.errorsGame + 1 }
+          : team
+      )
+    )
+
+    let newTeam = {
+      ...teams[teamIndex],
+      lineup: newLineup,
+      errorsGame: teams[teamIndex].errorsGame + 1,
+    }
+    await handlePlayServices(
+      useGameStore.getState().id!,
+      teamIndex,
+      newTeam,
+      bases
+    )
+    advanceBatter(teamIndex)
+  },
+  handleOutPlay: async (isSaved = true) => {
+    const { isTopInning, getCurrentBatter, bases } = get()
+    const { teams, setTeams } = useTeamsStore.getState()
+
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+
+    const currentBatter = getCurrentBatter()
+
+    if(!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
+    let turnsAtBat: ITurnAtBat = {
+      inning: useGameStore.getState().inning,
+      typeHitting: TypeHitting.Out,
+      typeAbbreviatedBatting: TypeAbbreviatedBatting.Out,
+      errorPlay: "",
+    }
+
+    let newCurrentBatter = {
+      ...currentBatter,
+      turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
+    }
+
+    let newLineup = currentTeam.lineup.map((player) =>
+      player.name === currentBatter?.name ? newCurrentBatter : player
+    )
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? { ...team, lineup: newLineup }
+          : team
+      )
+    )
+
+    let newTeam = {
+      ...teams[teamIndex],
+      lineup: newLineup,
+    }
+
+
+
+    if (isSaved) {
+      await handlePlayServices(
+        useGameStore.getState().id!,
+        teamIndex,
+        newTeam,
+        bases
+      )
+    }
+  },
+  handleBBPlay: async () => {
+    const { isTopInning, getCurrentBatter, bases } = get()
+    const { teams, setTeams } = useTeamsStore.getState()
+
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+
+    const currentBatter = getCurrentBatter()
+
+    if (!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
+    let turnsAtBat: ITurnAtBat = {
+      inning: useGameStore.getState().inning,
+      typeHitting: TypeHitting.BaseByBall,
+      typeAbbreviatedBatting: TypeAbbreviatedBatting.BaseBayBall,
+      errorPlay: "",
+    }
+
+    let newCurrentBatter = {
+      ...currentBatter,
+      turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
+    }
+
+    let newLineup = currentTeam.lineup.map((player) =>
+      player.name === currentBatter?.name ? newCurrentBatter : player
+    )
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? { ...team, lineup: newLineup }
+          : team
+      )
+    )
+
+    let newTeam = {
+      ...teams[teamIndex],
+      lineup: newLineup,
+    }
+    await handlePlayServices(
+      useGameStore.getState().id!,
+      teamIndex,
+      newTeam,
+      bases
+    )
   },
 }))

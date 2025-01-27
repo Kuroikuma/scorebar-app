@@ -1,4 +1,3 @@
-import { toogleVisibleOverlay } from '@/app/service/apiOverlays'
 import { Toggle } from './ui/toggle'
 import { useConfigStore } from '@/app/store/configStore'
 import { useState } from 'react'
@@ -13,19 +12,16 @@ export const ToggleOverlays = () => {
   const toogleVisibleScorebug = (e:boolean) => {
     const overlayId = currentConfig?.scorebug.overlayId || ''
     const modelId = currentConfig?.scorebug.modelId || ''
-    toogleVisibleOverlay(overlayId, modelId, e ? 'ShowOverlay' : 'HideOverlay')
   }
 
   const toogleVisibleScoreboard = (e:boolean) => {
     const overlayId = currentConfig?.scoreboard.overlayId || ''
     const modelId = currentConfig?.scoreboard.modelId || ''
-    toogleVisibleOverlay(overlayId, modelId, e ? 'ShowOverlay' : 'HideOverlay')
   }
 
   const toogleVisibleScoreboardMini = (e:boolean) => {
     const overlayId = currentConfig?.scoreboardMinimal.overlayId || ''
     const modelId = currentConfig?.scoreboardMinimal.modelId || ''
-    toogleVisibleOverlay(overlayId, modelId, e ? 'ShowOverlay' : 'HideOverlay')
   }
 
   const toogleVisibleFormationA = async (e:boolean) => {
@@ -35,8 +31,6 @@ export const ToggleOverlays = () => {
     const modelId = currentConfig?.formationA.modelId || ''
     const overlayIdB = currentConfig?.formationB.overlayId || ''
     const modelIdB = currentConfig?.formationB.modelId || ''
-    toogleVisibleOverlay(overlayId, modelId, e ? 'ShowOverlay' : 'HideOverlay')
-    e && toogleVisibleOverlay(overlayIdB, modelIdB, 'HideOverlay')
   }
 
   const toogleVisibleFormationB = async (e:boolean) => {
@@ -46,8 +40,6 @@ export const ToggleOverlays = () => {
     const modelIdA = currentConfig?.formationA.modelId || ''
     const overlayId = currentConfig?.formationB.overlayId || ''
     const modelId = currentConfig?.formationB.modelId || ''
-    toogleVisibleOverlay(overlayId, modelId, e ? 'ShowOverlay' : 'HideOverlay')
-    e && toogleVisibleOverlay(overlayIdA, modelIdA, 'HideOverlay')
   }
 
   return (
