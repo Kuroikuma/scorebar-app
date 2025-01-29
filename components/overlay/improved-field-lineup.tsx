@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/app/context/AuthContext";
 import socket from "@/app/service/socket";
 import { useGameStore } from "@/app/store/gameStore";
 import { useOverlayStore } from "@/app/store/overlayStore";

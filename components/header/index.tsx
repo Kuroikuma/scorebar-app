@@ -1,5 +1,3 @@
-import { ShieldCheck } from 'lucide-react';
-import './styles.scss';
 import Image from 'next/image';
 import { ProfileUser } from '../Profile';
 import logo from "../../app/assets/StrikeBoarLogo.png"

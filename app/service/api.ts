@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Player, Team, useTeamsStore } from '@/app/store/teamsStore';
 import { ConfigGame } from '../store/configStore';
 import socket from './socket';
+import { User } from '../types/user';
 
 interface IUpdateLineupTeam {
   teamIndex: number;
@@ -39,6 +40,11 @@ export const login = async (email: string, password: string) => {
 
 export const register = async (username: string, email: string, password: string) => {
   const response = await api.post('/users/register', { username, email, password });
+  return response.data;
+};
+
+export const updateUser = async (id: string, userData: Partial<User>) => {
+  const response = await api.put(`/users/update/${id}`, userData);
   return response.data;
 };
 

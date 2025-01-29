@@ -2,16 +2,9 @@ import React, { createContext, useState, useContext, useEffect, useCallback } fr
 import { login as apiLogin, register as apiRegister } from '../service/api';
 import { jwtDecode } from 'jwt-decode';
 import { useRouter } from 'next/navigation';
+import { User } from '../types/user';
 
-export interface User {
-  _id: string;
-  username: string;
-  email: string;
-  password: string;
-  avatar: string;
-  companyLogo: string;
-  advertisements: string[];
-}
+
 
 interface AuthContextType {
   user: User | null;
@@ -19,6 +12,7 @@ interface AuthContextType {
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  setUser: (user: User | null) => void;
 }
 
 interface DecodedToken {
@@ -29,7 +23,7 @@ interface DecodedToken {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -80,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading, setUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -17,6 +17,10 @@ export const ProfileUser = () => {
     }
   }
 
+  const handleProfileEdit = async () => {
+    router.push('/profile')
+  }
+
   return (
     <>
       <div className="flex items-center justify-center gap-3 p-2">
@@ -39,6 +43,7 @@ export const ProfileUser = () => {
               <Button
                   variant="secondary"
                   className="font-onest"
+                  onClick={handleProfileEdit}
                 >
                   <User2 className="w-4 h-4" />
                   Perfil

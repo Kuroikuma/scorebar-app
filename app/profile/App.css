@@ -1,0 +1,23 @@
+.container {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.crop-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 20px auto;
+  background: #333;
+}
+
+.controls {
+  margin-top: 20px;
+}
+
+.result img {
+  margin-top: 20px;
+  max-width: 200px;
+  border-radius: 50%;
+}
