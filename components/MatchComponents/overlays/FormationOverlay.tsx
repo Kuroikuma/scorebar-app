@@ -114,7 +114,7 @@ export const FormationOverlay = () => {
                     </div>
                   </div>
                   {/* Nombre del jugador */}
-                  <div className="text-sm font-semibold text-center" style={{color: teamHome.textColor}}>
+                  <div className="text-sm font-semibold text-center text-black">
                     {player?.name ?? 'Sin asignar'}
                   </div>
                 </div>

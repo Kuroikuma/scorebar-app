@@ -77,6 +77,23 @@ export function TabMatchEvents() {
     }
   }
 
+  const getTextButton = () => {
+    switch (eventType) {
+      case 'goal':
+        return 'Add Goal'
+      case 'yellowCard':
+        return 'Add Yellow Card'
+      case 'redCard':
+        return 'Add Red Card'
+      case 'substitution':
+        return 'Add Substitution'
+      default:
+        return 'Add Event'
+    }
+  }
+
+  let team = selectedTeam === 'home' ? homeTeam : awayTeam
+
   return (
     <TabsContent value="match-events" className="p-4 space-y-4">
       <div className="space-y-4">
@@ -126,7 +143,7 @@ export function TabMatchEvents() {
                   <SelectValue placeholder="Select player out" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(selectedTeam === 'home' ? homeTeam : awayTeam).players.map(
+                  {team.players.filter((player) => player.position !== 'SUP').map(
                     (player) => (
                       <SelectItem key={player.id} value={player.id}>
                         {player.name} ({player.number})
@@ -143,7 +160,7 @@ export function TabMatchEvents() {
                   <SelectValue placeholder="Select player in" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(selectedTeam === 'home' ? homeTeam : awayTeam).players.map(
+                  {team.players.filter((player) => player.position === 'SUP').map(
                     (player) => (
                       <SelectItem key={player.id} value={player.id}>
                         {player.name} ({player.number})
@@ -165,7 +182,7 @@ export function TabMatchEvents() {
                 <SelectValue placeholder="Select player" />
               </SelectTrigger>
               <SelectContent>
-                {(selectedTeam === 'home' ? homeTeam : awayTeam).players.map(
+                {team.players.map(
                   (player) => (
                     <SelectItem key={player.id} value={player.id}>
                       {player.name} ({player.number})
@@ -181,7 +198,7 @@ export function TabMatchEvents() {
           onClick={handleAddEvent}
           className="w-full bg-[#ff5722] hover:bg-[#ff5722]/90"
         >
-          Add Event
+          {getTextButton()}
         </Button>
 
         <ScrollArea className="h-[200px] rounded-md border">

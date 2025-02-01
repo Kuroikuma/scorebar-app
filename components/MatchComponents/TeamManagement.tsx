@@ -92,7 +92,7 @@ export function TabTeamSetup() {
     if (file) {
       let linkUrl = await fileHandler(file)
       updateTeam(selectedTeam, { logo: linkUrl })
-      updateTeamService(id!, { logo: linkUrl }, selectedTeam)
+      await updateTeamService(id!, { logo: linkUrl }, selectedTeam)
     }
   }
 
