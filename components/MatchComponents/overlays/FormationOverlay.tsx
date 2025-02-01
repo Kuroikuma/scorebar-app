@@ -88,23 +88,22 @@ export const FormationOverlay = () => {
           {/* Campo de fútbol */}
           <div className="relative w-full h-[calc(100vh)] bg-transparent rounded-lg">
             {/* Líneas del campo */}
-            <div className="absolute inset-0 flex flex-col rotate-180">
-              {/* <FormationSVG /> */}
-              <img src="/field-vectorizado.svg" alt="formation" className="w-full h-full object-contain" />
+            <div className="absolute inset-0 flex flex-col">
+              <FormationSVG />
             </div>
 
             {/* Posiciones de los jugadores */}
-            {currentFormation.positions.map((position, index) => {
+            {formation.positions.map((position, index) => {
               const player = players.find(
                 (player) => player.position === position.name
               )
 
-              const { x, y } = convertGridToPercentage(position.gridX, position.gridY)
+              // const { x, y } = convertGridToPercentage(position.gridX, position.gridY)
               return (
                 <div
                   key={position.name}
                   className="absolute flex flex-col items-center"
-                  style={{ top: `${y}%`, left: `${x}%`, transform: 'translate(-50%, -50%)'  }}
+                  style={{ top: `${position.y}%`, left: `${position.x}%` }}
                 >
                   {/* Camiseta SVG */}
                   <div className="relative">
