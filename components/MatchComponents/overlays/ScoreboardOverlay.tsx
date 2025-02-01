@@ -21,7 +21,7 @@ export function ScoreboardOverlay() {
             </div>
 
             <Time />
-            <div className="flex flex-col items-center justify-center gap-1 pl-2">
+            <div className="flex flex-col items-center justify-start gap-1 pl-2">
               <Score />
               <EventMatch />
               <EventSubstitution />

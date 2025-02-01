@@ -1,5 +1,7 @@
 import { FormationFootball, PlayerFootball, StaffFootball, TeamFootball, TeamRole, TeamState } from "@/matchStore/interfaces"
 import { create } from "zustand"
+import { useMatchStore } from "./matchStore"
+import { addTeamPlayerService } from "@/app/service/apiMatch"
 
 const defaultFormation: FormationFootball = {
   name: "4-4-2",
@@ -34,74 +36,7 @@ const initialState: TeamState = {
     textColor: "#ffffff",
     logo: "/placeholder.svg",
     logoFit: "contain",
-    players: [
-      {
-        id: "1",
-        name: "J. Hart",
-        number: 1,
-        position: "GK",
-      },
-      {
-        id: "2",
-        name: "Junior Hurtado",
-        number: 2,
-        position: "RB",
-      },
-      {
-        id: "3",
-        name: "J. Stones",
-        number: 5,
-        position: "CB1",
-      },
-      {
-        id: "4",
-        name: "H. Maguire",
-        number: 6,
-        position: "CB2",
-      },
-      {
-        id: "5",
-        name: "L. Shaw",
-        number: 3,
-        position: "LB",
-      },
-      {
-        id: "6",
-        name: "K. Phillips",
-        number: 14,
-        position: "CM1",
-      },
-      {
-        id: "7",
-        name: "D. Rice",
-        number: 4,
-        position: "CM2",
-      },
-      {
-        id: "8",
-        name: "R. Sterling",
-        number: 7,
-        position: "LM",
-      },
-      {
-        id: "9",
-        name: "H. Kane",
-        number: 9,
-        position: "ST1",
-      },
-      {
-        id: "10",
-        name: "P. Foden",
-        number: 20,
-        position: "RM",
-      },
-      {
-        id: "11",
-        name: "J. Sancho",
-        number: 11,
-        position: "ST2",
-      },
-    ],
+    players: [],
     staff: defaultStaff,
     formation: defaultFormation,
     teamRole: "home",
@@ -117,74 +52,7 @@ const initialState: TeamState = {
     primaryColor:"#852b35",
     secondaryColor:"#9da1a2",
     logoFit: "contain",
-    players: [
-      {
-        id: "1",
-        name: "J. Hart",
-        number: 1,
-        position: "GK",
-      },
-      {
-        id: "2",
-        name: "Junior Hurtado",
-        number: 2,
-        position: "RB",
-      },
-      {
-        id: "3",
-        name: "J. Stones",
-        number: 5,
-        position: "CB1",
-      },
-      {
-        id: "4",
-        name: "H. Maguire",
-        number: 6,
-        position: "CB2",
-      },
-      {
-        id: "5",
-        name: "L. Shaw",
-        number: 3,
-        position: "LB",
-      },
-      {
-        id: "6",
-        name: "K. Phillips",
-        number: 14,
-        position: "CM1",
-      },
-      {
-        id: "7",
-        name: "D. Rice",
-        number: 4,
-        position: "CM2",
-      },
-      {
-        id: "8",
-        name: "R. Sterling",
-        number: 7,
-        position: "LM",
-      },
-      {
-        id: "9",
-        name: "H. Kane",
-        number: 9,
-        position: "ST1",
-      },
-      {
-        id: "10",
-        name: "P. Foden",
-        number: 20,
-        position: "RM",
-      },
-      {
-        id: "11",
-        name: "J. Sancho",
-        number: 11,
-        position: "ST2",
-      },
-    ],
+    players: [],
     staff: defaultStaff,
     formation: defaultFormation,
     teamRole: "away"
@@ -197,12 +65,15 @@ interface TeamStore extends TeamState {
   updateStaff: (team: TeamRole, updates: Partial<StaffFootball>) => void
   updateFormation: (team: TeamRole, formation: FormationFootball) => void
   updateTeamName: (team: TeamRole, name: string) => void
+  loadTeam: (teamState: TeamState) => void
 }
 
 export const useTeamStore = create<TeamStore>((set, get) => ({
   ...initialState,
-  addPlayer: (teamRole, playerData) => {
+  addPlayer: async (teamRole, playerData) => {
     const { homeTeam, awayTeam } = get()
+    const { id } = useMatchStore.getState()
+    const tempDataId = Date.now().toString()
 
     let team = teamRole === "home" ? homeTeam : awayTeam;
 
@@ -218,7 +89,7 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
         ...team,
         players: [
           ...team.players,
-          { ...playerData, id: Date.now().toString() },
+          { ...playerData, id: tempDataId },
         ],
         formation: {
           ...team.formation,
@@ -226,6 +97,18 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
         },
       },
     }))
+
+    let addPlayerResponse = await addTeamPlayerService(id, { ...playerData, id: tempDataId }, teamRole)
+
+    set((state) => ({
+      [teamRole === "home" ? "homeTeam" : "awayTeam"]: {
+        ...state[teamRole === "home" ? "homeTeam" : "awayTeam"],
+        players: state[teamRole === "home" ? "homeTeam" : "awayTeam"].players.map((player) =>
+          player.id === tempDataId ? { ...addPlayerResponse } : player
+        ),
+      },
+    }))
+    
   },
   updateTeam: (team, updates) =>
     set((state) => ({
@@ -258,5 +141,6 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
         formation,
       },
     })),
+    loadTeam: (teamState) => set(({ ...teamState })),
 }))
 

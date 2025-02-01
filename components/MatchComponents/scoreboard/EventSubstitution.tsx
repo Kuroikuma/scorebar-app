@@ -1,4 +1,3 @@
-import { formatName } from '@/lib/utils'
 import { useEventStore } from '@/matchStore/useEvent'
 import { useTeamStore } from '@/matchStore/useTeam'
 import { useTimeStore } from '@/matchStore/useTime'
@@ -6,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { EventNotification } from './EventMatch'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { SubstitutionFootball } from '@/matchStore/interfaces'
+import { formatName } from '@/app/utils/cropImage'
 
 interface IEventSubstitution extends SubstitutionFootball {
   logo: string
@@ -20,7 +20,7 @@ export const EventSubstitution = () => {
   )
 
   useEffect(() => {
-    if (events.length > 0) {
+    if (substitutions.length > 0) {
       const latestEvent = substitutions[substitutions.length - 1]
 
       const team = latestEvent.teamId === 'home' ? homeTeam : awayTeam

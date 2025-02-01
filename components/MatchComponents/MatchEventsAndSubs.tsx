@@ -9,13 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Label } from '@/components/ui/label'
 import { useTimeStore } from '@/matchStore/useTime'
 import { useTeamStore } from '@/matchStore/useTeam'
 import { useEventStore } from '@/matchStore/useEvent'
 import { TeamRole } from '@/matchStore/interfaces'
+import { ScrollArea } from '../ui/scroll-area'
 
 export function TabMatchEvents() {
 

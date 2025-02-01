@@ -27,6 +27,7 @@ interface TimeStore extends TimeState {
   updateMinutes: (timeUpdate: Partial<typeof initialState.time>) => void
   updateSeconds: (timeUpdate: Partial<typeof initialState.time>) => void
   updateStoppage: (timeUpdate: Partial<typeof initialState.time>) => void
+  loadTime: (timeState: TimeState) => void
 }
 
 export const useTimeStore = create<TimeStore>((set, get) => ({
@@ -90,4 +91,5 @@ export const useTimeStore = create<TimeStore>((set, get) => ({
         ...timeUpdate,
       },
     })),
+    loadTime: (timeState) => set(({ ...timeState })),
 }))

@@ -21,6 +21,7 @@ interface OverlaysStore extends OverlayState {
   handlePositionOverlay: (id: string, data: { x: number; y: number; }, isSaved?: boolean) => Promise<void>
   handleScaleOverlay: (id: string, scale: number, isSaved?: boolean) => Promise<void>
   handleVisibleOverlay: (id: string, visible: boolean, isSaved?: boolean) => Promise<void>
+  loadOverlays: (overlays: OverlayState) => void
 }
 
 export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
@@ -82,5 +83,6 @@ export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
       set({ previewOverlay: { ...previewOverlay, visible } })
     }
   },
+  loadOverlays: (overlays) => set(({ ...overlays })),
 }))
 

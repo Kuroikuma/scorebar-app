@@ -2,7 +2,7 @@ import { TabsList, TabsTrigger } from '../../ui/tabs'
 
 export function TabControlPanel() {
   return (
-    <TabsList className="w-full justify-start bg-transparent border-b rounded-none h-12">
+    <TabsList className="w-full justify-start bg-transparent border-b rounded-none h-12 overflow-auto">
       <TabsTrigger value="score" className="tab_panel">
         Score
       </TabsTrigger>

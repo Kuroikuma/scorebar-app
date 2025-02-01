@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { ChangeEvent, useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,9 +12,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { FormationFootball, TeamRole } from '@/matchStore/interfaces'
+import {
+  FormationFootball,
+  TeamFootball,
+  TeamRole,
+} from '@/matchStore/interfaces'
 import { useTeamStore } from '@/matchStore/useTeam'
 import { defaultFormation } from '@/app/lib/defaultFormation'
+import { debounce } from 'lodash'
+import {
+  updateTeamNameService,
+  updateTeamService,
+} from '@/app/service/apiMatch'
+import { useMatchStore } from '@/matchStore/matchStore'
+import { useFileStorage } from '@/app/hooks/useUploadFile'
+import { Upload } from 'lucide-react'
 
 export function TabTeamSetup() {
   const {
@@ -23,12 +35,18 @@ export function TabTeamSetup() {
     addPlayer,
     updateStaff,
     updateFormation,
+    updateTeam,
   } = useTeamStore()
+
+  const { id } = useMatchStore()
+
   const [selectedTeam, setSelectedTeam] = useState<TeamRole>('home')
   const [playerName, setPlayerName] = useState('')
   const [playerNumber, setPlayerNumber] = useState('')
   const [playerPosition, setPlayerPosition] = useState('')
   const [playerImage, setPlayerImage] = useState('')
+
+  const { fileHandler } = useFileStorage()
 
   const team = selectedTeam === 'home' ? homeTeam : awayTeam
 
@@ -49,10 +67,55 @@ export function TabTeamSetup() {
     setPlayerImage('')
   }
 
+  const debounceUpdate = useCallback(
+    debounce((newValue, teamRole, funtion) => {
+      console.log(id, 'id')
+
+      if (id) {
+        console.log('id', id)
+        funtion(id, newValue, teamRole)
+      }
+    }, 1000),
+    [id]
+  )
+
+  const handleName = (e: ChangeEvent<HTMLInputElement>) => {
+    let newName = e.target.value
+    updateTeam(selectedTeam, { name: newName })
+    debounceUpdate(newName, selectedTeam, updateTeamNameService)
+  }
+
+  const handleUpdateTeamDebounce = (updates: Partial<TeamFootball>) => {
+    updateTeam(selectedTeam, updates)
+    debounceUpdate(updates, selectedTeam, updateTeamService)
+  }
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      let linkUrl = await fileHandler(file)
+      updateTeam(selectedTeam, { logo: linkUrl })
+    }
+  }
 
   return (
     <TabsContent value="team-setup" className="p-4 space-y-4">
       <div className="space-y-4">
+        <div>
+          <Label>Team</Label>
+          <Select
+            value={selectedTeam}
+            onValueChange={(value: TeamRole) => setSelectedTeam(value)}
+          >
+            <SelectTrigger className="bg-[#2a2438]">
+              <SelectValue placeholder="Select team" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="home">{homeTeam.name}</SelectItem>
+              <SelectItem value="away">{awayTeam.name}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <Tabs defaultValue="players">
           <TabsList className="w-full justify-start bg-transparent border-b rounded-none h-12">
             <TabsTrigger value="players" className="tab_panel">
@@ -64,24 +127,13 @@ export function TabTeamSetup() {
             <TabsTrigger value="formation" className="tab_panel">
               Formation
             </TabsTrigger>
+
+            <TabsTrigger value="customize" className="tab_panel">
+              Customize
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="players" className="space-y-4">
-            <div>
-              <Label>Team</Label>
-              <Select
-                value={selectedTeam}
-                onValueChange={(value: TeamRole) => setSelectedTeam(value)}
-              >
-                <SelectTrigger className="bg-[#2a2438]">
-                  <SelectValue placeholder="Select team" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="home">{homeTeam.name}</SelectItem>
-                  <SelectItem value="away">{awayTeam.name}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             <form onSubmit={handleAddPlayer} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -111,13 +163,17 @@ export function TabTeamSetup() {
                       <SelectValue placeholder="Select position" />
                     </SelectTrigger>
                     <SelectContent>
-                      {team.formation.positions.map((position) => (
-                        !position.assigned && (
-                          <SelectItem key={position.name} value={position.name}>
-                            {position.name}
-                          </SelectItem>
-                        )
-                      ))}
+                      {team.formation.positions.map(
+                        (position) =>
+                          !position.assigned && (
+                            <SelectItem
+                              key={position.name}
+                              value={position.name}
+                            >
+                              {position.name}
+                            </SelectItem>
+                          )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -211,7 +267,11 @@ export function TabTeamSetup() {
                 onValueChange={(value) =>
                   updateFormation(selectedTeam, {
                     name: value,
-                    positions: (defaultFormation.find((f) => f.name === value) as FormationFootball).positions,
+                    positions: (
+                      defaultFormation.find(
+                        (f) => f.name === value
+                      ) as FormationFootball
+                    ).positions,
                   })
                 }
               >
@@ -226,6 +286,108 @@ export function TabTeamSetup() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="customize" className="p-4 space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-4">
+                <div>
+                  <Label>Team Name</Label>
+                  <Input
+                    value={team.name}
+                    onChange={handleName}
+                    className="bg-[#2a2438]"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="shortName">Short Name</Label>
+                  <Input
+                    id="shortName"
+                    value={team.shortName}
+                    onChange={(e) =>
+                      handleUpdateTeamDebounce({ shortName: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Text Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={team.textColor}
+                      onChange={(e) =>
+                        handleUpdateTeamDebounce({ textColor: e.target.value })
+                      }
+                      className="bg-[#2a2438] h-10"
+                    />
+                    <Input
+                      value={team.textColor}
+                      onChange={(e) =>
+                        handleUpdateTeamDebounce({ textColor: e.target.value })
+                      }
+                      className="bg-[#2a2438]"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="primaryColor">Primary Jersey Color</Label>
+                  <Input
+                    id="primaryColor"
+                    type="color"
+                    value={team.primaryColor}
+                    onChange={(e) =>
+                      handleUpdateTeamDebounce({ primaryColor: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="secondaryColor">Secondary Jersey Color</Label>
+                  <Input
+                    id="secondaryColor"
+                    type="color"
+                    value={team.secondaryColor}
+                    onChange={(e) =>
+                      handleUpdateTeamDebounce({
+                        secondaryColor: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">
+                    Logo
+                  </Label>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      type="file"
+                      className="hidden"
+                      id={`team-${0}-logo`}
+                      accept="image/*"
+                      onChange={(e) => handleLogoUpload(e)}
+                    />
+                    <Button
+                      variant="outline"
+                      className="bg-[#2d2b3b] hover:bg-[#363447] hover:text-white border-0 text-white"
+                      onClick={() =>
+                        document.getElementById(`team-${0}-logo`)?.click()
+                      }
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Logo
+                    </Button>
+                    {team.logo && (
+                      <div className="relative w-10 h-10">
+                        <img
+                          src={team.logo}
+                          alt={`${team.name} logo`}
+                          style={{ objectFit: 'contain' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

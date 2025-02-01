@@ -4,7 +4,7 @@ import { useTeamStore } from '@/matchStore/useTeam'
 import { useTimeStore } from '@/matchStore/useTime'
 import { CardPlayers } from './CardsPlayers'
 import IEventSubstitution from './EventSubstitution'
-import { formatName } from '@/lib/utils'
+import { formatName } from '@/app/utils/cropImage'
 
 export interface EventNotification {
   type: 'yellowCard' | 'redCard' | 'substitution'
@@ -25,6 +25,8 @@ export function EventMatch() {
 
   useEffect(() => {
     if (events.length > 0) {
+      console.log("events", events)
+      
       const latestEvent = events[events.length - 1]
 
       if (
@@ -35,24 +37,12 @@ export function EventMatch() {
         const team = latestEvent.teamId === 'home' ? homeTeam : awayTeam
         const player = team.players.find((p) => p.id === latestEvent.playerId)
 
-        const substitute = team.players.find(
-          (p) => p.id === latestEvent.assistById
-        )
-        const replacement = team.players.find(
-          (p) => p.id === latestEvent.replacedById
-        )
-
         if (player) {
           const notification: EventNotification = {
             type: latestEvent.type,
             minute: latestEvent.minute,
             logo: team.logo ?? '/placeholder.svg',
             playerName: formatName(player.name),
-          }
-
-          if (latestEvent.type === 'substitution') {
-            notification.substitute = formatName(substitute.name)
-            notification.replacement = formatName(replacement.name)
           }
 
           setNotification(notification)

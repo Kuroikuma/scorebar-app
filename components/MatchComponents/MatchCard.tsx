@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import { ChevronRight, Eye, EyeOff } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 
 const TeamInfo = ({ team }: { team: TeamFootball }) => (
@@ -16,7 +17,7 @@ const TeamInfo = ({ team }: { team: TeamFootball }) => (
         className="w-8 h-8 rounded-full"
       />
     )}
-    
+
     <span className="font-semibold">{team.name}</span>
     <Badge variant="secondary">{team.score}</Badge>
   </div>
@@ -45,10 +46,14 @@ const OverlayCard = ({ title, overlay }: { title: string; overlay: IOverlays }) 
 export const MatchCard = ({ match }: { match: IFootballMatch }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
+  const router = useRouter()
+
   const handleExpand = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
     setIsExpanded(!isExpanded)
   }
+
+  const toMatch = () => router.push(`/match/${match.id}`)
 
   return (
     <motion.div
@@ -58,7 +63,7 @@ export const MatchCard = ({ match }: { match: IFootballMatch }) => {
       exit={{ opacity: 0, y: 50 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="w-full mb-4 overflow-hidden">
+      <Card className="w-full mb-4 overflow-hidden" onClick={toMatch}>
         <CardHeader className="bg-gradient-to-r from-green-500 to-blue-600 text-white">
           <CardTitle className="flex justify-between items-center">
             <span>

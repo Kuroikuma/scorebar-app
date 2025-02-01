@@ -24,25 +24,18 @@ const ScoreBoardDown = () => {
       const goalsMap = goalsEvent
         .map((element) => {
           const team = element.teamId === 'home' ? homeTeam : awayTeam
-
-          // Validamos que el equipo y la lista de jugadores existan
-          if (!team || !team.players) return null
+          if (!team?.players) return null
 
           const player = team.players.find((p) => p.id === element.playerId)
+          if (!player) return null
 
-          if (player) {
-            const message = `${player.number}. ${player.name}`
-            const goal: EventGoal = {
-              playerName: player.name,
-              minute: element.minute,
-              teamRole: element.teamId,
-            }
-            return goal
-          }
-
-          return null // Devuelve null si no se encuentra un jugador
+          return {
+            playerName: player.name,
+            minute: element.minute,
+            teamRole: element.teamId,
+          } as EventGoal
         })
-        .filter(Boolean) // Filtramos los valores nulos o undefined
+        .filter((goal): goal is EventGoal => goal !== null)
 
       setGoals(goalsMap)
     }

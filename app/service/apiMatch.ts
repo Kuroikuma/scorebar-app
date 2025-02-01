@@ -59,15 +59,15 @@ export const addEventService = async (
   matchId: string,
   event: MatchEventFootball
 ) => {
-  const response = await api.post(`/matches/event/${matchId}`, event)
+  const response = await api.post(`/matches/event/${matchId}`, { addedEvent: event })
   return response.data
 }
 
 export const deleteEventService = async (
   matchId: string,
-  event: MatchEventFootball
+  eventId: string
 ) => {
-  const response = await api.delete(`/matches/event/${matchId}/${event.id}`)
+  const response = await api.delete(`/matches/event/${matchId}/${eventId}`)
   return response.data
 }
 
@@ -77,18 +77,17 @@ export const addSubstitutionService = async (
 ) => {
   const response = await api.post(
     `/matches/substitution/${matchId}`,
-    substitution
+    { addedSubstitution: substitution }
   )
   return response.data
 }
 
 export const deleteSubstitutionService = async (
   matchId: string,
-  substitution: SubstitutionFootball
+  substitutionId: string
 ) => {
-  const response = await api.post(
-    `/matches/substitution/${matchId}`,
-    substitution
+  const response = await api.delete(
+    `/matches/substitution/${matchId}/${substitutionId}`
   )
   return response.data
 }
@@ -98,7 +97,7 @@ export const addTeamPlayerService = async (
   player: PlayerFootball,
   teamRole: string
 ) => {
-  const response = await api.post(`/matches/team/addPlayer/${matchId}`, {
+  const response = await api.put(`/matches/team/addPlayer/${matchId}`, {
     player,
     teamRole,
   })
