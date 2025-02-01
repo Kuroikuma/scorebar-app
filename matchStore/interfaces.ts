@@ -162,7 +162,7 @@ export interface MatchState {
   stadiumName: string
   matchDate: string
   id: string
-  status: string
+  status: Status
   userId: string
   past: Partial<Omit<IFootballMatch, "userId">>[];
   future: Partial<Omit<IFootballMatch, "userId">>[];

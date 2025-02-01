@@ -39,7 +39,7 @@ export const createMatchService = async (
 
 export const updateMatcheService = async (
   id: string,
-  matcheData: Omit<IFootballMatch, 'userId'>
+  matcheData: Partial<IFootballMatch>
 ) => {
   const response = await api.put(`/matches/${id}`, matcheData)
   return response.data
@@ -142,7 +142,7 @@ export const updateTeamStaffService = async (
 
 export const updateTeamService = async (
   matchId: string,
-  team: TeamFootball,
+  team: Partial<TeamFootball>,
   teamRole: string
 ) => {
   const response = await api.put(`/matches/team/${matchId}`, { team, teamRole })

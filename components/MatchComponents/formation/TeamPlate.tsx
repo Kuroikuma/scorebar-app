@@ -13,7 +13,7 @@ export default function TeamPlate({
   secondaryColor,
   textColor,
 }: TeamPlateProps) {
-  let secondaryColorReplacement = secondaryColor ? secondaryColor : textColor
+  let secondaryColorReplacement = secondaryColor !== primaryColor ? secondaryColor : textColor
 
   return (
     <div className="flex w-96 h-36 items-center">
@@ -25,7 +25,7 @@ export default function TeamPlate({
         {/* Number */}
         <div className="px-3 text-lg font-bold text-white absolute -skew-x-12">
           <img
-            src="/logoEquipo.png"
+            src={logo}
             alt="Logo"
             className="h-36 w-full object-contain"
           />

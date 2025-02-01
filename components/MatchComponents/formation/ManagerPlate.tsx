@@ -11,7 +11,7 @@ export default function ManagerPlate({
   secondaryColor,
   textColor,
 }: ManagerPlateProps) {
-  let secondaryColorReplacement = secondaryColor ? secondaryColor : textColor
+  let secondaryColorReplacement = secondaryColor !== primaryColor ? secondaryColor : textColor
   return (
     <div className="flex w-96 items-center">
       {/* Number Container with Angular Design */}

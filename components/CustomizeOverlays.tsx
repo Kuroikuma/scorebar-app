@@ -24,7 +24,7 @@ const CustomizeOverlays = () => {
 
   const copyToClipboard = async (): Promise<void> => {
     try {
-      let overlaURL = `https://scoreboard-app-pi.vercel.app/overlay/${id}`
+      let overlaURL = `https://scoreboard-app-pi.vercel.app/overlay/game/${id}`
       await navigator.clipboard.writeText(overlaURL);
       toast.info("Overlay URL copiado al portapapeles");
     } catch (err) {

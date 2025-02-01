@@ -69,10 +69,7 @@ export function TabTeamSetup() {
 
   const debounceUpdate = useCallback(
     debounce((newValue, teamRole, funtion) => {
-      console.log(id, 'id')
-
       if (id) {
-        console.log('id', id)
         funtion(id, newValue, teamRole)
       }
     }, 1000),
@@ -89,11 +86,13 @@ export function TabTeamSetup() {
     updateTeam(selectedTeam, updates)
     debounceUpdate(updates, selectedTeam, updateTeamService)
   }
+
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       let linkUrl = await fileHandler(file)
       updateTeam(selectedTeam, { logo: linkUrl })
+      updateTeamService(id!, { logo: linkUrl }, selectedTeam)
     }
   }
 
@@ -174,6 +173,7 @@ export function TabTeamSetup() {
                             </SelectItem>
                           )
                       )}
+                      <SelectItem value="SUP">SUP</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -308,6 +308,7 @@ export function TabTeamSetup() {
                     onChange={(e) =>
                       handleUpdateTeamDebounce({ shortName: e.target.value })
                     }
+                    className="bg-[#2a2438]"
                   />
                 </div>
                 <div>
@@ -339,6 +340,7 @@ export function TabTeamSetup() {
                     onChange={(e) =>
                       handleUpdateTeamDebounce({ primaryColor: e.target.value })
                     }
+                    className="bg-[#2a2438]"
                   />
                 </div>
                 <div>
@@ -352,6 +354,7 @@ export function TabTeamSetup() {
                         secondaryColor: e.target.value,
                       })
                     }
+                    className="bg-[#2a2438]"
                   />
                 </div>
                 <div className="space-y-2">

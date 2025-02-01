@@ -1,6 +1,10 @@
-import FenifutSVG from "../svg/Fenifut"
+import { useTeamStore } from "@/matchStore/useTeam"
+import { useMatchStore } from "@/matchStore/matchStore"
 
 const PreviewOverlay = () => {
+  const { homeTeam, awayTeam } = useTeamStore()
+  const { stadiumName, leagueLogo } = useMatchStore()
+
   return (
     <div
       className="relative font-['Roboto_Condensed'] w-[70vw] h-[70vh] rounded-3xl flex items-center"
@@ -10,29 +14,31 @@ const PreviewOverlay = () => {
     >
       <div className="h-[70%] w-[40%] flex flex-col">
         <div className="w-[100%] h-[80%]">
-          <img src="/logoEquipo.png" alt="Logo" className="h-full w-full object-contain" />
+          <img src={homeTeam.logo} alt="Logo" className="h-full w-full object-contain" />
         </div>
         <div className="text-white text-center text-2xl font-bold">
           <span className="text-white text-center text-2xl font-bold">
-            SANTO DOMINGO FC
+            {homeTeam.name}
           </span>
         </div>
       </div>
 
       <div className="h-[100%] w-[20%] flex flex-col justify-between items-center">
         <div className="w-[100%] h-[40%]">
-          <FenifutSVG height="100%" width="100%" />
+        <img src={leagueLogo} alt="Logo" className="h-full w-full object-contain" />
         </div>
         <div className="text-white text-center text-6xl font-bold absolute top-[50%]">VS</div>
-        <div className="text-white text-center text-2xl font-bold absolute top-[85%]">CAMPO SINTETICO SAN CARLOS</div>
+        <div className="text-white text-center text-2xl font-bold absolute top-[85%]">{stadiumName}</div>
       </div>
 
       <div className="h-[70%] w-[40%]">
         <div className="w-[100%] h-[80%]">
-          <img src="/LogoAway.png" alt="Logo" className="h-full w-full object-contain" />
+          <img src={awayTeam.logo} alt="Logo" className="h-full w-full object-contain" />
         </div>
         <div className="text-white text-center text-xl font-bold">
-          TOROS DE CHONTALES FC
+        <span className="text-white text-center text-2xl font-bold">
+            {awayTeam.name}
+          </span>
         </div>
       </div>
     </div>

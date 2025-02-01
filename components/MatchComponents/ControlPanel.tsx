@@ -10,7 +10,7 @@ import { TabContentScore } from "./ControlPanel/Score";
 import { TabContentMatchTime } from "./ControlPanel/TabContentMatchTime";
 import { TabTeamSetup } from "./TeamManagement";
 import { TabMatchEvents } from "./MatchEventsAndSubs";
-import { TabTeamCustomize } from "./ControlPanel/TabTeamCustomize";
+import { TabMatchCustomize } from "./ControlPanel/TabMatchCustomize";
 
 export function ControlPanel() {
   const { time, updateTime, period, pauseMatch } = useTimeStore()
@@ -55,7 +55,7 @@ export function ControlPanel() {
         <TabContentMatchTime />
         <TabTeamSetup />
         <TabMatchEvents />
-        <TabTeamCustomize />
+        <TabMatchCustomize />
       </Tabs>
     </Card>
   )

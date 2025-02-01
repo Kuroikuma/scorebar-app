@@ -4,7 +4,7 @@ const FormationSVG = () => (
     xmlns="http://www.w3.org/2000/svg"
     width="h-[calc(20vh)]"
     height="h-[calc(20vh)]"
-    viewBox="0 0 2000 1768"
+    viewBox={`0 0 2000 1768`}
   >
     <path
       fill="#FEFEFE"

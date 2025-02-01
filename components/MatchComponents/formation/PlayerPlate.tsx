@@ -1,4 +1,4 @@
-import { formatName } from "@/lib/utils"
+import { formatName } from "@/app/utils/cropImage"
 
 interface PlayerPlateProps {
   number: number
@@ -10,7 +10,7 @@ interface PlayerPlateProps {
 
 export default function PlayerPlate({ number, name, primaryColor, secondaryColor, textColor }: PlayerPlateProps) {
   let numberString = number.toString().length === 1 ? `0${number}` : number
-  let secondaryColorReplacement = secondaryColor ? secondaryColor : textColor
+  let secondaryColorReplacement = secondaryColor !== primaryColor ? secondaryColor : textColor
   return (
     <div className="flex w-64 items-center">
       {/* Number Container with Angular Design */}
