@@ -1,8 +1,14 @@
 import { useAuth } from '@/app/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { Button } from '../ui/button'
 import { DoorClosed, User2 } from 'lucide-react'
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 
 export const ProfileUser = () => {
   const { user, logout } = useAuth()
@@ -26,39 +32,39 @@ export const ProfileUser = () => {
       <div className="flex items-center justify-center gap-3 p-2">
         <div className="flex items-center justify-center gap-3 p-2">
           <div className="container-profile__actions">
-            <Popover>
-              <PopoverTrigger asChild>
-                <div className="flex items-center justify-center w-10 h-10 text-white bg-white rounded-full cursor-pointer">
-                  <span className="text-lg font-semibold text-black font-onest">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar>
+                  <AvatarImage src={user?.avatar} alt="@shadcn" />
+                  <AvatarFallback>
                     {user?.username &&
                       user.username
                         .split(' ')
                         .slice(0, 2)
                         .map((word) => word.charAt(0).toUpperCase())
                         .join('')}
-                  </span>
-                </div>
-              </PopoverTrigger>
-              <PopoverContent className="w-22 flex flex-col items-center justify-center">
-              <Button
-                  variant="secondary"
-                  className="font-onest"
-                  onClick={handleProfileEdit}
-                >
-                  <User2 className="w-4 h-4" />
-                  Perfil
-                  </Button>
-                <Button
-                  onClick={handleLogout}
-                  variant="secondary"
-                  className="font-onest"
-                >
-                  <DoorClosed className="w-4 h-4" />
-                  Salir
-                </Button>
-                
-              </PopoverContent>
-            </Popover>
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-24 bg-gray-800 border-[#2d2b3b]">
+                <DropdownMenuGroup className="text-white">
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => handleProfileEdit()}
+                  >
+                    <User2 className="w-4 h-4" />
+                    Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => handleLogout()}
+                  >
+                    <DoorClosed className="w-4 h-4" />
+                    Salir
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

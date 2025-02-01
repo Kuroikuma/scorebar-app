@@ -16,7 +16,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoaderCircle, PlusCircle, Upload } from 'lucide-react';
 import { useFileStorage } from '@/app/hooks/useUploadFile';
 
-export default function NewGame() {
+interface NewGameProps {
+  open: boolean
+}
+
+export default function NewGame({ open }: NewGameProps) {
   const { user } = useAuth();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -56,6 +60,12 @@ export default function NewGame() {
     };
     fetchConfigs();
   }, [user]);
+
+  useEffect(() => {
+    if (open) {
+      setIsOpen(true);
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     setLoading(true);
@@ -155,7 +165,7 @@ export default function NewGame() {
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="w-5 h-5 mr-2" />
-          Crear Nuevo Juego
+          Crear Nuevo Juego De Beisbol
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-[#1f2937] text-white">
