@@ -51,7 +51,7 @@ export const getMatcheService = async (id: string) => {
 }
 
 export const getMatchOverlayService = async (id: string) => {
-  const response = await api.get(`/matches/overlay/${id}`)
+  const response = await api.get(`/overlay/matches/${id}`)
   return response.data
 }
 
