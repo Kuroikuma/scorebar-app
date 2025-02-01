@@ -1,5 +1,12 @@
 import * as React from "react"
-const FenifutSVG = (props) => (
+
+interface SVGProps {
+  width?: number
+  height?: number
+  className?: string
+}
+
+const FenifutSVG = (props: SVGProps) => (
   <svg
   xmlns="http://www.w3.org/2000/svg"
   width={props.width || 500}

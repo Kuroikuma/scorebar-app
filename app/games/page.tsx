@@ -6,13 +6,13 @@ import { getAllGames } from '@/app/service/api'
 import { useRouter } from 'next/navigation'
 import { CalendarIcon, CheckIcon, PlayIcon } from 'lucide-react'
 import { Game } from '@/app/store/gameStore'
-import NewGame from './new/page'
 import { GameCard } from './gameCard'
 import { Header } from '@/components/header'
 import { IFootballMatch } from '@/matchStore/interfaces'
 import CreateFootballMatchModal from '@/components/MatchComponents/create-football-match-modal'
 import { MatchCard } from '@/components/MatchComponents/MatchCard'
 import { PopoverCreateGame } from './popoverCreate'
+import NewGame from './newGame'
 
 interface getAllGamesResponse {
   games: Game[]
@@ -67,8 +67,8 @@ export default function GamesList() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-white">My Games</h1>
           <div className="hidden md:flex gap-4">
-            <NewGame open={openGame} />
             <CreateFootballMatchModal open={openMatch} onCreateMatch={handleCreateMatch} />
+            <NewGame open={openGame} />
           </div>
           <div className="flex md:hidden">
             <PopoverCreateGame

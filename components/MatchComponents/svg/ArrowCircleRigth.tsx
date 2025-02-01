@@ -1,5 +1,12 @@
 import * as React from "react"
-const ArrowCircleRigth = (props) => (
+
+interface SVGProps {
+  width?: number
+  height?: number
+  className?: string
+}
+
+const ArrowCircleRigth = (props: SVGProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={10}
