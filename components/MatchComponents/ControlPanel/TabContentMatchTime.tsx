@@ -139,7 +139,7 @@ export function TabContentMatchTime() {
           </Button>
           <Button
             variant="outline"
-            onClick={resetMatch}
+            onClick={() => resetMatch(true)}
             className="bg-[#2a2438] hover:bg-[#352d47]"
           >
             Reset

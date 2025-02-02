@@ -25,7 +25,7 @@ const initialState: TimeState = {
 interface TimeStore extends TimeState {
   startMatch: () => void
   pauseMatch: () => void
-  resetMatch: () => void
+  resetMatch: (isClient: boolean) => void
   updatePeriod: (periodName: string) => void
   updateTime: (timeUpdate: Partial<typeof initialState.time>) => void
   updateMinutes: (timeUpdate: Partial<typeof initialState.time>) => void
@@ -59,7 +59,10 @@ export const useTimeStore = create<TimeStore>()(
       // await updateTimeService(id, { ...time, isRunning: false })
       socket.emit('@client:stopTimer', matchId)
     },
-    resetMatch: () => {
+    resetMatch: (isClient) => {
+
+      let { id: matchId } = useMatchStore.getState()
+
       set((state) => ({
         ...initialState,
         time: {
@@ -74,6 +77,8 @@ export const useTimeStore = create<TimeStore>()(
       useEventStore.getState().removeAllSubstitutions()
       useTeamStore.getState().updateTeam('home', { score: 0 })
       useTeamStore.getState().updateTeam('away', { score: 0 })
+
+      if (isClient) socket.emit('@client:resetMatch', matchId)
     },
     updatePeriod: (periodName) =>
       set((state) => ({
@@ -105,7 +110,7 @@ export const useTimeStore = create<TimeStore>()(
     },
     updateSeconds: async (timeUpdate) => {
       let { id: matchId } = useMatchStore.getState()
-      
+
       let seconds = (timeUpdate.seconds as number)
 
       socket.emit('@client:adjustTimer', matchId, seconds)
