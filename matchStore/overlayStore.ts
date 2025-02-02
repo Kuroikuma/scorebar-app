@@ -1,5 +1,7 @@
-import { OverlayState } from "@/matchStore/interfaces"
+import { OverlayState, PlayerFootball, TeamRole } from "@/matchStore/interfaces"
 import { create } from "zustand"
+import { useTeamStore } from "./useTeam";
+import { useMatchStore } from "./matchStore";
 
 
 let __initOverlays__ = {
@@ -22,6 +24,7 @@ interface OverlaysStore extends OverlayState {
   handleScaleOverlay: (id: string, scale: number, isSaved?: boolean) => Promise<void>
   handleVisibleOverlay: (id: string, visible: boolean, isSaved?: boolean) => Promise<void>
   loadOverlays: (overlays: OverlayState) => void
+  addPlayerOverlay: (teamRole: TeamRole, player: PlayerFootball) => void
 }
 
 export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
@@ -84,5 +87,32 @@ export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
     }
   },
   loadOverlays: (overlays) => set(({ ...overlays })),
+
+  addPlayerOverlay: async (teamRole, playerData) => {
+    const { homeTeam, awayTeam } = useTeamStore.getState()
+
+    let team = teamRole === "home" ? homeTeam : awayTeam;
+
+    const updatedFormation = team.formation.positions.map((pos) => {
+      if (!pos.assigned && pos.name === playerData.position) {
+        return { ...pos, assigned: true };
+      }
+      return pos;
+    });
+
+    set(({
+      [teamRole === "home" ? "homeTeam" : "awayTeam"]: {
+        ...team,
+        players: [
+          ...team.players,
+          { ...playerData },
+        ],
+        formation: {
+          ...team.formation,
+          positions: updatedFormation,
+        },
+      },
+    }))
+  },
 }))
 

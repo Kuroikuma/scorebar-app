@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { IOverlays } from '@/matchStore/interfaces'
+import { IOverlays, TeamFootball } from '@/matchStore/interfaces'
 import { useOverlaysStore } from '@/matchStore/overlayStore'
 // import socket from '@/services/socket'
 import { ScoreboardOverlay } from '@/components/MatchComponents/overlays/ScoreboardOverlay'
@@ -7,6 +7,10 @@ import { FormationOverlay } from '@/components/MatchComponents/overlays/Formatio
 import GoalsDownOverlay from '@/components/MatchComponents/overlays/GoalsDownOverlay'
 import ScoreBoardDown from '@/components/MatchComponents/overlays/ScoreBoardOverlayDown'
 import PreviewOverlay from '@/components/MatchComponents/overlays/PreviewOverlay'
+import { useMatchStore } from '@/matchStore/matchStore'
+import { useTimeStore } from '@/matchStore/useTime'
+import { useTeamStore } from '@/matchStore/useTeam'
+import socket from '@/app/service/socket'
 
 interface IOverlaysItemProps {
   item: IOverlays
@@ -33,6 +37,9 @@ interface ScorebugProps {
 export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
   const { handlePositionOverlay, handleVisibleOverlay, handleScaleOverlay } =
     useOverlaysStore()
+    const { id: matchId } = useMatchStore()
+    const { resetMatch } = useTimeStore()
+    const { updateTeam } = useTeamStore()
 
   // useEffect(() => {
   //   const eventName = `server:handlePositionOverlay/${gameId}/${item.id}`
@@ -65,6 +72,29 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
   //     socket.off(eventNameVisible, handleVisible)
   //   }
   // }, [gameId, item.id])
+
+
+  useEffect(() => {
+    // Escuchar actualizaciones del servidor
+    socket.on(`@server:resetMatch`, () => {
+      resetMatch(false);
+    });
+
+    return () => {
+      socket.off(`@server:resetMatch`);
+    };
+  }, [matchId, resetMatch]);
+
+  useEffect(() => {
+    socket.on(`server:UpdateTeam/${matchId}`, (time:Partial<TeamFootball>) => {
+      updateTeam(time.teamRole!, time);
+    });
+
+    return () => {
+      socket.off(`server:UpdateTeam/${matchId}`);
+    };
+  }, [matchId, updateTeam]);
+  
 
   return item.id === 'scoreboardUp' ? (
     <ScoreboardOverlay />

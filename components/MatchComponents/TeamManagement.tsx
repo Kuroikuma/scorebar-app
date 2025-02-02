@@ -33,7 +33,6 @@ export function TabTeamSetup() {
     homeTeam,
     awayTeam,
     addPlayer,
-    updateStaff,
     updateFormation,
     updateTeam,
   } = useTeamStore()
@@ -75,12 +74,6 @@ export function TabTeamSetup() {
     }, 1000),
     [id]
   )
-
-  const handleName = (e: ChangeEvent<HTMLInputElement>) => {
-    let newName = e.target.value
-    updateTeam(selectedTeam, { name: newName })
-    debounceUpdate(newName, selectedTeam, updateTeamNameService)
-  }
 
   const handleUpdateTeamDebounce = (updates: Partial<TeamFootball>) => {
     updateTeam(selectedTeam, updates)
@@ -229,7 +222,9 @@ export function TabTeamSetup() {
                 <Input
                   value={team.staff.manager}
                   onChange={(e) =>
-                    updateStaff(selectedTeam, { manager: e.target.value })
+                    handleUpdateTeamDebounce({ 
+                      staff: { ...team.staff, manager: e.target.value } 
+                    })
                   }
                   className="bg-[#2a2438]"
                 />
@@ -239,8 +234,8 @@ export function TabTeamSetup() {
                 <Input
                   value={team.staff.assistantManager}
                   onChange={(e) =>
-                    updateStaff(selectedTeam, {
-                      assistantManager: e.target.value,
+                    handleUpdateTeamDebounce({ 
+                      staff: { ...team.staff, assistantManager: e.target.value } 
                     })
                   }
                   className="bg-[#2a2438]"
@@ -251,7 +246,9 @@ export function TabTeamSetup() {
                 <Input
                   value={team.staff.physio}
                   onChange={(e) =>
-                    updateStaff(selectedTeam, { physio: e.target.value })
+                    handleUpdateTeamDebounce({ 
+                      staff: { ...team.staff, physio: e.target.value } 
+                    })
                   }
                   className="bg-[#2a2438]"
                 />
@@ -296,7 +293,9 @@ export function TabTeamSetup() {
                   <Label>Team Name</Label>
                   <Input
                     value={team.name}
-                    onChange={handleName}
+                    onChange={(e) =>
+                      handleUpdateTeamDebounce({ name: e.target.value })
+                    }
                     className="bg-[#2a2438]"
                   />
                 </div>

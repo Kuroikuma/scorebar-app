@@ -13,22 +13,36 @@ import { useMatchStore } from "@/matchStore/matchStore";
 import { useTimeStore } from "@/matchStore/useTime";
 import { useEffect } from "react";
 import socket from "@/app/service/socket";
+import { useTeamStore } from "@/matchStore/useTeam";
+import { TeamFootball } from "@/matchStore/interfaces";
 
 export function ControlPanel() {
 
   const { id: matchId } = useMatchStore()
   const { resetMatch } = useTimeStore()
+  const { updateTeam } = useTeamStore()
 
   useEffect(() => {
-    // Escuchar actualizaciones del servidor
-    socket.on(`@server:resetMatch${matchId}`, () => {
+    socket.on(`@server:resetMatch`, () => {
       resetMatch(false);
     });
 
     return () => {
       socket.off(`@server:resetMatch`);
     };
+
   }, [matchId, resetMatch]);
+
+  useEffect(() => {
+    socket.on(`server:UpdateTeam/${matchId}`, (time:Partial<TeamFootball>) => {
+      updateTeam(time.teamRole!, time);
+    });
+
+    return () => {
+      socket.off(`server:UpdateTeam/${matchId}`);
+    };
+
+  }, [matchId, updateTeam]);
   
   return (
     <Card className="w-full bg-[#1a1625]">

@@ -20,7 +20,7 @@ export function TabContentMatchTime() {
   useEffect(() => {
 
     if (matchId) {
-      socket.emit("@client:joinMatchRoom", matchId);
+      socket.emit("@client:joinMatchRoom", matchId, true);
 
       // Escuchar actualizaciones del servidor
       socket.on("@server:timeUpdate", (serverTime: TimeFootball) => {

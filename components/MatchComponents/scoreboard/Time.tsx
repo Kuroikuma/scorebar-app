@@ -13,7 +13,7 @@ export function Time() {
 
   useEffect(() => {
     // Unirse a la sala del partido
-    socket.emit("@client:joinMatchRoom", matchId);
+    socket.emit("@client:joinMatchRoom", matchId, false);
 
     // Escuchar actualizaciones del servidor
     socket.on("@server:timeUpdate", (serverTime: TimeFootball) => {
