@@ -1,8 +1,86 @@
+import socket from '@/app/service/socket'
+import { TimeFootball } from '@/matchStore/interfaces'
+import { useMatchStore } from '@/matchStore/matchStore'
 import { useTimeStore } from '@/matchStore/useTime'
+import { useCallback, useEffect, useRef } from 'react'
 
 export function Time() {
-  const { time, period } = useTimeStore()
-  const activePeriod = period.find((p) => p.active)?.name || '1st Half'
+
+  const { updateTime, time, updateTimeOverlays } = useTimeStore()
+
+  const { id: matchId } = useMatchStore()
+  
+
+  // const updateMatchTime = useCallback(() => {
+
+  //   if (time.seconds + 1 >= 60) {
+  //     updateTime({
+  //       minutes: time.minutes + 1,
+  //       seconds: 0,
+  //     })
+  //   } else {
+  //     updateTime({
+  //       minutes: time.minutes,
+  //       seconds: time.seconds + 1,
+  //     })
+  //   }
+  // }, [time.minutes, time.seconds, updateTime])
+
+  // const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  // useEffect(() => {
+  //   let interval: NodeJS.Timeout
+
+  //   if (time.isRunning) {
+  //     interval = setInterval(updateMatchTime, 1000)
+  //   }
+    
+  //   return () => clearInterval(interval)
+  // }, [time.isRunning, updateMatchTime])
+
+  // useEffect(() => {
+  //   if (time.isRunning) {
+  //     intervalRef.current = setInterval(updateMatchTime, 1000)
+  //   } else if (intervalRef.current) {
+  //     clearInterval(intervalRef.current)
+  //     intervalRef.current = null
+  //   }
+
+  //   return () => {
+  //     if (intervalRef.current) {
+  //       clearInterval(intervalRef.current)
+  //     }
+  //   }
+  // }, [time.isRunning, updateMatchTime])
+
+  // useEffect(() => {
+  //   const eventName = `server:UpdateTime/${id}`
+
+  //   const updateScorebugClassic = (socketData: Partial<TimeFootball>) => {
+  //     updateTimeOverlays(socketData)
+  //   }
+
+  //   socket.on(eventName, updateScorebugClassic)
+
+  //   return () => {
+  //     socket.off(eventName, updateScorebugClassic)
+  //   }
+  // }, [id])
+
+  useEffect(() => {
+    // Unirse a la sala del partido
+    socket.emit("@client:joinMatchRoom", matchId);
+
+    // Escuchar actualizaciones del servidor
+    socket.on("@server:timeUpdate", (serverTime: TimeFootball) => {
+      updateTime(serverTime);
+    });
+
+    return () => {
+      socket.off("@server:timeUpdate");
+    };
+  }, [matchId, updateTime]);
+
 
   const formatTime = (minutes: number, seconds: number) => {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(

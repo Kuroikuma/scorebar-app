@@ -3,74 +3,98 @@ import { Label } from '../../ui/label'
 import { Input } from '../../ui/input'
 import { Button } from '../../ui/button'
 import { useTimeStore } from '@/matchStore/useTime'
+import { useMatchStore } from '@/matchStore/matchStore'
+import { useEffect, useState } from 'react'
+import socket from '@/app/service/socket'
+import { TimeFootball } from '@/matchStore/interfaces'
+import { Plus, TimerReset } from 'lucide-react'
 
 export function TabContentMatchTime() {
-  const { time, period, updateMinutes, updatePeriod, startMatch, pauseMatch, resetMatch, updateSeconds, updateStoppage } = useTimeStore()
+  const { time, period, updateMinutes, updatePeriod, startMatch, pauseMatch, resetMatch, updateSeconds, updateStoppage, updateTime,  } = useTimeStore()
+  const activePeriod = period.find((p) => p.active)?.name || '1st Half'
+  const { id: matchId } = useMatchStore()
+
+  const [minutes, setMinutes] = useState(0)
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+
+    if (matchId) {
+      socket.emit("@client:joinMatchRoom", matchId);
+
+      // Escuchar actualizaciones del servidor
+      socket.on("@server:timeUpdate", (serverTime: TimeFootball) => {
+
+        let firstTimeExit = time.seconds + 1 >= 60 && time.minutes + 1 >= (45 + time.stoppage) && activePeriod === '1st Half'
+        let secondTimeExit = time.seconds + 1 >= 60 && time.minutes + 1 >= (90 + time.stoppage) && activePeriod === '2nd Half'
+
+        if (firstTimeExit) {
+          pauseMatch()
+        }
+
+        if (secondTimeExit) {
+          pauseMatch()
+        }
+
+        if (!firstTimeExit && !secondTimeExit) {
+          updateTime(serverTime);
+        }
+
+      });
+    }
+
+    return () => {
+      socket.off("@server:timeUpdate");
+    };
+  }, [matchId, updateTime]);
 
   return (
     <TabsContent value="match-time" className="p-4 space-y-4">
       <div className="space-y-4">
         <div>
           <Label>Minutes</Label>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+          <Label>{time.minutes}</Label>
             <Input
               type="number"
-              value={time.minutes}
+              value={minutes}
               onChange={(e) =>
-                updateMinutes({ minutes: Number.parseInt(e.target.value) || 0 })
+                setMinutes(Number.parseInt(e.target.value) || 0)
               }
               className="bg-[#2a2438]"
             />
+            
             <Button
               variant="outline"
               size="icon"
-              onClick={() =>
-                updateMinutes({ minutes: Math.max(0, time.minutes - 1) })
-              }
-              className="bg-[#2a2438] hover:bg-[#352d47]"
+              onClick={() => updateMinutes({ minutes: minutes })}
+              className="bg-[#2a2438] hover:bg-[#352d47] w-44 px-2"
             >
-              -
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => updateMinutes({ minutes: time.minutes + 1 })}
-              className="bg-[#2a2438] hover:bg-[#352d47]"
-            >
-              +
+              <TimerReset className="h-4 w-4" />
+              Ajustar temporizador
             </Button>
           </div>
         </div>
         <div>
           <Label>Seconds</Label>
           <div className="flex items-center gap-2">
+            <Label>{time.seconds}</Label>
             <Input
               type="number"
-              value={time.seconds}
+              value={seconds}
               onChange={(e) =>
-                updateSeconds({ seconds: Number.parseInt(e.target.value) || 0 })
+                setSeconds(Number.parseInt(e.target.value) || 0 )
               }
               className="bg-[#2a2438]"
             />
-            <Button
+          <Button
               variant="outline"
               size="icon"
-              onClick={() =>
-                updateSeconds({ seconds: Math.max(0, time.seconds - 1) })
-              }
-              className="bg-[#2a2438] hover:bg-[#352d47]"
+              onClick={() => updateSeconds({ seconds: minutes })}
+              className="bg-[#2a2438] hover:bg-[#352d47] w-44 px-2"
             >
-              -
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() =>
-                updateSeconds({ seconds: Math.min(59, time.seconds + 1) })
-              }
-              className="bg-[#2a2438] hover:bg-[#352d47]"
-            >
-              +
+              <TimerReset className="h-4 w-4" />
+              Ajustar temporizador
             </Button>
           </div>
         </div>
