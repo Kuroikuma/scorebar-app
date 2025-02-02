@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { IOverlays, TeamFootball } from '@/matchStore/interfaces'
+import { IOverlays, PlayerFootball, TeamFootball, TeamRole } from '@/matchStore/interfaces'
 import { useOverlaysStore } from '@/matchStore/overlayStore'
 // import socket from '@/services/socket'
 import { ScoreboardOverlay } from '@/components/MatchComponents/overlays/ScoreboardOverlay'
@@ -30,16 +30,21 @@ interface ISocketVisible {
   visible: boolean
 }
 
+interface ISocketAddPlayer {
+  playerUpdate: PlayerFootball
+  teamRole: TeamRole
+}
+
 interface ScorebugProps {
   item: IOverlays
 }
 
 export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
-  const { handlePositionOverlay, handleVisibleOverlay, handleScaleOverlay } =
+  const { handlePositionOverlay, handleVisibleOverlay, handleScaleOverlay, addPlayerOverlay } =
     useOverlaysStore()
     const { id: matchId } = useMatchStore()
     const { resetMatch } = useTimeStore()
-    const { updateTeam } = useTeamStore()
+    const { updateTeam,  } = useTeamStore()
 
   // useEffect(() => {
   //   const eventName = `server:handlePositionOverlay/${gameId}/${item.id}`
@@ -73,6 +78,8 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
   //   }
   // }, [gameId, item.id])
 
+  
+
 
   useEffect(() => {
     // Escuchar actualizaciones del servidor
@@ -81,6 +88,7 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
     });
 
     return () => {
+      console.log("desmontando socket de resetMatch")
       socket.off(`@server:resetMatch`);
     };
   }, [matchId, resetMatch]);
@@ -91,17 +99,31 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
     });
 
     return () => {
+      console.log("desmontando socket de updateTeam")
+      
       socket.off(`server:UpdateTeam/${matchId}`);
     };
   }, [matchId, updateTeam]);
+
+  useEffect(() => {
+    socket.on(`server:AddPlayer/${matchId}`, (data:ISocketAddPlayer) => {
+      console.log("addPlayer", data)
+      
+      addPlayerOverlay(data.teamRole, data.playerUpdate);
+    });
+
+    return () => {
+      console.log("desmontando socket de addPlayer")
+      socket.off(`server:AddPlayer/${matchId}`);
+    };
+  }, [matchId, addPlayerOverlay]);
   
 
   return item.id === 'scoreboardUp' ? (
     <ScoreboardOverlay />
     // <></>
   ) : item.id === 'formation' ? (
-    // <FormationOverlay />
-    <></>
+    <FormationOverlay />
   ) : item.id === 'goalsDown' ? (
     // <GoalsDownOverlay />
     <> </>
