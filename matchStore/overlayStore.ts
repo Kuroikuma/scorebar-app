@@ -1,4 +1,4 @@
-import { MatchEventFootball, OverlayState, PlayerFootball, TeamRole } from '@/matchStore/interfaces'
+import { MatchEventFootball, OverlayState, PlayerFootball, SubstitutionFootball, TeamRole } from '@/matchStore/interfaces'
 import { create } from 'zustand'
 import { useTeamStore } from './useTeam'
 import { useMatchStore } from './matchStore'
@@ -39,6 +39,7 @@ interface OverlaysStore extends OverlayState {
   loadOverlays: (overlays: OverlayState) => void
   addPlayerOverlay: (teamRole: TeamRole, player: PlayerFootball) => void
   addEventOverlay: (eventData: MatchEventFootball) => void
+  addSubstitutionOverlay: (substitutionData: SubstitutionFootball) => void
 }
 
 export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
@@ -153,6 +154,40 @@ export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
                   : useTeamStore.getState().awayTeam.score + 1,
             })
         : {}),
+    }))
+  },
+  addSubstitutionOverlay: async (substitutionData) => {
+    const { updateTeam, homeTeam, awayTeam } = useTeamStore.getState()
+
+    let tempSubstitutionsTeam = substitutionData.teamId
+    let team = tempSubstitutionsTeam === 'home' ? homeTeam : awayTeam
+
+    let playerInId = team.players.find((player) => player.id === substitutionData.playerInId) as PlayerFootball
+    let playerOutId = team.players.find((player) => player.id === substitutionData.playerOutId) as PlayerFootball
+    
+    let partialTeamUpdate = {
+      players: team.players.map((player) =>
+        player.id === playerInId.id
+          ? {
+              ...player,
+              position: playerOutId.position,
+            }
+          : player.id === playerOutId.id
+          ? {
+              ...player,
+              position: 'SUP',
+            }
+          : player
+      ),
+    }
+
+    updateTeam(tempSubstitutionsTeam, partialTeamUpdate)
+
+    useEventStore.setState((state) => ({
+      substitutions: [
+        ...state.substitutions,
+        { ...substitutionData },
+      ],
     }))
   },
 }))

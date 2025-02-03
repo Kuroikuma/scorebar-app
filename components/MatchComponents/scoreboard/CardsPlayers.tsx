@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { EventNotification } from './EventMatch'
 
 interface CardPlayersProps {
@@ -6,10 +7,14 @@ interface CardPlayersProps {
 
 export function CardPlayers({ notification }: CardPlayersProps) {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, x: "100%"  }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: "100%"  }}
+      transition={{ duration: 1 }}
       className="flex relative items-center w-full h-[50px] border-t-2"
       style={{
-        background:`linear-gradient(to right, rgb(32, 0, 199) 0%, rgb(14, 0, 95) 40%, rgb(14, 0, 95) 60%, rgb(32, 0, 199) 100%)`,
+        background: `linear-gradient(to right, rgb(32, 0, 199) 0%, rgb(14, 0, 95) 40%, rgb(14, 0, 95) 60%, rgb(32, 0, 199) 100%)`,
       }}
     >
       <div
@@ -33,6 +38,6 @@ export function CardPlayers({ notification }: CardPlayersProps) {
           <div className="bg-red-500 h-9 w-6"></div>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

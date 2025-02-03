@@ -5,6 +5,7 @@ import { useTimeStore } from '@/matchStore/useTime'
 import { CardPlayers } from './CardsPlayers'
 import IEventSubstitution from './EventSubstitution'
 import { formatName } from '@/app/utils/cropImage'
+import { AnimatePresence } from 'framer-motion'
 
 export interface EventNotification {
   type: 'yellowCard' | 'redCard' | 'substitution'
@@ -13,6 +14,7 @@ export interface EventNotification {
   playerName: string
   substitute?: string
   replacement?: string
+  id: string
 }
 
 export function EventMatch() {
@@ -27,10 +29,7 @@ export function EventMatch() {
     if (events.length > 0) {
       const latestEvent = events[events.length - 1]
 
-      if (
-        latestEvent.type === 'yellowCard' ||
-        latestEvent.type === 'redCard' 
-      ) {
+      if (latestEvent.type === 'yellowCard' || latestEvent.type === 'redCard') {
         const team = latestEvent.teamId === 'home' ? homeTeam : awayTeam
         const player = team.players.find((p) => p.id === latestEvent.playerId)
 
@@ -40,6 +39,7 @@ export function EventMatch() {
             minute: latestEvent.minute,
             logo: team.logo ?? '/placeholder.svg',
             playerName: formatName(player.name),
+            id: latestEvent.id,
           }
 
           setNotification(notification)
@@ -51,7 +51,13 @@ export function EventMatch() {
         }
       }
     }
-  }, [events, homeTeam, awayTeam])
+  }, [events])
 
-  return notification && <CardPlayers notification={notification} />
+  return (
+    <div className="w-full overflow-hidden">
+      <AnimatePresence mode="wait">
+        {notification && <CardPlayers notification={notification} />}
+      </AnimatePresence>
+    </div>
+  )
 }
