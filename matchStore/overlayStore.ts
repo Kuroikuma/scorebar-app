@@ -1,7 +1,9 @@
-import { OverlayState, PlayerFootball, TeamRole } from '@/matchStore/interfaces'
+import { MatchEventFootball, OverlayState, PlayerFootball, TeamRole } from '@/matchStore/interfaces'
 import { create } from 'zustand'
 import { useTeamStore } from './useTeam'
 import { useMatchStore } from './matchStore'
+import { useEventStore } from './useEvent'
+import { handlePositionMatchService } from '@/app/service/apiMatch'
 
 let __initOverlays__ = {
   x: 20,
@@ -36,6 +38,7 @@ interface OverlaysStore extends OverlayState {
   ) => Promise<void>
   loadOverlays: (overlays: OverlayState) => void
   addPlayerOverlay: (teamRole: TeamRole, player: PlayerFootball) => void
+  addEventOverlay: (eventData: MatchEventFootball) => void
 }
 
 export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
@@ -45,32 +48,24 @@ export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
     data: { x: number; y: number },
     isSaved = true
   ) => {
-    const {
-      formationOverlay,
-      scoreboardUpOverlay,
-      goalsDownOverlay,
-      scoreBoardDownOverlay,
-      previewOverlay,
-    } = get()
+    const overlayId = `${id}Overlay` as keyof OverlayState;
+    
+    set((state) => ({ 
+      ...state, 
+      [overlayId]: { 
+        ...state[overlayId], 
+        x: data.x, 
+        y: data.y 
+      } 
+    }));
 
-    if (id === formationOverlay.id) {
-      set({ formationOverlay: { ...formationOverlay, x: data.x, y: data.y } })
-    } else if (id === scoreboardUpOverlay.id) {
-      set({
-        scoreboardUpOverlay: { ...scoreboardUpOverlay, x: data.x, y: data.y },
-      })
-    } else if (id === 'goalsDown') {
-      set({ goalsDownOverlay: { ...goalsDownOverlay, x: data.x, y: data.y } })
-    } else if (id === 'scoreBoardDown') {
-      set({
-        scoreBoardDownOverlay: {
-          ...scoreBoardDownOverlay,
-          x: data.x,
-          y: data.y,
-        },
-      })
-    } else if (id === 'preview') {
-      set({ previewOverlay: { ...previewOverlay, x: data.x, y: data.y } })
+    if (isSaved) {
+      await handlePositionMatchService({
+        id, 
+        x: data.x, 
+        y: data.y,
+        matchId: useMatchStore.getState().id
+      });
     }
   },
   handleScaleOverlay: async (id: string, scale: number, isSaved = true) => {
@@ -143,5 +138,21 @@ export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
         },
       },
     })
+  },
+
+  addEventOverlay: async (eventData) => {
+    useEventStore.setState((state) => ({
+      events: [...state.events, { ...eventData }],
+      ...(eventData.type === 'goal'
+        ? useTeamStore
+            .getState()
+            .updateTeam(eventData.teamId === 'home' ? 'home' : 'away', {
+              score:
+                eventData.teamId === 'home'
+                  ? useTeamStore.getState().homeTeam.score + 1
+                  : useTeamStore.getState().awayTeam.score + 1,
+            })
+        : {}),
+    }))
   },
 }))

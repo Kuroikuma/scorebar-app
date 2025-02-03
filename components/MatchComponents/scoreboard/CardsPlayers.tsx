@@ -21,7 +21,7 @@ export function CardPlayers({ notification }: CardPlayersProps) {
       <div className="flex justify-between w-full items-center pr-4">
         <div className=" text-xl font-bold">
           <img
-            src="/logoEquipo.png"
+            src={notification.logo}
             alt="Logo"
             className="h-12 w-full object-contain"
           />
@@ -30,7 +30,7 @@ export function CardPlayers({ notification }: CardPlayersProps) {
         {notification.type === 'yellowCard' ? (
           <div className="bg-yellow-500 h-9 w-6"></div>
         ) : (
-          <div className="bg-red-500"></div>
+          <div className="bg-red-500 h-9 w-6"></div>
         )}
       </div>
     </div>

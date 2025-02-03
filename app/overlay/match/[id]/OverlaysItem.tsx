@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { IOverlays, PlayerFootball, TeamFootball, TeamRole } from '@/matchStore/interfaces'
+import { IOverlays, MatchEventFootball, PlayerFootball, TeamFootball, TeamRole } from '@/matchStore/interfaces'
 import { useOverlaysStore } from '@/matchStore/overlayStore'
 // import socket from '@/services/socket'
 import { ScoreboardOverlay } from '@/components/MatchComponents/overlays/ScoreboardOverlay'
@@ -40,47 +40,47 @@ interface ScorebugProps {
 }
 
 export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
-  const { handlePositionOverlay, handleVisibleOverlay, handleScaleOverlay, addPlayerOverlay } =
+  const { handlePositionOverlay, handleVisibleOverlay, handleScaleOverlay, addPlayerOverlay, addEventOverlay } =
     useOverlaysStore()
     const { id: matchId } = useMatchStore()
     const { resetMatch } = useTimeStore()
     const { updateTeam,  } = useTeamStore()
 
-  // useEffect(() => {
-  //   const eventName = `server:handlePositionOverlay/${gameId}/${item.id}`
-  //   const eventNameScale = `server:handleScaleOverlay/${gameId}/${item.id}`
-  //   const eventNameVisible = `server:handleVisibleOverlay/${gameId}/${item.id}`
+  useEffect(() => {
+    const eventName = `server:handlePositionOverlay/${gameId}/${item.id}`
+    const eventNameScale = `server:handleScaleOverlay/${gameId}/${item.id}`
+    const eventNameVisible = `server:handleVisibleOverlay/${gameId}/${item.id}`
 
-  //   const handlePosition = (imagesSocket: ISocketPosition) => {
-  //     handlePositionOverlay(
-  //       item.id,
-  //       { x: imagesSocket.x, y: imagesSocket.y },
-  //       false
-  //     )
-  //   }
+    const handlePosition = (imagesSocket: ISocketPosition) => {
+      handlePositionOverlay(
+        item.id,
+        { x: imagesSocket.x, y: imagesSocket.y },
+        false
+      )
+    }
 
-  //   const handleScale = (imagesSocket: ISocketScale) => {
-  //     handleScaleOverlay(item.id, imagesSocket.scale, false)
-  //   }
+    const handleScale = (imagesSocket: ISocketScale) => {
+      handleScaleOverlay(item.id, imagesSocket.scale, false)
+    }
 
-  //   const handleVisible = (imagesSocket: ISocketVisible) => {
-  //     handleVisibleOverlay(item.id, imagesSocket.visible, false)
-  //   }
+    const handleVisible = (imagesSocket: ISocketVisible) => {
+      handleVisibleOverlay(item.id, imagesSocket.visible, false)
+    }
 
-  //   socket.on(eventName, handlePosition)
-  //   socket.on(eventNameScale, handleScale)
-  //   socket.on(eventNameVisible, handleVisible)
+    socket.on(eventName, handlePosition)
+    socket.on(eventNameScale, handleScale)
+    socket.on(eventNameVisible, handleVisible)
 
-  //   return () => {
-  //     socket.off(eventName, handlePosition)
-  //     socket.off(eventNameScale, handleScale)
-  //     socket.off(eventNameVisible, handleVisible)
-  //   }
-  // }, [gameId, item.id])
-
-  
+    return () => {
+      socket.off(eventName, handlePosition)
+      socket.off(eventNameScale, handleScale)
+      socket.off(eventNameVisible, handleVisible)
+    }
+  }, [gameId, item.id])
 
 
+
+  // socket de resetMatch
   useEffect(() => {
     // Escuchar actualizaciones del servidor
     socket.on(`@server:resetMatch`, () => {
@@ -93,6 +93,7 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
     };
   }, [matchId, resetMatch]);
 
+  // socket de updateTeam
   useEffect(() => {
     socket.on(`server:UpdateTeam/${matchId}`, (time:Partial<TeamFootball>) => {
       updateTeam(time.teamRole!, time);
@@ -105,6 +106,7 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
     };
   }, [matchId, updateTeam]);
 
+  // socket de AddPlayer
   useEffect(() => {
     socket.on(`server:AddPlayer/${matchId}`, (data:ISocketAddPlayer) => {
       console.log("addPlayer", data)
@@ -117,16 +119,31 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
       socket.off(`server:AddPlayer/${matchId}`);
     };
   }, [matchId, addPlayerOverlay]);
+
+  // socket de AddEvent
+  useEffect(() => {
+    socket.on(`server:AddEvent/${matchId}`, (data:MatchEventFootball) => {
+      console.log("AddEvent", data)
+      
+      addEventOverlay(data);
+    });
+
+    return () => {
+      console.log("desmontando socket de AddEvent")
+      socket.off(`server:AddEvent/${matchId}`);
+    };
+  }, [matchId, addEventOverlay]);
   
 
   return item.id === 'scoreboardUp' ? (
     <ScoreboardOverlay />
     // <></>
   ) : item.id === 'formation' ? (
-    <FormationOverlay />
+    // <FormationOverlay />
+    <></>
   ) : item.id === 'goalsDown' ? (
-    // <GoalsDownOverlay />
-    <> </>
+    <GoalsDownOverlay />
+    // <> </>
   ) : item.id === 'scoreBoardDown' ? (
     // <ScoreBoardDown />
     <> </>

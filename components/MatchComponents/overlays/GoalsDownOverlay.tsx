@@ -8,6 +8,7 @@ export interface EventGoal {
   playerName: string
   goalMessage: string
 }
+
 const GoalsDownOverlay = () => {
   const { homeTeam, awayTeam } = useTeamStore()
   const { time, period } = useTimeStore()
@@ -35,15 +36,15 @@ const GoalsDownOverlay = () => {
           setNotification(notification)
 
           // Remove notification after 5 seconds
-          // setTimeout(() => {
-          //   setNotification(null)
-          // }, 5000)
+          setTimeout(() => {
+            setNotification(null)
+          }, 10000)
         }
       }
     }
   }, [events, homeTeam, awayTeam])
 
-  return (
+  return notification ? (
     <div className="relative font-['Roboto_Condensed'] w-[50vw] h-[15vh]">
       <div
         className="absolute -top-[4px] left-0 right-0 h-[4px]"
@@ -53,7 +54,7 @@ const GoalsDownOverlay = () => {
       ></div>
       <div className=" text-xl font-bold absolute top-0 -left-[5%] flex items-center h-[100%]">
         <img
-          src="/logoEquipo.png"
+          src={notification?.logo}
           alt="Logo"
           className="h-[90%] w-full object-contain"
         />
@@ -76,6 +77,8 @@ const GoalsDownOverlay = () => {
         </div>
       </div>
     </div>
+  ) : (
+    <></>
   )
 }
 

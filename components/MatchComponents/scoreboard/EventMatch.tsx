@@ -25,14 +25,11 @@ export function EventMatch() {
 
   useEffect(() => {
     if (events.length > 0) {
-      console.log("events", events)
-      
       const latestEvent = events[events.length - 1]
 
       if (
         latestEvent.type === 'yellowCard' ||
-        latestEvent.type === 'redCard' ||
-        latestEvent.type === 'substitution'
+        latestEvent.type === 'redCard' 
       ) {
         const team = latestEvent.teamId === 'home' ? homeTeam : awayTeam
         const player = team.players.find((p) => p.id === latestEvent.playerId)
@@ -47,10 +44,10 @@ export function EventMatch() {
 
           setNotification(notification)
 
-          // Remove notification after 5 seconds
-          // setTimeout(() => {
-          //   setNotification(null)
-          // }, 5000)
+          // Remove notification after 10 seconds
+          setTimeout(() => {
+            setNotification(null)
+          }, 10000)
         }
       }
     }

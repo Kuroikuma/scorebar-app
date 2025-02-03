@@ -182,7 +182,7 @@ interface PositionOverlay {
 }
 
 export const handlePositionMatchService = async(data: PositionOverlay) => {
-  const response = await api.put(`/matches/overlay/position/${data.matchId}`, data)
+  const response = await api.put(`/overlay/matches/position/${data.matchId}`, data)
   return response.data
 }
 
@@ -193,7 +193,7 @@ interface ScaleOverlay {
 }
 
 export const updateScaleOverlay = async (data: ScaleOverlay) => {
-  const response = await api.put(`/matches/overlay/scale/${data.matchId}`, data)
+  const response = await api.put(`/overlay/matches/scale/${data.matchId}`, data)
   return response.data
 }
 
@@ -204,7 +204,7 @@ interface VisibleOverlay {
 }
 
 export const updateVisibleOverlay = async (data: VisibleOverlay) => {
-  const response = await api.put(`/matches/overlay/visible/${data.matchId}`, data)
+  const response = await api.put(`/overlay/matches/visible/${data.matchId}`, data)
   return response.data
 }
 
