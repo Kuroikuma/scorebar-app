@@ -41,6 +41,9 @@ const ScoreBoardDown = () => {
     }
   }, [events, homeTeam, awayTeam])
 
+  console.log(goals)
+  
+
   return (
     <div className="relative font-['Roboto_Condensed'] w-[60vw] min-h-[15vh]">
       <div className="flex flex-col h-[100%]">
@@ -72,7 +75,7 @@ const ScoreBoardDown = () => {
         >
           <div className=" text-xl font-bold absolute -top-[3.5vh] -left-[5%] flex items-center h-[15vh] z-10">
             <img
-              src="/logoEquipo.png"
+              src={homeTeam.logo}
               alt="Logo"
               className="h-full w-full object-contain"
             />
@@ -112,7 +115,7 @@ const ScoreBoardDown = () => {
           </div>
           <div className=" text-xl font-bold absolute -top-[3.5vh] -right-[5%] flex items-center h-[15vh]">
             <img
-              src="/LogoAway.png"
+              src={awayTeam.logo}
               alt="Logo"
               className="h-full w-full object-contain"
             />

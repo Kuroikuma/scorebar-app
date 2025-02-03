@@ -22,11 +22,13 @@ export const EventSubstitution = () => {
   )
   const { id: matchId } = useMatchStore()
   const { addSubstitutionOverlay } = useOverlaysStore()
+  const [isShowing, setIsShowing] = useState(false)
 
   useEffect(() => {
     socket.on(
       `server:AddSubstitution/${matchId}`,
       (data: SubstitutionFootball) => {
+        setIsShowing(true)
         addSubstitutionOverlay(data)
       }
     )
@@ -37,7 +39,7 @@ export const EventSubstitution = () => {
   }, [matchId, addSubstitutionOverlay])
 
   useEffect(() => {
-    if (substitutions.length > 0) {
+    if (substitutions.length > 0 && isShowing) {
       const latestEvent = substitutions[substitutions.length - 1]
 
       const team = latestEvent.teamId === 'home' ? homeTeam : awayTeam
@@ -64,6 +66,7 @@ export const EventSubstitution = () => {
         // Remove notification after 5 seconds
         setTimeout(() => {
           setNotification(null)
+          setIsShowing(false)
         }, 10000)
       }
     }

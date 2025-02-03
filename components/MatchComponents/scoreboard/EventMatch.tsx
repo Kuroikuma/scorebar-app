@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useEventStore } from '@/matchStore/useEvent'
 import { useTeamStore } from '@/matchStore/useTeam'
 import { useTimeStore } from '@/matchStore/useTime'
@@ -25,9 +25,23 @@ export function EventMatch() {
     null
   )
 
+  const lastEventId = useRef<string | null>(null); // Guarda el último evento mostrado
+  const isFirstRender = useRef(true); // Evita mostrar en el primer render
+
   useEffect(() => {
-    if (events.length > 0) {
-      const latestEvent = events[events.length - 1]
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false; // Evita ejecución en el primer render
+      return;
+    }
+
+    if (events.length === 0) return; // No hay eventos, no hacer nada
+
+    const latestEvent = events[events.length - 1];
+
+    if (latestEvent.id !== lastEventId.current) {
+
+      lastEventId.current = latestEvent.id; // Guardar el ID para evitar duplicados
 
       if (latestEvent.type === 'yellowCard' || latestEvent.type === 'redCard') {
         const team = latestEvent.teamId === 'home' ? homeTeam : awayTeam

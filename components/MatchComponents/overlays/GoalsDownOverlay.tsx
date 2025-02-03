@@ -3,7 +3,7 @@ import { useEventStore } from '@/matchStore/useEvent'
 import { useTeamStore } from '@/matchStore/useTeam'
 import { useTimeStore } from '@/matchStore/useTime'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useState, useEffect, useId } from 'react'
+import { useState, useEffect, useId, useRef } from 'react'
 
 export interface EventGoal {
   logo: string
@@ -19,9 +19,16 @@ const GoalsDownOverlay = () => {
   const [notification, setNotification] = useState<EventGoal | null>(null)
   const [isWithDelay, setIsWithDelay] = useState(false);
 
+  const lastEventId = useRef<string | null>(null); 
+
   useEffect(() => {
-    if (events.length > 0) {
-      const latestEvent = events[events.length - 1]
+
+    if (events.length === 0) return;
+
+    const latestEvent = events[events.length - 1];
+
+    if (latestEvent.id !== lastEventId.current) {
+      lastEventId.current = latestEvent.id; 
 
       if (latestEvent.type === 'goal') {
         const team = latestEvent.teamId === 'home' ? homeTeam : awayTeam

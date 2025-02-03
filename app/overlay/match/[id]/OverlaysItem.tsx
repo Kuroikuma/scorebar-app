@@ -133,7 +133,10 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
       socket.off(`server:AddEvent/${matchId}`);
     };
   }, [matchId, addEventOverlay]);
+
+  console.log(item.id)
   
+
 
   return item.id === 'scoreboardUp' ? (
     <ScoreboardOverlay />
@@ -142,11 +145,10 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
     // <FormationOverlay />
     <></>
   ) : item.id === 'goalsDown' ? (
-    <GoalsDownOverlay />
-    // <> </>
-  ) : item.id === 'scoreBoardDown' ? (
-    // <ScoreBoardDown />
+    // <GoalsDownOverlay />
     <> </>
+  ) : item.id === 'scoreboardDown' ? (
+    <ScoreBoardDown />
   ) : item.id === 'preview' ? (
     // <PreviewOverlay />
     <></>
