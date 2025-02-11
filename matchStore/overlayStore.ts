@@ -3,7 +3,7 @@ import { create } from 'zustand'
 import { useTeamStore } from './useTeam'
 import { useMatchStore } from './matchStore'
 import { useEventStore } from './useEvent'
-import { handlePositionMatchService } from '@/app/service/apiMatch'
+import { handlePositionMatchService, updateScaleOverlay, updateVisibleOverlay } from '@/app/service/apiMatch'
 
 let __initOverlays__ = {
   x: 20,
@@ -14,10 +14,11 @@ let __initOverlays__ = {
 
 const initialState: OverlayState = {
   scoreboardUpOverlay: { ...__initOverlays__, id: 'scoreboardUp', y: 5, x: 10 },
-  formationOverlay: { ...__initOverlays__, id: 'formation', y: 0, x: 0 },
+  formationAOverlay: { ...__initOverlays__, id: 'formationA', y: 0, x: 0 },
   goalsDownOverlay: { ...__initOverlays__, id: 'goalsDown', y: 75 },
-  scoreBoardDownOverlay: { ...__initOverlays__, id: 'scoreBoardDown', y: 45 },
+  scoreboardDownOverlay: { ...__initOverlays__, id: 'scoreBoardDown', y: 45 },
   previewOverlay: { ...__initOverlays__, id: 'preview', y: 10, x: 10 },
+  formationBOverlay: { ...__initOverlays__, id: 'formationB', y: 0, x: 0 },
 }
 
 interface OverlaysStore extends OverlayState {
@@ -70,24 +71,22 @@ export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
     }
   },
   handleScaleOverlay: async (id: string, scale: number, isSaved = true) => {
-    const {
-      formationOverlay,
-      scoreboardUpOverlay,
-      goalsDownOverlay,
-      scoreBoardDownOverlay,
-      previewOverlay,
-    } = get()
+    const overlayId = `${id}Overlay` as keyof OverlayState;
+    
+    set((state) => ({ 
+      ...state, 
+      [overlayId]: { 
+        ...state[overlayId], 
+        scale
+      } 
+    }));
 
-    if (id === formationOverlay.id) {
-      set({ formationOverlay: { ...formationOverlay, scale } })
-    } else if (id === scoreboardUpOverlay.id) {
-      set({ scoreboardUpOverlay: { ...scoreboardUpOverlay, scale } })
-    } else if (id === 'goalsDown') {
-      set({ goalsDownOverlay: { ...goalsDownOverlay, scale } })
-    } else if (id === 'scoreBoardDown') {
-      set({ scoreBoardDownOverlay: { ...scoreBoardDownOverlay, scale } })
-    } else if (id === 'preview') {
-      set({ previewOverlay: { ...previewOverlay, scale } })
+    if (isSaved) {
+      await updateScaleOverlay({
+        id, 
+        scale,
+        matchId: useMatchStore.getState().id
+      });
     }
   },
   handleVisibleOverlay: async (
@@ -95,24 +94,22 @@ export const useOverlaysStore = create<OverlaysStore>((set, get) => ({
     visible: boolean,
     isSaved = true
   ) => {
-    const {
-      formationOverlay,
-      scoreboardUpOverlay,
-      goalsDownOverlay,
-      scoreBoardDownOverlay,
-      previewOverlay,
-    } = get()
+    const overlayId = `${id}Overlay` as keyof OverlayState;
+    
+    set((state) => ({ 
+      ...state, 
+      [overlayId]: { 
+        ...state[overlayId], 
+        visible
+      } 
+    }));
 
-    if (id === formationOverlay.id) {
-      set({ formationOverlay: { ...formationOverlay, visible } })
-    } else if (id === scoreboardUpOverlay.id) {
-      set({ scoreboardUpOverlay: { ...scoreboardUpOverlay, visible } })
-    } else if (id === 'goalsDown') {
-      set({ goalsDownOverlay: { ...goalsDownOverlay, visible } })
-    } else if (id === 'scoreBoardDown') {
-      set({ scoreBoardDownOverlay: { ...scoreBoardDownOverlay, visible } })
-    } else if (id === 'preview') {
-      set({ previewOverlay: { ...previewOverlay, visible } })
+    if (isSaved) {
+      await updateVisibleOverlay({
+        id, 
+        visible,
+        matchId: useMatchStore.getState().id
+      });
     }
   },
   loadOverlays: (overlays) => set({ ...overlays }),

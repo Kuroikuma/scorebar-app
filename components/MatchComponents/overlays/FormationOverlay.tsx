@@ -4,6 +4,8 @@ import JerseySVG from '../svg/jersey'
 import PlayerPlate from '../formation/PlayerPlate'
 import TeamPlate from '../formation/TeamPlate'
 import ManagerPlate from '../formation/ManagerPlate'
+import { AnimatePresence, motion } from 'framer-motion'
+import React from 'react'
 
 export type FormationConfig = {
   name: string
@@ -29,15 +31,15 @@ export const FORMATIONS: Record<string, FormationConfig> = {
       { name: 'RM', gridX: 11, gridY: 6 },
       { name: 'ST1', gridX: 5, gridY: 7 },
       { name: 'ST2', gridX: 8, gridY: 7 },
-    ]
+    ],
   },
   '4-3-3': {
     name: '4-3-3',
     positions: [
       { name: 'GK', gridX: 6, gridY: 1 },
       // ... otras posiciones
-    ]
-  }
+    ],
+  },
   // Agregar más formaciones aquí
 }
 
@@ -46,88 +48,122 @@ export const convertGridToPercentage = (gridX: number, gridY: number) => {
   const FIELD_ROWS = 8
   return {
     x: ((gridX - 1) / (FIELD_COLUMNS - 1)) * 100,
-    y: ((gridY - 1) / (FIELD_ROWS - 1)) * 100
+    y: ((gridY - 1) / (FIELD_ROWS - 1)) * 100,
   }
 }
 
-export const FormationOverlay = () => {
-  const formation = useTeamStore((state) => state.homeTeam.formation)
-  const teamHome = useTeamStore((state) => state.homeTeam)
-  const players = useTeamStore((state) => state.homeTeam.players).filter((player) => player.position !== 'SUP')
-  const logo = useTeamStore((state) => state.homeTeam.logo)
-  const teamName = teamHome.name
+interface IFormationOverlayProps {
+  overlayId: 'formationA' | 'formationB'
+  visible: boolean
+}
+
+export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOverlayProps) => {
+  const { homeTeam, awayTeam } = useTeamStore()
+  debugger
+  let currentTeam = overlayId === 'formationA' ? homeTeam : awayTeam
+  const formation = currentTeam.formation
+  const players = currentTeam.players.filter((player) => player.position !== 'SUP')
+  const logo = currentTeam.logo
+  const teamName = currentTeam.name
 
   const currentFormation = FORMATIONS[formation.name] || FORMATIONS['4-4-2']
 
   return (
-    <div className="relative w-full h-full font-['Roboto_Condensed'] bg-transparent">
-      {/* Nombre del equipo */}
+    <AnimatePresence initial={false}>
+      {visible ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0 }}
+          transition={{ duration: 1 }}
+        >
+          <div className="relative w-full h-full font-['Roboto_Condensed'] bg-transparent">
+            {/* Nombre del equipo */}
+            {/* Nombre del equipo */}
 
-      <div className="grid grid-cols-7 grid-rows-1 gap-4">
-        <div className="flex flex-col items-center justify-between pb-3 col-span-3">
-          <TeamPlate logo={logo} name={teamName} primaryColor={teamHome.primaryColor} secondaryColor={teamHome.secondaryColor} textColor={teamHome.textColor} />
-          <div className="flex flex-col gap-1">
-            {players.map((player, index) => (
-              <PlayerPlate
-                key={index}
-                number={player.number}
-                name={player.name}
-                primaryColor={teamHome.primaryColor}
-                secondaryColor={teamHome.secondaryColor}
-                textColor={teamHome.textColor}
-              />
-            ))}
-          </div>
-          <ManagerPlate textColor={teamHome.textColor} name={teamHome.staff.manager} primaryColor={teamHome.primaryColor} secondaryColor={teamHome.secondaryColor} />
-        </div>
-        <div className="col-span-4 col-start-4">
-          {/* <div className="text-center text-white text-2xl font-bold mb-4">
-            {teamName}
-          </div> */}
-
-          {/* Campo de fútbol */}
-          <div className="relative w-full h-[calc(100vh)] bg-transparent rounded-lg">
-            {/* Líneas del campo */}
-            <div className="absolute inset-0 flex flex-col">
-              <FormationSVG />
-            </div>
-
-            {/* Posiciones de los jugadores */}
-            {formation.positions.map((position, index) => {
-              const player = players.find(
-                (player) => player.position === position.name
-              )
-
-              // const { x, y } = convertGridToPercentage(position.gridX, position.gridY)
-              return (
-                <div
-                  key={position.name}
-                  className="absolute flex flex-col items-center"
-                  style={{ top: `${position.y}%`, left: `${position.x}%` }}
-                >
-                  {/* Camiseta SVG */}
-                  <div className="relative">
-                    <JerseySVG primaryColor={teamHome.primaryColor} secondaryColor={teamHome.secondaryColor} />
-                    {/* Número del jugador */}
-                    <div className="absolute inset-0 flex items-center justify-center font-bold text-xl" style={{color: teamHome.textColor}}>
-                      {player?.number ?? '?'}
-                    </div>
-                  </div>
-                  {/* Nombre del jugador */}
-                  <div className="text-sm font-semibold text-center text-black">
-                    {player?.name ?? 'Sin asignar'}
-                  </div>
+            <div className="grid grid-cols-7 grid-rows-1 gap-4">
+              <div className="flex flex-col items-center justify-between pb-3 col-span-3">
+                <TeamPlate
+                  logo={logo}
+                  name={teamName}
+                  primaryColor={currentTeam.primaryColor}
+                  secondaryColor={currentTeam.secondaryColor}
+                  textColor={currentTeam.textColor}
+                />
+                <div className="flex flex-col gap-1">
+                  {players.map((player, index) => (
+                    <PlayerPlate
+                      key={index}
+                      number={player.number}
+                      name={player.name}
+                      primaryColor={currentTeam.primaryColor}
+                      secondaryColor={currentTeam.secondaryColor}
+                      textColor={currentTeam.textColor}
+                    />
+                  ))}
                 </div>
-              )
-            })}
-          </div>
+                <ManagerPlate
+                  textColor={currentTeam.textColor}
+                  name={currentTeam.staff.manager}
+                  primaryColor={currentTeam.primaryColor}
+                  secondaryColor={currentTeam.secondaryColor}
+                />
+              </div>
+              <div className="col-span-4 col-start-4">
+                {/* <div className="text-center text-white text-2xl font-bold mb-4">
+              {teamName}
+            </div> */}
 
-          {/* Nombre del entrenador */}
-          {/* <div className="mt-4 text-center text-white text-lg font-semibold">
-            Junior
-          </div> */}
-        </div>
-      </div>
-    </div>
+                {/* Campo de fútbol */}
+                <div className="relative w-full h-[calc(100vh)] bg-transparent rounded-lg">
+                  {/* Líneas del campo */}
+                  <div className="absolute inset-0 flex flex-col">
+                    <FormationSVG />
+                  </div>
+
+                  {/* Posiciones de los jugadores */}
+                  {formation.positions.map((position, index) => {
+                    const player = players.find((player) => player.position === position.name)
+
+                    // const { x, y } = convertGridToPercentage(position.gridX, position.gridY)
+                    return (
+                      <div
+                        key={position.name}
+                        className="absolute flex flex-col items-center"
+                        style={{ top: `${position.y}%`, left: `${position.x}%` }}
+                      >
+                        {/* Camiseta SVG */}
+                        <div className="relative">
+                          <JerseySVG
+                            primaryColor={currentTeam.primaryColor}
+                            secondaryColor={currentTeam.secondaryColor}
+                          />
+                          {/* Número del jugador */}
+                          <div
+                            className="absolute inset-0 flex items-center justify-center font-bold text-xl"
+                            style={{ color: currentTeam.textColor }}
+                          >
+                            {player?.number ?? '?'}
+                          </div>
+                        </div>
+                        {/* Nombre del jugador */}
+                        <div className="text-sm font-semibold text-center text-black">
+                          {player?.name ?? 'Sin asignar'}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Nombre del entrenador */}
+                {/* <div className="mt-4 text-center text-white text-lg font-semibold">
+              Junior
+            </div> */}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   )
-}
+})

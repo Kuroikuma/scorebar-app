@@ -18,6 +18,9 @@ export function TabControlPanel() {
       <TabsTrigger value="customize" className="tab_panel">
         Customize
       </TabsTrigger>
+      <TabsTrigger value="overlays" className="tab_panel">
+        Overlays
+      </TabsTrigger>
     </TabsList>
   )
 }

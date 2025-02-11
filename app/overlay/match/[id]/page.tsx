@@ -48,18 +48,20 @@ export default function OverlayPage() {
 
   const {
     scoreboardUpOverlay,
-    formationOverlay,
+    formationAOverlay,
+    formationBOverlay,
     goalsDownOverlay,
-    scoreBoardDownOverlay,
+    scoreboardDownOverlay,
     previewOverlay,
     handlePositionOverlay,
   } = useOverlaysStore()
 
   const overlays = [
-    formationOverlay,
+    formationAOverlay,
+    formationBOverlay,
     scoreboardUpOverlay,
     goalsDownOverlay,
-    scoreBoardDownOverlay,
+    scoreboardDownOverlay,
     previewOverlay,
   ]
 

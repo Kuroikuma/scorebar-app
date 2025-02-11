@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import socket from "@/app/service/socket";
 import { useTeamStore } from "@/matchStore/useTeam";
 import { TeamFootball } from "@/matchStore/interfaces";
+import TabsOverlays from "./ControlPanel/TabOverlays";
 
 export function ControlPanel() {
 
@@ -54,6 +55,7 @@ export function ControlPanel() {
         <TabTeamSetup />
         <TabMatchEvents />
         <TabMatchCustomize />
+        <TabsOverlays />
       </Tabs>
     </Card>
   )

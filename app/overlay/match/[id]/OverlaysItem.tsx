@@ -59,12 +59,12 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
       )
     }
 
-    const handleScale = (imagesSocket: ISocketScale) => {
-      handleScaleOverlay(item.id, imagesSocket.scale, false)
+    const handleScale = (scale:number) => {
+      handleScaleOverlay(item.id, scale, false)
     }
 
-    const handleVisible = (imagesSocket: ISocketVisible) => {
-      handleVisibleOverlay(item.id, imagesSocket.visible, false)
+    const handleVisible = (visible: boolean) => {
+      handleVisibleOverlay(item.id, visible, false)
     }
 
     socket.on(eventName, handlePosition)
@@ -134,31 +134,15 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
     };
   }, [matchId, addEventOverlay]);
 
-  console.log(item.id)
-  
-
-
   return item.id === 'scoreboardUp' ? (
-    <ScoreboardOverlay />
-    // <></>
-  ) : item.id === 'formation' ? (
-    // <FormationOverlay />
-    <></>
-  ) : item.id === 'goalsDown' ? (
-    // <GoalsDownOverlay />
-    <> </>
+    <ScoreboardOverlay item={item} />
+  ) : item.id === 'formationA' ? (
+    <FormationOverlay overlayId='formationA' visible={item.visible} />
   ) : item.id === 'scoreboardDown' ? (
-    <ScoreBoardDown />
+    <ScoreBoardDown item={item} />
   ) : item.id === 'preview' ? (
-    // <PreviewOverlay />
-    <></>
+    <PreviewOverlay item={item} />
+  ) : item.id === 'formationB' ? (
+    <FormationOverlay overlayId='formationB' visible={item.visible} />
   ) : <></>
-}
-
-const ScoreBoard = ({ item }: ScorebugProps) => {
-  return (
-    <div className="flex-1 max-w-[100%] bg-black text-white max-[768px]:px-4 flex flex-col font-['Roboto_Condensed']">
-      <ScoreboardOverlay />
-    </div>
-  )
 }

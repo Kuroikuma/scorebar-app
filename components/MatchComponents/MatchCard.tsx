@@ -103,9 +103,9 @@ export const MatchCard = ({ match }: { match: IFootballMatch }) => {
               >
                 <div className="mt-4 space-y-2">
                   <OverlayCard title="Scoreboard Up" overlay={match.scoreboardUpOverlay} />
-                  <OverlayCard title="Formation" overlay={match.formationOverlay} />
+                  <OverlayCard title="Formation" overlay={match.formationAOverlay} />
                   <OverlayCard title="Goals Down" overlay={match.goalsDownOverlay} />
-                  <OverlayCard title="Scoreboard Down" overlay={match.scoreBoardDownOverlay} />
+                  <OverlayCard title="Scoreboard Down" overlay={match.scoreboardDownOverlay} />
                   <OverlayCard title="Preview" overlay={match.previewOverlay} />
                 </div>
               </motion.div>

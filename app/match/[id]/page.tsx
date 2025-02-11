@@ -2,7 +2,6 @@
 
 import { useAuth } from '@/app/context/AuthContext';
 import { ControlPanel } from '@/components/MatchComponents/ControlPanel'
-import { ScoreboardOverlay } from '@/components/MatchComponents/overlays/ScoreboardOverlay';
 import { useMatchStore } from '@/matchStore/matchStore';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';

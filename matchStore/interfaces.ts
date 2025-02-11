@@ -145,9 +145,10 @@ export interface TimeState {
 
 export interface OverlayState {
   scoreboardUpOverlay: IOverlays
-  formationOverlay: IOverlays
+  formationAOverlay: IOverlays
+  formationBOverlay: IOverlays
   goalsDownOverlay: IOverlays
-  scoreBoardDownOverlay: IOverlays
+  scoreboardDownOverlay: IOverlays
   previewOverlay: IOverlays
 }
 
@@ -177,9 +178,10 @@ export interface IFootballMatch {
   period: PeriodFootball[]
   substitutions: SubstitutionFootball[]
   scoreboardUpOverlay: IOverlays
-  formationOverlay: IOverlays
+  formationAOverlay: IOverlays
+  formationBOverlay: IOverlays
   goalsDownOverlay: IOverlays
-  scoreBoardDownOverlay: IOverlays
+  scoreboardDownOverlay: IOverlays
   previewOverlay: IOverlays
   leagueName: string
   leagueLogo: string
