@@ -6,6 +6,8 @@ import TeamPlate from '../formation/TeamPlate'
 import ManagerPlate from '../formation/ManagerPlate'
 import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
+import { deleteNumbers, formatName } from '@/app/utils/cropImage'
+import PlayerCard from '../formation/playerCard'
 
 export type FormationConfig = {
   name: string
@@ -59,7 +61,6 @@ interface IFormationOverlayProps {
 
 export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOverlayProps) => {
   const { homeTeam, awayTeam } = useTeamStore()
-  debugger
   let currentTeam = overlayId === 'formationA' ? homeTeam : awayTeam
   const formation = currentTeam.formation
   const players = currentTeam.players.filter((player) => player.position !== 'SUP')
@@ -133,23 +134,7 @@ export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOv
                         style={{ top: `${position.y}%`, left: `${position.x}%` }}
                       >
                         {/* Camiseta SVG */}
-                        <div className="relative">
-                          <JerseySVG
-                            primaryColor={currentTeam.primaryColor}
-                            secondaryColor={currentTeam.secondaryColor}
-                          />
-                          {/* Número del jugador */}
-                          <div
-                            className="absolute inset-0 flex items-center justify-center font-bold text-xl"
-                            style={{ color: currentTeam.textColor }}
-                          >
-                            {player?.number ?? '?'}
-                          </div>
-                        </div>
-                        {/* Nombre del jugador */}
-                        <div className="text-sm font-semibold text-center text-black">
-                          {player?.name ?? 'Sin asignar'}
-                        </div>
+                        <PlayerCard />
                       </div>
                     )
                   })}
