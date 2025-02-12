@@ -56,3 +56,7 @@ export function formatName(fullName: string): string {
 
   return `${initial}. ${formattedLastName}`;
 }
+
+export function deleteNumbers(texto: string): string {
+  return texto.replace(/\d/g, '');
+}
