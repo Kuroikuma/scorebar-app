@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
 import { deleteNumbers, formatName } from '@/app/utils/cropImage'
 import PlayerCard from '../formation/playerCard'
+import { defaultFormation } from '@/app/lib/defaultFormation'
 
 export type FormationConfig = {
   name: string
@@ -123,7 +124,7 @@ export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOv
                   </div>
 
                   {/* Posiciones de los jugadores */}
-                  {formation.positions.map((position, index) => {
+                  {defaultFormation[0].positions.map((position, index) => {
                     const player = players.find((player) => player.position === position.name)
 
                     // const { x, y } = convertGridToPercentage(position.gridX, position.gridY)
