@@ -118,7 +118,7 @@ export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOv
                 {/* Campo de fútbol */}
                 <div className="relative w-full h-[calc(100vh)] bg-transparent rounded-lg">
                   {/* Líneas del campo */}
-                  <div className="absolute inset-0 flex flex-col">
+                  <div className="absolute inset-0 flex flex-col scale-x-125">
                     <FormationSVG />
                   </div>
 
