@@ -4,8 +4,8 @@ import { Card } from '@/components/ui/card'
 
 export default function PlayerCard() {
   return (
-    <div className="flex items-center justify-center min-h-[150px] bg-gradient-to-br from-gray-900 to-black rounded-lg">
-      <div className="relative w-[112px] h-[150px] group">
+    <div className="flex items-center justify-center min-h-[112px] bg-gradient-to-br from-gray-900 to-black rounded-lg">
+      <div className="relative w-[84px] h-[112px] group">
         {/* Outer frame with glow effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-blue-600 to-yellow-400 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
 
@@ -21,8 +21,8 @@ export default function PlayerCard() {
           <div className="relative h-full flex flex-col items-center p-3">
             {/* Rating */}
             <div className="flex items-center justify-between w-full">
-              <div className="font-bold text-yellow-400">112</div>
-              <div className="font-bold text-blue-400">RW</div>
+              <p className="font-bold text-xs text-yellow-400">112</p>
+              <p className="font-bold text-xs text-blue-400">RW</p>
             </div>
 
             {/* Player Image Container */}
@@ -37,10 +37,10 @@ export default function PlayerCard() {
 
             <div className="flex items-center justify-between w-full">
               {/* Player Name */}
-              <div className="font-bold text-white">BALE</div>
+              <div className="font-bold text-xs text-white">BALE</div>
 
               {/* Flag */}
-              <div className="w-6 h-6 rounded-full overflow-hidden border-2 border-yellow-400">
+              <div className="w-4 h-4 rounded-full overflow-hidden border-2 border-yellow-400">
                 <div className="w-full h-1/2 bg-green-600"></div>
                 <div className="w-full h-1/2 bg-white"></div>
               </div>
