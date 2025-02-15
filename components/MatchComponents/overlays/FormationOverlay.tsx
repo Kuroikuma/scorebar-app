@@ -125,7 +125,7 @@ export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOv
                   </div>
 
                   {/* Posiciones de los jugadores */}
-                  {defaultFormation[0].positions.map((position, index) => {
+                  {defaultFormation[21].positions.map((position, index) => {
                     const player = players.find((player) => player.position === position.name) as PlayerFootball
 
                     // const { x, y } = convertGridToPercentage(position.gridX, position.gridY)
