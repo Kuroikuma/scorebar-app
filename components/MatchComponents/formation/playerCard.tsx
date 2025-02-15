@@ -12,18 +12,15 @@ interface PlayerCardProps {
 
 export default function PlayerCard({ name, number, position, image }: PlayerCardProps) {
   return (
-    <div className="flex items-center justify-center min-h-[112px] bg-gradient-to-br from-gray-900 to-black rounded-lg">
-      <div className="relative w-[84px] h-[112px] group">
+    <div className="flex items-center justify-center min-h-[112px] relative" >
+      <div className='absolute w-[96px] h-[124px] bg-blue-600/20' style={{clipPath: "polygon(50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%, 0 10%)"}}></div>
+      <div className='absolute w-[90px] h-[118px] bg-yellow-400' style={{clipPath: "polygon(50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%, 0 10%)"}}></div>
+      <div className="relative w-[84px] h-[112px] group" style={{clipPath: "polygon(50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%, 0 10%)"}}>
         {/* Outer frame with glow effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-blue-600 to-yellow-400 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
 
         {/* Main card */}
-        <Card className="relative h-full w-full bg-gradient-to-br from-gray-900 to-black border-2 border-yellow-400/50 rounded-lg overflow-hidden">
-          {/* Decorative corners */}
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-yellow-400 rounded-tl-lg"></div>
-          <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-yellow-400 rounded-tr-lg"></div>
-          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-yellow-400 rounded-bl-lg"></div>
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-yellow-400 rounded-br-lg"></div>
+        <Card className="relative h-full w-full bg-gradient-to-br from-gray-900 to-black overflow-hidden border-none">
 
           {/* Content */}
           <div className="relative h-full flex flex-col items-center p-3">
