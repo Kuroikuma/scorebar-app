@@ -38,9 +38,9 @@ export const defaultFormation:FormationFootball[] = [
     name: "3-4-3",
     positions: [
       { name: "POR", assigned: false, y:75, x:45 },
-      { name: "DFC1", assigned: false, y:58, x:25 },
-      { name: "DFC2", assigned: false, y:58, x:45 },
-      { name: "DFC3", assigned: false, y:58, x:65 },
+      { name: "DFC1", assigned: false, y:55, x:25 },
+      { name: "DFC2", assigned: false, y:55, x:45 },
+      { name: "DFC3", assigned: false, y:55, x:65 },
       { name: "MI", assigned: false, y:30, x:10 },
       { name: "MC1", assigned: false, y:30, x:35 },
       { name: "MC2", assigned: false, y:30, x:60 },
