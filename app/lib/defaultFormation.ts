@@ -150,11 +150,11 @@ export const defaultFormation:FormationFootball[] = [
       { name: "LD", assigned: false, y:62, x:82 },
 
       //5
-      { name: "MI", assigned: false, y:30, x:7 },
+      { name: "MI", assigned: false, y:30, x:9 },
       { name: "MCO1", assigned: false, y:15, x:27 },
       { name: "MC", assigned: false, y:30, x:45 },
       { name: "MCO2", assigned: false, y:15, x:63 },
-      { name: "MD", assigned: false, y:30, x:83 },
+      { name: "MD", assigned: false, y:30, x:81 },
 
       //1
       { name: "DEL2", assigned: false, y:3, x:45 },
