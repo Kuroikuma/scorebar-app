@@ -159,5 +159,28 @@ export const defaultFormation:FormationFootball[] = [
       //1
       { name: "DEL2", assigned: false, y:3, x:45 },
     ],
+  },
+  {
+    name: "4-2-2-2",
+    positions: [
+      { name: "POR", assigned: false, y:80, x:45 },
+      //4
+      { name: "LI", assigned: false, y:62, x:8 },
+      { name: "DFC1", assigned: false, y:64, x:25 },
+      { name: "DFC2", assigned: false, y:64, x:65 },
+      { name: "LD", assigned: false, y:62, x:82 },
+
+      //2
+      { name: "MCD1", assigned: false, y:41, x:32 },
+      { name: "MCD2", assigned: false, y:41, x:52 },
+
+      //2
+      { name: "MCO1", assigned: false, y:20, x:15 },
+      { name: "MCO2", assigned: false, y:20, x:75 },
+
+      //2
+      { name: "DEL1", assigned: false, y:3, x:30 },
+      { name: "DEL2", assigned: false, y:3, x:60 },
+    ],
   }
 ]
