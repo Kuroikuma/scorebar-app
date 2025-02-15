@@ -26,12 +26,12 @@ export const defaultFormation:FormationFootball[] = [
       { name: "DFC1", assigned: false, y:60, x:32 },
       { name: "DFC2", assigned: false, y:60, x:60 },
       { name: "LD", assigned: false, y:58, x:82 },
-      { name: "MC1", assigned: false, y:32, x:17 },
-      { name: "MC2", assigned: false, y:30, x:47 },
-      { name: "MC3", assigned: false, y:32, x:77 },
-      { name: "EI", assigned: false, y:5, x:27 },
-      { name: "DEL", assigned: false, y:3, x:47 },
-      { name: "ED", assigned: false, y:5, x:67 },
+      { name: "MC1", assigned: false, y:32, x:15 },
+      { name: "MC2", assigned: false, y:30, x:45 },
+      { name: "MC3", assigned: false, y:32, x:75 },
+      { name: "EI", assigned: false, y:5, x:25 },
+      { name: "DEL", assigned: false, y:3, x:45 },
+      { name: "ED", assigned: false, y:5, x:65 },
     ],
   }
 ]
