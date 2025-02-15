@@ -171,16 +171,16 @@ export const defaultFormation:FormationFootball[] = [
       { name: "LD", assigned: false, y:62, x:82 },
 
       //2
-      { name: "MCD1", assigned: false, y:41, x:32 },
-      { name: "MCD2", assigned: false, y:41, x:52 },
+      { name: "MCD1", assigned: false, y:42, x:32 },
+      { name: "MCD2", assigned: false, y:42, x:58 },
 
       //2
-      { name: "MCO1", assigned: false, y:20, x:15 },
-      { name: "MCO2", assigned: false, y:20, x:75 },
+      { name: "MCO1", assigned: false, y:23, x:15 },
+      { name: "MCO2", assigned: false, y:23, x:75 },
 
       //2
-      { name: "DEL1", assigned: false, y:3, x:30 },
-      { name: "DEL2", assigned: false, y:3, x:60 },
+      { name: "DEL1", assigned: false, y:4, x:30 },
+      { name: "DEL2", assigned: false, y:4, x:60 },
     ],
   }
 ]
