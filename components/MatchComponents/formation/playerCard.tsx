@@ -13,9 +13,9 @@ interface PlayerCardProps {
 export default function PlayerCard({ name, number, position, image }: PlayerCardProps) {
   return (
     <div className="flex items-center justify-center min-h-[112px] relative" >
-      <div className='absolute w-[108px] h-[136px] bg-blue-600/20' style={{clipPath: "polygon(50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%, 0 10%)"}}></div>
-      <div className='absolute w-[102px] h-[130px] bg-yellow-400' style={{clipPath: "polygon(50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%, 0 10%)"}}></div>
-      <div className="relative w-[96px] h-[124px] group" style={{clipPath: "polygon(50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%, 0 10%)"}}>
+      <div className='absolute w-[102px] h-[130px] bg-blue-600/20' style={{clipPath: "polygon(50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%, 0 10%)"}}></div>
+      <div className='absolute w-[96px] h-[124px] bg-yellow-400' style={{clipPath: "polygon(50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%, 0 10%)"}}></div>
+      <div className="relative w-[90px] h-[118px] group" style={{clipPath: "polygon(50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%, 0 10%)"}}>
         {/* Outer frame with glow effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-blue-600 to-yellow-400 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
 
