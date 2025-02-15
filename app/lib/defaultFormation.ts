@@ -14,8 +14,8 @@ export const defaultFormation:FormationFootball[] = [
       { name: "MC1", assigned: false, y:27, x:32 },
       { name: "MC2", assigned: false, y:27, x:58 },
       { name: "MD", assigned: false, y:39, x:80 },
-      { name: "DEL1", assigned: false, y:0, x:36 },
-      { name: "DEL2", assigned: false, y:0, x:54 },
+      { name: "DEL1", assigned: false, y:5, x:36 },
+      { name: "DEL2", assigned: false, y:5, x:54 },
     ],
   },
   {
@@ -328,6 +328,28 @@ export const defaultFormation:FormationFootball[] = [
       { name: "EI", assigned: false, y:5, x:25 },
       { name: "DEL", assigned: false, y:3, x:45 },
       { name: "ED", assigned: false, y:5, x:65 },
+    ],
+  },
+  {
+    name: "3-5-2",
+    positions: [
+      { name: "POR", assigned: false, y:80, x:45 },
+
+      //3
+      { name: "DFC1", assigned: false, y:55, x:15 },
+      { name: "DFC2", assigned: false, y:55, x:45 },
+      { name: "DFC3", assigned: false, y:55, x:75 },
+
+      //5
+      { name: "MI", assigned: false, y:25, x:9 },
+      { name: "MCD1", assigned: false, y:30, x:30 },
+      { name: "MCO", assigned: false, y:20, x:45 },
+      { name: "MCD2", assigned: false, y:30, x:60 },
+      { name: "MD", assigned: false, y:25, x:81 },
+
+      //1
+      { name: "DEL1", assigned: false, y:5, x:30 },
+      { name: "DEL2", assigned: false, y:5, x:60 },
     ],
   },
 ]
