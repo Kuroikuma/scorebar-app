@@ -60,9 +60,9 @@ export const defaultFormation:FormationFootball[] = [
       { name: "LD", assigned: false, y:62, x:82 },
       { name: "MCD1", assigned: false, y:43, x:17 },
       { name: "MCD2", assigned: false, y:43, x:73 },
-      { name: "MCO1", assigned: false, y:20, x:30 },
+      { name: "MCO1", assigned: false, y:20, x:27 },
       { name: "MCO2", assigned: false, y:28, x:45 },
-      { name: "MCO3", assigned: false, y:20, x:60 },
+      { name: "MCO3", assigned: false, y:20, x:63 },
       { name: "DEL", assigned: false, y:3, x:45 },
     ],
   }
