@@ -352,4 +352,42 @@ export const defaultFormation:FormationFootball[] = [
       { name: "DEL2", assigned: false, y:5, x:60 },
     ],
   },
+  {
+    name: "4-3-3 Defensa",
+    positions: [
+      { name: "POR", assigned: false, y:75, x:45 },
+      { name: "LI", assigned: false, y:58, x:8 },
+      { name: "DFC1", assigned: false, y:60, x:32 },
+      { name: "DFC2", assigned: false, y:60, x:60 },
+      { name: "LD", assigned: false, y:58, x:82 },
+      { name: "MCD1", assigned: false, y:36, x:15 },
+      { name: "MC", assigned: false, y:32, x:45 },
+      { name: "MCD2", assigned: false, y:36, x:75 },
+      { name: "EI", assigned: false, y:5, x:25 },
+      { name: "DEL", assigned: false, y:3, x:45 },
+      { name: "ED", assigned: false, y:5, x:65 },
+    ],
+  },
+  {
+    name: "5-3-2",
+    positions: [
+      { name: "POR", assigned: false, y:80, x:45 },
+
+      //5
+      { name: "LI", assigned: false, y:51, x:8 },
+      { name: "DFC1", assigned: false, y:53, x:25 },
+      { name: "DFC2", assigned: false, y:53, x:45 },
+      { name: "DFC3", assigned: false, y:53, x:65 },
+      { name: "LD", assigned: false, y:51, x:82 },
+
+      //3
+      { name: "MC1", assigned: false, y:29, x:21 },
+      { name: "MC2", assigned: false, y:29, x:45 },
+      { name: "MC3", assigned: false, y:29, x:69 },
+
+      //2
+      { name: "DEL1", assigned: false, y:3, x:30 },
+      { name: "DEL2", assigned: false, y:3, x:60 },
+    ],
+  },
 ]
