@@ -1,8 +1,16 @@
 'use client'
 
+import { formatName } from '@/app/utils/cropImage'
 import { Card } from '@/components/ui/card'
+import { PlayerFootball } from '@/matchStore/interfaces'
+interface PlayerCardProps {
+  position?: string
+  name?: string
+  number?: number
+  image?: string
+}
 
-export default function PlayerCard() {
+export default function PlayerCard({ name, number, position, image }: PlayerCardProps) {
   return (
     <div className="flex items-center justify-center min-h-[112px] bg-gradient-to-br from-gray-900 to-black rounded-lg">
       <div className="relative w-[84px] h-[112px] group">
@@ -21,29 +29,23 @@ export default function PlayerCard() {
           <div className="relative h-full flex flex-col items-center p-3">
             {/* Rating */}
             <div className="flex items-center justify-between w-full">
-              <p className="font-bold text-xs text-yellow-400">112</p>
-              <p className="font-bold text-xs text-blue-400">RW</p>
+              <p className="font-bold text-xs text-yellow-400">{number || ''}</p>
+              <p className="font-bold text-xs text-blue-400">{position || ''}</p>
             </div>
 
             {/* Player Image Container */}
             <div className="relative w-full h-48">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-transparent rounded-md"></div>
               <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-liJmcLZg0jwcADNLObTHW4wA9L432S.png"
+                src={image || "/hombre.png"}
                 alt="Player"
                 className="w-full h-full object-cover"
               />
             </div>
 
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-center w-full">
               {/* Player Name */}
-              <div className="font-bold text-xs text-white">BALE</div>
-
-              {/* Flag */}
-              <div className="w-4 h-4 rounded-full overflow-hidden border-2 border-yellow-400">
-                <div className="w-full h-1/2 bg-green-600"></div>
-                <div className="w-full h-1/2 bg-white"></div>
-              </div>
+              <div className="font-bold text-xs text-white truncate">{name ? formatName(name) : 'Sin asignar'}</div>
             </div>
 
             {/* Decorative lines */}

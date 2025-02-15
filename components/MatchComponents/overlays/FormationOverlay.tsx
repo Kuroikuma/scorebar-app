@@ -9,6 +9,7 @@ import React from 'react'
 import { deleteNumbers, formatName } from '@/app/utils/cropImage'
 import PlayerCard from '../formation/playerCard'
 import { defaultFormation } from '@/app/lib/defaultFormation'
+import { PlayerFootball } from '@/matchStore/interfaces'
 
 export type FormationConfig = {
   name: string
@@ -125,7 +126,7 @@ export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOv
 
                   {/* Posiciones de los jugadores */}
                   {defaultFormation[0].positions.map((position, index) => {
-                    const player = players.find((player) => player.position === position.name)
+                    const player = players.find((player) => player.position === position.name) as PlayerFootball
 
                     // const { x, y } = convertGridToPercentage(position.gridX, position.gridY)
                     return (
@@ -135,7 +136,7 @@ export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOv
                         style={{ top: `${position.y}%`, left: `${position.x}%` }}
                       >
                         {/* Camiseta SVG */}
-                        <PlayerCard />
+                        <PlayerCard position={player?.position} name={player?.name} number={player?.number} image={player?.image} />
                       </div>
                     )
                   })}
