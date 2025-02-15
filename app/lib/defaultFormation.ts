@@ -284,7 +284,7 @@ export const defaultFormation:FormationFootball[] = [
       { name: "LD", assigned: false, y:62, x:82 },
 
       //1
-      { name: "MCD", assigned: false, y:47, x:45 },
+      { name: "MCD", assigned: false, y:43, x:45 },
 
       //2
       { name: "MI", assigned: false, y:26, x:10 },
