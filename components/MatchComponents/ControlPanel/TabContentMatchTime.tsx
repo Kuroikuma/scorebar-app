@@ -90,7 +90,7 @@ export function TabContentMatchTime() {
           <Button
               variant="outline"
               size="icon"
-              onClick={() => updateSeconds({ seconds: minutes })}
+              onClick={() => updateSeconds({ seconds: seconds })}
               className="bg-[#2a2438] hover:bg-[#352d47] w-44 px-2"
             >
               <TimerReset className="h-4 w-4" />

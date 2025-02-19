@@ -5,11 +5,13 @@ import PlayerPlate from '../formation/PlayerPlate'
 import TeamPlate from '../formation/TeamPlate'
 import ManagerPlate from '../formation/ManagerPlate'
 import { AnimatePresence, motion } from 'framer-motion'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { deleteNumbers, formatName } from '@/app/utils/cropImage'
 import PlayerCard from '../formation/playerCard'
 import { defaultFormation } from '@/app/lib/defaultFormation'
-import { PlayerFootball } from '@/matchStore/interfaces'
+import { FormationFootball, PlayerFootball, TeamRole } from '@/matchStore/interfaces'
+import { useMatchStore } from '@/matchStore/matchStore'
+import socket from '@/app/service/socket'
 
 export type FormationConfig = {
   name: string
@@ -61,15 +63,30 @@ interface IFormationOverlayProps {
   visible: boolean
 }
 
+interface ISocketData {
+  formation: FormationFootball
+  players: PlayerFootball[]
+  teamRole: TeamRole
+}
+
 export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOverlayProps) => {
-  const { homeTeam, awayTeam } = useTeamStore()
+  const { homeTeam, awayTeam, changeFormation } = useTeamStore()
   let currentTeam = overlayId === 'formationA' ? homeTeam : awayTeam
-  const formation = currentTeam.formation
   const players = currentTeam.players.filter((player) => player.position !== 'SUP')
   const logo = currentTeam.logo
   const teamName = currentTeam.name
+  const { id: matchId } = useMatchStore()
 
-  const currentFormation = FORMATIONS[formation.name] || FORMATIONS['4-4-2']
+  useEffect(() => {
+    socket.on(`server:UpdateTeamFormation/${matchId}`, (data:ISocketData) => {
+      changeFormation(data.formation, data.teamRole, false)
+    });
+
+    return () => {
+      console.log("desmontando socket de AddEvent")
+      socket.off(`server:UpdateTeamFormation/${matchId}`);
+    };
+  }, [matchId, changeFormation]);
 
   return (
     <AnimatePresence initial={false}>
@@ -81,8 +98,6 @@ export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOv
           transition={{ duration: 1 }}
         >
           <div className="relative w-full h-full font-['Roboto_Condensed'] bg-transparent">
-            {/* Nombre del equipo */}
-            {/* Nombre del equipo */}
 
             <div className="grid grid-cols-7 grid-rows-1 gap-4">
               <div className="flex flex-col items-center justify-between pb-3 col-span-3">
@@ -125,7 +140,7 @@ export const FormationOverlay = React.memo(({ overlayId, visible }: IFormationOv
                   </div>
 
                   {/* Posiciones de los jugadores */}
-                  {defaultFormation[24].positions.map((position, index) => {
+                  {currentTeam.formation.positions.map((position, index) => {
                     const player = players.find((player) => player.position === position.name) as PlayerFootball
 
                     // const { x, y } = convertGridToPercentage(position.gridX, position.gridY)

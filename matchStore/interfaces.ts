@@ -1,12 +1,6 @@
 import { Status } from "@/app/store/gameStore"
 
-export interface PlayerFootball {
-  id: string
-  name: string
-  number: number
-  position: string
-  image?: string
-}
+
 
 let __initOverlays = {
   x: 100,
@@ -41,6 +35,32 @@ export interface FormationFootball {
   positions: PositionFormationFootball[]
 }
 
+export interface PlayerFootball {
+  id: string
+  name: string
+  number: number
+  position: string
+  image?: string
+}
+
+
+
+export interface TeamFootball {
+  name: string
+  shortName: string
+  score: number
+  color: string
+  textColor: string
+  logo: string
+  logoFit: "contain" | "cover"
+  players: PlayerFootball[]
+  staff: StaffFootball
+  formation: FormationFootball
+  teamRole : TeamRole
+  primaryColor: string
+  secondaryColor: string
+}
+
 export type TeamRole = "home" | "away"
 
 export interface MatchEventFootball {
@@ -59,22 +79,6 @@ export interface SubstitutionFootball {
   teamId: TeamRole
   playerOutId: string
   playerInId: string
-}
-
-export interface TeamFootball {
-  name: string
-  shortName: string
-  score: number
-  color: string
-  textColor: string
-  logo: string
-  logoFit: "contain" | "cover"
-  players: PlayerFootball[]
-  staff: StaffFootball
-  formation: FormationFootball
-  teamRole : TeamRole
-  primaryColor: string
-  secondaryColor: string
 }
 
 export interface TimeFootball {

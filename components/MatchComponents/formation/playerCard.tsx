@@ -1,8 +1,7 @@
 'use client'
 
-import { formatName } from '@/app/utils/cropImage'
+import { formatName, deleteNumbers } from '@/app/utils/cropImage'
 import { Card } from '@/components/ui/card'
-import { PlayerFootball } from '@/matchStore/interfaces'
 interface PlayerCardProps {
   position?: string
   name?: string
@@ -27,7 +26,7 @@ export default function PlayerCard({ name, number, position, image }: PlayerCard
             {/* Rating */}
             <div className="flex items-center justify-between w-full">
               <p className="font-bold text-xs text-yellow-400">{number || ''}</p>
-              <p className="font-bold text-xs text-blue-400">{position || ''}</p>
+              <p className="font-bold text-xs text-blue-400">{position ? deleteNumbers(position) : ''}</p>
             </div>
 
             {/* Player Image Container */}
@@ -36,7 +35,7 @@ export default function PlayerCard({ name, number, position, image }: PlayerCard
               <img
                 src={image || "/hombre.png"}
                 alt="Player"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-md"
               />
             </div>
 

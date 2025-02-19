@@ -107,10 +107,12 @@ export const addTeamPlayerService = async (
 export const updateTeamFormationService = async (
   matchId: string,
   formation: FormationFootball,
+  players: PlayerFootball[],
   teamRole: string
 ) => {
   const response = await api.put(`/matches/team/formation/${matchId}`, {
     formation,
+    players,
     teamRole,
   })
   return response.data

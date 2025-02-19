@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import { useOverlaysStore } from '@/matchStore/overlayStore'
 import { OverlaysItem } from './OverlaysItem'
 import { useMatchStore } from '@/matchStore/matchStore'
+import { useOverlayMatchSockets } from '@/app/hooks/useSocketOverlaysMatch'
 
 const DraggableComponent = dynamic(
   () =>
@@ -43,6 +44,7 @@ export default function OverlayPage() {
   const id = paramas?.id as string
 
   const { getMatchOverlay } = useMatchStore()
+  useOverlayMatchSockets()
 
   const [gameId, setGameId] = useState<string | null>(id)
 

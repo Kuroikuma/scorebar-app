@@ -8,10 +8,10 @@ export const defaultFormation:FormationFootball[] = [
       { name: "POR", assigned: false, y:78, x:45 },
 
       //4
-      { name: "LI", assigned: false, y:58, x:8 },
-      { name: "DFC1", assigned: false, y:60, x:32 },
-      { name: "DFC2", assigned: false, y:60, x:60 },
-      { name: "LD", assigned: false, y:58, x:82 },
+      { name: "LI", assigned: false, y:62, x:8 },
+      { name: "DFC1", assigned: false, y:64, x:25 },
+      { name: "DFC2", assigned: false, y:64, x:65 },
+      { name: "LD", assigned: false, y:62, x:82 },
 
       //4
       { name: "MI", assigned: false, y:28, x:10 },
@@ -28,10 +28,10 @@ export const defaultFormation:FormationFootball[] = [
     name: "4-3-3 Ataque",
     positions: [
       { name: "POR", assigned: false, y:75, x:45 },
-      { name: "LI", assigned: false, y:58, x:8 },
-      { name: "DFC1", assigned: false, y:60, x:32 },
-      { name: "DFC2", assigned: false, y:60, x:60 },
-      { name: "LD", assigned: false, y:58, x:82 },
+      { name: "LI", assigned: false, y:62, x:8 },
+      { name: "DFC1", assigned: false, y:64, x:25 },
+      { name: "DFC2", assigned: false, y:64, x:65 },
+      { name: "LD", assigned: false, y:62, x:82 },
       { name: "MC1", assigned: false, y:32, x:15 },
       { name: "MCO", assigned: false, y:30, x:45 },
       { name: "MC2", assigned: false, y:32, x:75 },
