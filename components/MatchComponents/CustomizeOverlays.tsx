@@ -1,13 +1,15 @@
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { Button } from './ui/button'
 import { Minus, Plus, Clipboard } from 'lucide-react'
-import { Input } from './ui/input'
 import { IOverlays, useGameStore } from '@/app/store/gameStore'
-import { Label } from './ui/label'
-import { Switch } from './ui/switch'
 import { useState } from 'react'
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs'
 import { toast } from 'sonner'
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
+import { Button } from '../ui/button'
+import { Label } from '../ui/label'
+import { Switch } from '../ui/switch'
+import { Input } from '../ui/input'
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
+import { useOverlaysStore } from '@/matchStore/overlayStore'
+import { useMatchStore } from '@/matchStore/matchStore'
 
 interface CustomizeOverlayProps {
   overlay: IOverlays
@@ -19,12 +21,13 @@ interface TabsLayoutProps {
 }
 
 const CustomizeOverlays = () => {
-  const {  scorebugOverlay, scoreboardOverlay, scoreboardMinimalOverlay, formationAOverlay, formationBOverlay, playerStatsOverlay, id } = useGameStore()
+  const {  scoreboardUpOverlay, scoreboardDownOverlay, formationAOverlay, previewOverlay, formationBOverlay } = useOverlaysStore()
   const [ activeTab, setActiveTab ] = useState<string>("Marc.")
+  const { id } = useMatchStore()
 
   const copyToClipboard = async (): Promise<void> => {
     try {
-      let overlaURL = `https://scoreboard-app-pi.vercel.app/overlay/game/${id}`
+      let overlaURL = `https://scoreboard-app-pi.vercel.app/overlay/match/${id}`
       await navigator.clipboard.writeText(overlaURL);
       toast.info("Overlay URL copiado al portapapeles");
     } catch (err) {
@@ -36,26 +39,25 @@ const CustomizeOverlays = () => {
     <Card className="bg-[#1a1625] border-[#2d2b3b] text-white">
       <CardHeader>
         <div className="flex justify-between">
-          <CardTitle className="text-lg font-medium">Customize Overlay</CardTitle>
+          <CardTitle className="text-lg font-medium">Controles de Overlays</CardTitle>
           <Button variant="ghost" onClick={() => copyToClipboard()}>
             <Clipboard className="h-4 w-4" />
             Copiar Overlay
           </Button>
         </div>
         <TabsLayout activeTab={activeTab} setActiveTab={setActiveTab} />
-        {activeTab === "Marc." && <CustomizeOverlay overlay={scorebugOverlay} />}
-        {activeTab === "M. x Inn." && <CustomizeOverlay overlay={scoreboardOverlay} />}
-        {activeTab === "Marc. Min" && <CustomizeOverlay overlay={scoreboardMinimalOverlay} />}
+        {activeTab === "Marc." && <CustomizeOverlay overlay={scoreboardUpOverlay} />}
+        {activeTab === "Marc. dawn" && <CustomizeOverlay overlay={scoreboardDownOverlay} />}
         {activeTab === "Eq. A" && <CustomizeOverlay overlay={formationAOverlay} />}
         {activeTab === "Eq. B" && <CustomizeOverlay overlay={formationBOverlay} />}
-        {activeTab === "Player Stats" && <CustomizeOverlay overlay={playerStatsOverlay} />}
+        {activeTab === "Preview" && <CustomizeOverlay overlay={previewOverlay} />}
       </CardHeader>
     </Card>
   )
 }
 
 const CustomizeOverlay = ({ overlay: overaly }: CustomizeOverlayProps) => {
-  const { handlePositionOverlay, handleScaleOverlay, handleVisibleOverlay } = useGameStore()
+  const { handlePositionOverlay, handleScaleOverlay, handleVisibleOverlay } = useOverlaysStore()
   return (
     <CardContent className="space-y-6 border rounded-xl pt-4 border-[#2d2b3b]">
       {/* Position Controls */}
@@ -211,16 +213,10 @@ export function TabsLayout({ activeTab, setActiveTab }: TabsLayoutProps) {
          Marc.
         </TabsTrigger>
         <TabsTrigger
-          value="M. x Inn."
+          value="Marc. dawn"
           className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white h-11 flex items-center justify-center"
         >
-          M. x Inn.
-        </TabsTrigger>
-        <TabsTrigger
-          value="Marc. Min"
-          className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center"
-        >
-          Marc. Min
+          Marc. Abajo
         </TabsTrigger>
         <TabsTrigger
           value="Eq. A"
@@ -235,10 +231,10 @@ export function TabsLayout({ activeTab, setActiveTab }: TabsLayoutProps) {
           Eq. B
         </TabsTrigger>
         <TabsTrigger
-          value="Player Stats"
+          value="Preview"
           className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center"
         >
-          Player Stats
+          Previa de Partido
         </TabsTrigger>
       </TabsList>
     </Tabs>

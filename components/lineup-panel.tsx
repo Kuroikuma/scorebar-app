@@ -41,7 +41,6 @@ export function LineupPanel() {
         ? currentLineup.filter(player => player.position !== 'P')
         : currentLineup
 
-        debugger
       if (editingPlayer && editingPlayer.teamIndex === teamIndex) {
         let defensiveOrder = allPositions.findIndex(pos => pos === newPlayer.position) + 1
         updatePlayer(teamIndex, editingPlayer.playerIndex, {

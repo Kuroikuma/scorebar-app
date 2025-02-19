@@ -1,0 +1,4 @@
+.tab_panel {
+  @apply rounded-t data-[state=active]:text-white text-white data-[state=active]:bg-[#4C3F82] data-[state=active]:border-b-2 data-[state=active]:border-[#ff5722] rounded-none;
+}
+

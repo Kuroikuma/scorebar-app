@@ -10,6 +10,8 @@ export const useFileStorage = () => {
     await filePath.put(file)
     const linkUrl = await filePath.getDownloadURL()
     setFile(linkUrl)
+
+    return linkUrl
   }
   return { file, fileHandler }
 }
