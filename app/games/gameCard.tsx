@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ChevronRight, Eye, EyeOff } from 'lucide-react'
@@ -7,6 +7,7 @@ import { Game, IOverlays } from '../store/gameStore'
 import { Team } from '../store/teamsStore'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 const OverlayToggle = ({
   overlay,
@@ -47,57 +48,62 @@ const TeamInfo = ({ team }: { team: Team }) => (
 
 export const GameCard = ({ game }: { game: Game }) => {
   const [isExpanded, setIsExpanded] = useState(false)
+  const router = useRouter()
+
+  const handleExpand = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    setIsExpanded(!isExpanded)
+  }
+
+  const toGame = () => router.push(`/games/${game.id}`)
 
   return (
-    <Link href={`/games/${game.id}`}>
-      <motion.div
-        layout
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 50 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card className="w-full mb-4 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-red-500 to-blue-500 text-white">
-            <CardTitle className="flex justify-between items-center">
-              <span>
-                {game.teams[0].name} vs {game.teams[1].name}
-              </span>
-              <Badge
-                variant={
-                  game.status === 'in_progress' ? 'destructive' : 'secondary'
-                }
-              >
-                {game.status.replace('_', ' ')}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card onClick={toGame} className="w-full mb-4 overflow-hidden cursor-pointer ">
+        <CardHeader className="bg-gradient-to-r from-red-500 to-blue-500 text-white">
+          <CardTitle className="flex justify-between items-center">
+            <span>
+              {game.teams[0].name} vs {game.teams[1].name}
+            </span>
+            <Badge
+              variant={
+                game.status === 'in_progress' ? 'destructive' : 'secondary'
+              }
+            >
+              {game.status.replace('_', ' ')}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="space-y-2">
+            <TeamInfo team={game.teams[0]} />
+            <TeamInfo team={game.teams[1]} />
+          </div>
+          <div className="mt-4 flex justify-between items-center">
+            <div>
+              <Badge variant="outline" className="mr-2">
+                Inning: {game.inning}
               </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="space-y-2">
-              <TeamInfo team={game.teams[0]} />
-              <TeamInfo team={game.teams[1]} />
+              <Badge variant="outline">
+                {game.isTopInning ? 'Top' : 'Bottom'}
+              </Badge>
             </div>
-            <div className="mt-4 flex justify-between items-center">
-              <div>
-                <Badge variant="outline" className="mr-2">
-                  Inning: {game.inning}
-                </Badge>
-                <Badge variant="outline">
-                  {game.isTopInning ? 'Top' : 'Bottom'}
-                </Badge>
-              </div>
-              <Button
-                variant="ghost"
-                onClick={() => setIsExpanded(!isExpanded)}
-              >
-                {isExpanded ? 'Hide Overlays' : 'Show Overlays'}
-                <ChevronRight
-                  className={`ml-2 h-4 w-4 transition-transform ${
-                    isExpanded ? 'rotate-90' : ''
-                  }`}
-                />
-              </Button>
-            </div>
+            <Button variant="ghost" onClick={(event) => handleExpand(event)}>
+              {isExpanded ? 'Hide Overlays' : 'Show Overlays'}
+              <ChevronRight
+                className={`ml-2 h-4 w-4 transition-transform ${
+                  isExpanded ? 'rotate-90' : ''
+                }`}
+              />
+            </Button>
+          </div>
+          <AnimatePresence>
             {isExpanded && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -173,9 +179,9 @@ export const GameCard = ({ game }: { game: Game }) => {
                 </Card>
               </motion.div>
             )}
-          </CardContent>
-        </Card>
-      </motion.div>
-    </Link>
+          </AnimatePresence>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }

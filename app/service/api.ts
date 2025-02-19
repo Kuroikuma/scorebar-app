@@ -4,6 +4,7 @@ import { Player, Team, useTeamsStore } from '@/app/store/teamsStore';
 import { ConfigGame } from '../store/configStore';
 import socket from './socket';
 import { User } from '../types/user';
+import { useAuth } from '../context/AuthContext';
 
 interface IUpdateLineupTeam {
   teamIndex: number;
@@ -68,8 +69,8 @@ export const getOverlay = async (id: string) => {
   return response.data;
 };
 
-export const getAllGames = async () => {
-  const response = await api.get('/games');
+export const getAllGames = async (userId: string) => {
+  const response = await api.get(`/games/user/${userId}`);
   return response.data;
 };
 

@@ -3,20 +3,31 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/context/AuthContext'
 import { getAllGames } from '@/app/service/api'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { CalendarIcon, CheckIcon, PlayIcon } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Game, RunsByInning } from '@/app/store/gameStore'
-import NewGame from './new/page'
+import { Game } from '@/app/store/gameStore'
 import { GameCard } from './gameCard'
 import { Header } from '@/components/header'
+import { IFootballMatch } from '@/matchStore/interfaces'
+import CreateFootballMatchModal from '@/components/MatchComponents/create-football-match-modal'
+import { MatchCard } from '@/components/MatchComponents/MatchCard'
+import { PopoverCreateGame } from './popoverCreate'
+import NewGame from './newGame'
+
+interface getAllGamesResponse {
+  games: Game[]
+  matches: IFootballMatch[]
+}
 
 export default function GamesList() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [games, setGames] = useState<Game[]>([])
+  const [matches, setMatches] = useState<IFootballMatch[]>([])
+
+  const handleCreateMatch = (newMatch: IFootballMatch) => {
+    setMatches([...matches, newMatch])
+  }
 
   useEffect(() => {
     if (!user && !loading) {
@@ -27,47 +38,58 @@ export default function GamesList() {
   useEffect(() => {
     const fetchGames = async () => {
       if (user) {
-        const fetchedGames = ((await getAllGames()) as Game[]).map(
-          (game: any) => {
-            return {
-              ...game,
-              id: game._id,
-            }
+        let response = (await getAllGames(user._id)) as getAllGamesResponse
+        const fetchedGames = response.games.map((game: any) => {
+          return {
+            ...game,
+            id: game._id,
           }
-        )
-        setGames(fetchedGames)
+        })
+
+        if (response.games.length > 0) {
+          setGames(fetchedGames)
+        }
+
+        if (response.matches.length > 0) {
+          setMatches(response.matches)
+        }
       }
     }
     fetchGames()
   }, [user])
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'upcoming':
-        return <CalendarIcon className="w-5 h-5 text-blue-500" />
-      case 'in_progress':
-        return <PlayIcon className="w-5 h-5 text-green-500" />
-      case 'finished':
-        return <CheckIcon className="w-5 h-5 text-gray-500" />
-      default:
-        return null
-    }
-  }
+  const [openGame, setOpenGame] = useState(false)
+  const [openMatch, setOpenMatch] = useState(false)
 
   return (
-    <div className='h-screen w-screen bg-black'>
+    <div className="h-screen w-screen bg-black">
       <Header />
-      <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">My Games</h1>
-        <NewGame />
+      <div className="container mx-auto px-4 py-4 font-['Roboto_Condensed']">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-white">My Games</h1>
+          <div className="hidden md:flex gap-4">
+            <CreateFootballMatchModal open={openMatch} onCreateMatch={handleCreateMatch} />
+            <NewGame open={openGame} />
+          </div>
+          <div className="flex md:hidden">
+            <PopoverCreateGame
+              setOpenGame={setOpenGame}
+              setOpenMatch={setOpenMatch}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col overflow-y-auto h-[75vh]">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
+            {games.map((game: Game) => (
+              <GameCard key={game.id} game={game} />
+            ))}
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {matches.map((match, index) => (
+              <MatchCard key={index} match={match} />
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {games.map((game: Game) => (
-          <GameCard key={game.id} game={game} />
-        ))}
-      </div>
-    </div>
     </div>
   )
 }

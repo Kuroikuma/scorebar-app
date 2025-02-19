@@ -45,7 +45,7 @@ export default function BaseballScoreboard() {
   }
 
   if (!user) {
-    return null;
+    return <></>;
   }
 
   return (
