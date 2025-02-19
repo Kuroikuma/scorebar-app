@@ -28,7 +28,7 @@ export default function Login() {
         <div>
           <div>
           <Image 
-        src={logo}
+        src="/dashover.png"
         alt="Descripción de la imagen" 
         width={500} 
         height={300} 
