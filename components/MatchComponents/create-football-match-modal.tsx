@@ -148,7 +148,7 @@ const CreateFootballMatchModal = ({ onCreateMatch, open }: CreateFootballMatchMo
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="w-5 h-5 mr-2" />
-          Crear Nuevo Partido De Fútbol
+          Crear Nuevo Partido
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-[#1f2937] text-white">

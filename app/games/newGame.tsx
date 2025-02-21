@@ -164,7 +164,7 @@ export default function NewGame({ open }: NewGameProps) {
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="w-5 h-5 mr-2" />
-          Crear Nuevo Juego De Beisbol
+          Crear Nuevo Partido
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-[#1f2937] text-white">

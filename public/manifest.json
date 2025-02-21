@@ -1,6 +1,6 @@
 {
-  "name": "Mi App",
-  "short_name": "App",
+  "name": "Strikeboard",
+  "short_name": "Strikeboard",
   "description": "Descripción de mi app PWA",
   "icons": [
     {

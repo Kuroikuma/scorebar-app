@@ -24,14 +24,14 @@ const TeamInfo = ({ team }: { team: TeamFootball }) => (
 )
 
 const OverlayToggle = ({ overlay, onToggle }: { overlay: IOverlays; onToggle: () => void }) => (
-  <Button variant="outline" size="icon" onClick={onToggle} className="absolute top-2 right-2">
+  <Button variant="outline" size="icon" onClick={onToggle}>
     {overlay.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
   </Button>
 )
 
 const OverlayCard = ({ title, overlay }: { title: string; overlay: IOverlays }) => (
   <Card>
-    <CardContent className="p-2 relative">
+    <CardContent className="p-2 relative flex justify-between items-center">
       <span className="font-semibold">{title}</span>
       <OverlayToggle
         overlay={overlay}
@@ -74,7 +74,7 @@ export const MatchCard = ({ match }: { match: IFootballMatch }) => {
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-4">
+        <CardContent className="pt-4 dark:bg-[#18181b]">
           <div className="space-y-2">
             <TeamInfo team={match.homeTeam} />
             <TeamInfo team={match.awayTeam} />
