@@ -112,7 +112,7 @@ const CreateFootballMatchModal = ({ onCreateMatch, open }: CreateFootballMatchMo
 
     let matchesResponse = await createMatchService(newMatch);
     
-    newMatch.id = matchesResponse.data.id;
+    newMatch.id = matchesResponse.data._id;
 
     onCreateMatch(newMatch)
     setIsOpen(false)

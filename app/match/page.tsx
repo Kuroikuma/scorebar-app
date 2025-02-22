@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/context/AuthContext'
-import { getAllGames } from '@/app/service/api'
 import { useRouter } from 'next/navigation'
 import { Game } from '@/app/store/gameStore'
 import { IFootballMatch } from '@/matchStore/interfaces'
 import CreateFootballMatchModal from '@/components/MatchComponents/create-football-match-modal'
 import { MatchCard } from '@/components/MatchComponents/MatchCard'
 import { PopoverCreateGame } from '../games/popoverCreate'
+import { getAllGames } from '../service/organization.service'
 
 interface getAllGamesResponse {
   games: Game[]
@@ -34,7 +34,7 @@ export default function MatchList() {
   useEffect(() => {
     const fetchGames = async () => {
       if (user) {
-        let response = (await getAllGames(user._id)) as getAllGamesResponse
+        let response = (await getAllGames(user.organizationId._id)) as getAllGamesResponse
         const fetchedGames = response.games.map((game: any) => {
           return {
             ...game,

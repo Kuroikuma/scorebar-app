@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/context/AuthContext'
-import { getAllGames } from '@/app/service/api'
 import { useRouter } from 'next/navigation'
 import { Game } from '@/app/store/gameStore'
 import { GameCard } from './gameCard'
@@ -11,6 +10,7 @@ import CreateFootballMatchModal from '@/components/MatchComponents/create-footba
 import { MatchCard } from '@/components/MatchComponents/MatchCard'
 import { PopoverCreateGame } from './popoverCreate'
 import NewGame from './newGame'
+import { getAllGames } from '../service/organization.service'
 
 interface getAllGamesResponse {
   games: Game[]
@@ -36,7 +36,7 @@ export default function GamesList() {
   useEffect(() => {
     const fetchGames = async () => {
       if (user) {
-        let response = (await getAllGames(user._id)) as getAllGamesResponse
+        let response = (await getAllGames(user.organizationId._id)) as getAllGamesResponse
         const fetchedGames = response.games.map((game: any) => {
           return {
             ...game,
