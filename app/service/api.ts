@@ -54,7 +54,7 @@ export const createGame = async (gameData: Omit<Game, "id">) => {
   return response.data;
 };
 
-export const updateGameService = async (id: string, gameData: Omit<Game, "userId">) => {
+export const updateGameService = async (id: string, gameData: Partial<Game>) => {
   const response = await api.put(`/games/${id}`, gameData);
   return response.data;
 };

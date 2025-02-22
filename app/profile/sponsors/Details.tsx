@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { ISponsor } from "@/app/types/user"
+import { ISponsor } from "@/app/types/sponsor"
 
 interface SponsorDetailModalProps {
   sponsor: ISponsor

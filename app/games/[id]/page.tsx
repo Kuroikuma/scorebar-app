@@ -64,11 +64,11 @@ const  BaseballScoreboardDestok = () => {
   const { activeTab, scoreboardStyle } = useUIStore()
 
   return (
-    <div className="min-h-screen bg-black md:p-4 font-['Roboto_Condensed'] flex max-[768px]:flex-col pt-4 pb-4">
+    <div className="min-h-screen md:p-4 font-['Roboto_Condensed'] flex max-[768px]:flex-col pt-4 pb-4">
       {/* <Navigation /> */}
       {/* Scoreboard */}
 
-      <div className="flex-1 max-w-[400px] md:mx-auto bg-black text-white max-[768px]:px-4 flex flex-col">
+      <div className="flex-1 max-w-[400px] md:mx-auto max-[768px]:px-4 flex flex-col">
         {scoreboardStyle === "classic" && (
           <ClassicScoreboard />
         )}
@@ -81,7 +81,6 @@ const  BaseballScoreboardDestok = () => {
       {/* Side Panel */}
       <div className="w-[350px] ml-4">
         <TabsLayout />
-        <ToggleOverlays />
         {activeTab === "controls" && <ControlPanel />}
         {activeTab === "customize" && <CustomizePanel />}
         {activeTab === "lineup" && <LineupPanel />}
@@ -96,7 +95,7 @@ const BaseballScoreboardMovil = () => {
   const { activeTab, scoreboardStyle } = useUIStore()
 
   return (
-    <div className="h-screen bg-black p-4 font-['Roboto_Condensed'] flex flex-col">
+    <div className="h-screen p-4 font-['Roboto_Condensed'] flex flex-col">
       {/* Scoreboard */}
       <div className="flex-shrink-0">
         {scoreboardStyle === "classic" ? (

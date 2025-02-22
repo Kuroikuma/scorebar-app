@@ -74,7 +74,7 @@ export const MatchCard = ({ match }: { match: IFootballMatch }) => {
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-4 dark:bg-[#18181b]">
+        <CardContent className="pt-4 bg-[#fafafa] dark:bg-[#18181b]">
           <div className="space-y-2">
             <TeamInfo team={match.homeTeam} />
             <TeamInfo team={match.awayTeam} />

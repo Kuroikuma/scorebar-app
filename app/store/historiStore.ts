@@ -50,7 +50,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     const teamState = useTeamsStore.getState()
     const gameState = useGameStore.getState()
 
-    let game: Omit<Game, 'userId'> = {
+    let game: Partial<Game> = {
       balls: gameState.balls,
       strikes: gameState.strikes,
       outs: gameState.outs,
@@ -61,7 +61,6 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
       bases: gameState.bases,
       runsByInning: gameState.runsByInning,
       id: gameState.id,
-      configId: useConfigStore.getState().currentConfig?._id as string,
       date: gameState.date as string,
       isDHEnabled: gameState.isDHEnabled,
       scoreboardOverlay: gameState.scoreboardOverlay,
@@ -91,11 +90,11 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     if (previousState?.teams) {
       let offensiveTeamIndex = game.isTopInning ? 0 : 1;
 
-      const updatedTeams = game.teams.map((team, index) => {
+      const updatedTeams = game?.teams?.map((team, index) => {
         if (index === offensiveTeamIndex) {
 
           // Obtener el equipo correspondiente desde game.teams basado en el índice
-          const matchingTeam = game.teams[offensiveTeamIndex];
+          const matchingTeam = (game?.teams as Team[])[offensiveTeamIndex];
     
           // Solo actualizamos las propiedades del equipo que existen en game.teams
           const updatedTeam = Object.keys(team).reduce((acc, key) => {
@@ -117,7 +116,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
       });
   
       // Actualizar los equipos en el estado global
-      newFuture.teams = updatedTeams.filter(item => item !== undefined) as Team[];
+      newFuture.teams = (updatedTeams as Team[]).filter(item => item !== undefined) as Team[];
     }
 
     useGameStore.getState().loadGameHistory(previousState);
@@ -137,7 +136,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     const gameState = useGameStore.getState()
     const id = gameState.id
 
-    let game: Omit<Game, 'userId'> = {
+    let game: Omit<Game, 'organizationId'> = {
       balls: gameState.balls,
       strikes: gameState.strikes,
       outs: gameState.outs,
@@ -148,7 +147,6 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
       bases: gameState.bases,
       runsByInning: gameState.runsByInning,
       id: gameState.id,
-      configId: useConfigStore.getState().currentConfig?._id as string,
       date: gameState.date as string,
       isDHEnabled: gameState.isDHEnabled,
       scoreboardOverlay: gameState.scoreboardOverlay,

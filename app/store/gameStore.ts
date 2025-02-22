@@ -38,8 +38,7 @@ export interface Game {
   outs: number;
   bases: boolean[];
   runsByInning: RunsByInning
-  userId: string;
-  configId: string | ConfigGame;
+  organizationId: string;
   date: string | Date;
   isDHEnabled: boolean;
   scoreboardOverlay: IOverlays;
@@ -56,7 +55,7 @@ export interface RunsByInning {
 
 export type GameState = {
   id: string | null
-  userId: string | null
+  organizationId: string | null
   date: Date | string | null
   status: Status
   inning: number
@@ -115,7 +114,7 @@ export type GameState = {
 
 export const useGameStore = create<GameState>((set, get) => ({
   id: null,
-  userId: null,
+  organizationId: null,
   date: null,
   status: 'upcoming',
   inning: 1,
@@ -436,7 +435,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const gameState = get()
     const id = gameState.id
 
-    let game: Omit<Game, 'userId'> = {
+    let game: Partial<Game> = {
       balls: gameState.balls,
       strikes: gameState.strikes,
       outs: gameState.outs,
@@ -447,7 +446,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       bases: gameState.bases,
       runsByInning: gameState.runsByInning,
       id: gameState.id,
-      configId: useConfigStore.getState().currentConfig?._id as string,
       date: gameState.date as string,
       isDHEnabled: gameState.isDHEnabled,
       scoreboardOverlay: gameState.scoreboardOverlay,

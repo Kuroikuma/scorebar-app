@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/app/context/AuthContext"
 import { useRouter } from "next/navigation"
+import { SkeletonMenu } from "./skeleton/SkeletonMenu"
 
 export function NavUser() {
 
@@ -51,9 +52,9 @@ export function NavUser() {
     router.push('/profile')
   }
 
-  if (!user) {
-    return <></>;
-  }
+   if (!user) {
+      return <SkeletonMenu />;
+    }
 
   const { isMobile } = useSidebar()
 

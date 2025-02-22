@@ -55,7 +55,7 @@ export const GameCard = ({ game }: { game: Game }) => {
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-4 dark:bg-[#18181b]">
+        <CardContent className="pt-4 bg-[#fafafa] dark:bg-[#18181b]">
           <div className="space-y-2">
             <TeamInfo team={game.teams[0]} />
             <TeamInfo team={game.teams[1]} />

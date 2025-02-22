@@ -14,5 +14,5 @@ export interface ISponsor {
   sponsorshipFee: { $numberDecimal: number };
   paymentDate: number
   organizationId: string | IOrganization;
-  transaction: string | ITransaction
+  transaction: string[] | ITransaction[]
 }

@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoaderCircle, PlusCircle, Upload } from 'lucide-react';
 import { useFileStorage } from '@/app/hooks/useUploadFile';
+import { User } from '../types/user';
 
 interface NewGameProps {
   open: boolean
@@ -72,7 +73,7 @@ export default function NewGame({ open }: NewGameProps) {
     if (user) {
 
       const dataCreate:Omit<Game, 'id'> = {
-        userId: user._id,
+        organizationId: (user as User).organizationId._id, 
         date: new Date(gameDate),
         status: 'upcoming',
         teams: [{ 
@@ -107,7 +108,6 @@ export default function NewGame({ open }: NewGameProps) {
         strikes: 0,
         outs: 0,
         bases: [false, false, false],
-        configId: configId,
         runsByInning: {},
         isDHEnabled: false,
         scoreboardOverlay: {
@@ -167,7 +167,7 @@ export default function NewGame({ open }: NewGameProps) {
           Crear Nuevo Partido
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-[#1f2937] text-white">
+      <DialogContent className="sm:max-w-[425px] bg-[#fafafa] dark:bg-[#18181b]">
         <DialogHeader>
           <DialogTitle>Crear Nuevo Juego</DialogTitle>
           <DialogDescription className="text-white">
@@ -339,25 +339,9 @@ export default function NewGame({ open }: NewGameProps) {
               id="date"
               type="date"
               value={gameDate}
-              className='text-white'
               onChange={(e) => setGameDate(e.target.value)}
               required
             />
-          </div>
-          <div>
-            <Label htmlFor="config">Configuración del Juego</Label>
-            <Select onValueChange={setConfigId} required>
-              <SelectTrigger id="config">
-                <SelectValue placeholder="Select a configuration" />
-              </SelectTrigger>
-              <SelectContent>
-                {configs.map((config) => (
-                  <SelectItem key={config._id} value={config._id}>
-                    Config - {config._id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           <Button type="submit" className="w-full">
             {

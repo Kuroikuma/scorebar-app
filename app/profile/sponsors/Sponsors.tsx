@@ -1,7 +1,7 @@
 import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ISponsor } from "@/app/types/user"
+import { ISponsor } from "@/app/types/sponsor"
 
 interface SponsorsProps {
   sponsors: ISponsor[]

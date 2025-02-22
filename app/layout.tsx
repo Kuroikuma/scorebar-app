@@ -31,7 +31,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (pathname === '/login') {
+  if (pathname === '/login' || pathname.includes("/overlay")) {
     return <AuthLayout>{children}</AuthLayout>;
   }
 
@@ -39,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <link rel="manifest" href="/manifest.json" />
+
         <link rel="icon" href="/favicon.ico" />
       </head>
       <StrictMode>

@@ -105,7 +105,7 @@ const CreateFootballMatchModal = ({ onCreateMatch, open }: CreateFootballMatchMo
       leagueLogo,
       stadiumName,
       matchDate,
-      userId: (user as User)._id, // This should be dynamically set in a real application
+      organizationId: (user as User).organizationId._id, // This should be dynamically set in a real application
       past: [],
       future: [],
     }
@@ -151,9 +151,9 @@ const CreateFootballMatchModal = ({ onCreateMatch, open }: CreateFootballMatchMo
           Crear Nuevo Partido
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-[#1f2937] text-white">
+      <DialogContent className="sm:max-w-[425px] bg-[#fafafa] dark:bg-[#18181b]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center text-white">Crear nuevo partido de fútbol</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center">Crear nuevo partido de fútbol</DialogTitle>
         </DialogHeader>
         <AnimatePresence>
           <motion.div
@@ -309,7 +309,7 @@ const TeamForm = ({
             })
           }
         >
-          <SelectTrigger className="bg-[#2a2438]">
+          <SelectTrigger>
             <SelectValue placeholder="Select formation" />
           </SelectTrigger>
           <SelectContent>

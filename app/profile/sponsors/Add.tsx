@@ -1,38 +1,43 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { ISponsor } from "@/app/types/user"
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { ISponsor } from '@/app/types/sponsor';
 
 interface AddSponsorFormProps {
-  onAddSponsor: (sponsor: ISponsor) => void
-  isOpen: boolean
-  onClose: () => void
+  onAddSponsor: (sponsor: ISponsor) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export function AddSponsorForm({ onAddSponsor, isOpen, onClose }: AddSponsorFormProps) {
   const [newSponsor, setNewSponsor] = useState<ISponsor>({
-    name: "",
-    logo: "/placeholder.svg?height=50&width=50",
-    link: "",
-    ad: "",
-    phone: "",
-    address: "",
-    owner: "",
-    email: "",
-  })
+    name: '',
+    logo: '/placeholder.svg?height=50&width=50',
+    link: '',
+    ad: '',
+    phone: '',
+    address: '',
+    owner: '',
+    email: '',
+    organizationId: '',
+    _id: '',
+    transaction: [],
+    paymentDate: 0,
+    sponsorshipFee: { $numberDecimal: 0 },
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setNewSponsor((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setNewSponsor((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onAddSponsor(newSponsor)
-    onClose()
-  }
+    e.preventDefault();
+    onAddSponsor(newSponsor);
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -141,6 +146,5 @@ export function AddSponsorForm({ onAddSponsor, isOpen, onClose }: AddSponsorForm
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

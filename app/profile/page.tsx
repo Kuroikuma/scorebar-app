@@ -19,11 +19,12 @@ import AvatarCropper from './AvatarCropper'
 import ImageUpload from './ImageUploap'
 import { BreadcrumbProfile } from './Breadcrumb'
 import { updateUser } from '../service/api'
-import { ISponsor, User } from '../types/user'
+import { User } from '../types/user'
 import { Sponsors } from './sponsors/Sponsors'
 import { AddSponsorForm } from './sponsors/Add'
 import { EditSponsorForm } from './sponsors/Edit'
 import { SponsorDetailModal } from './sponsors/Details'
+import { ISponsor } from '../types/sponsor'
 
 export default function UserProfile() {
   const [isEditing, setIsEditing] = useState(false)
@@ -47,20 +48,20 @@ export default function UserProfile() {
   }
 
   const handleAddSponsor = (newSponsor: ISponsor) => {
-    setUser({ 
-      ...(user as User), 
-      sponsors: [...(user as User).sponsors, newSponsor] 
-    })
+    // setUser({ 
+    //   ...(user as User), 
+    //   sponsors: [...(user as User).sponsors, newSponsor] 
+    // })
     setShowAddSponsor(false)
   }
 
   const handleEditSponsor = (editedSponsor: ISponsor) => {
-    setUser({ 
-      ...(user as User),
-      sponsors: (user as User).sponsors.map((sponsor) => 
-        sponsor.name === editedSponsor.name ? editedSponsor : sponsor
-      )
-    })
+    // setUser({ 
+    //   ...(user as User),
+    //   sponsors: (user as User).sponsors.map((sponsor) => 
+    //     sponsor.name === editedSponsor.name ? editedSponsor : sponsor
+    //   )
+    // })
     setEditingSponsor(null)
   }
 
@@ -104,9 +105,9 @@ export default function UserProfile() {
               <div className="mb-4 flex flex-col justify-center items-center">
                 <Label htmlFor="companyLogo">Company Logo</Label>
                 <ImageUpload
-                  currentImage={(user as User).companyLogo}
+                  currentImage={(user as User).organizationId.logo}
                   onImageChange={(newImage) =>
-                    setUser({ ...(user as User), companyLogo: newImage })
+                    setUser({ ...(user as User)})
                   }
                   alt={(user as User).username}
                   isEditing={isEditing}
@@ -174,7 +175,7 @@ export default function UserProfile() {
         <CardContent>
           <div className="flex flex-col md:flex-row gap-8">
           <Sponsors
-              sponsors={(user as User).sponsors}
+              sponsors={[]}
               onViewDetails={(sponsor) => setViewingSponsor(sponsor)}
               onEdit={(sponsor) => setEditingSponsor(sponsor)}
             />
