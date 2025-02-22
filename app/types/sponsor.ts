@@ -15,4 +15,5 @@ export interface ISponsor {
   paymentDate: number
   organizationId: string | IOrganization;
   transaction: string[] | ITransaction[]
+  deleted_at: string | null;
 }

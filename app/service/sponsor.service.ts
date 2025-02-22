@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Player  } from '@/app/store/teamsStore';
 import socket from './socket';
+import { ISponsor } from '../types/sponsor';
 
 interface IUpdateLineupTeam {
   teamIndex: number;
@@ -28,17 +29,25 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const getAllGamesServices = async (id: string) => {
-  const response = await api.get(`/organizations/gameAndMatch/${id}`);
+export const createSponsorServices = async (sponsorData: Partial<ISponsor>) => {
+  const response = await api.post(`/sponsors`, sponsorData);
   return response.data;
 };
 
-export const getSponsorsByOrganizationIdService = async (id: string) => {
-  const response = await api.get(`/organizations/sponsors/${id}`);
+export const updateSponsorServices = async (id: string, sponsorData: Partial<ISponsor>) => {
+  const response = await api.put(`/sponsors/${id}`, sponsorData);
   return response.data;
 };
 
-export const getStaffsByOrganizationIdService = async (id: string) => {
-  const response = await api.get(`/organizations/staffs/${id}`);
+export const deleteSponsorServices = async (id: string) => {
+  await api.put(`/sponsors/${id}`, { deleted_at: new Date().toISOString() });
+};
+
+export const restoreSponsorServices = async (id: string) => {
+  await api.put(`/sponsors/${id}`, { deleted_at: null });
+};
+
+export const getSponsorByIdServices = async (id: string) => {
+  const response = await api.get(`/sponsors/${id}`);
   return response.data;
 };

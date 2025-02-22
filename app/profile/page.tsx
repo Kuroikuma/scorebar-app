@@ -20,17 +20,9 @@ import ImageUpload from './ImageUploap'
 import { BreadcrumbProfile } from './Breadcrumb'
 import { updateUser } from '../service/api'
 import { User } from '../types/user'
-import { Sponsors } from './sponsors/Sponsors'
-import { AddSponsorForm } from './sponsors/Add'
-import { EditSponsorForm } from './sponsors/Edit'
-import { SponsorDetailModal } from './sponsors/Details'
-import { ISponsor } from '../types/sponsor'
 
 export default function UserProfile() {
   const [isEditing, setIsEditing] = useState(false)
-  const [showAddSponsor, setShowAddSponsor] = useState(false)
-  const [editingSponsor, setEditingSponsor] = useState<ISponsor | null>(null)
-  const [viewingSponsor, setViewingSponsor] = useState<ISponsor | null>(null)
 
   const { user, loading, setUser } = useAuth()
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,24 +37,6 @@ export default function UserProfile() {
     await updateUser((user as User)?._id, user as User)
 
     setIsEditing(false)
-  }
-
-  const handleAddSponsor = (newSponsor: ISponsor) => {
-    // setUser({ 
-    //   ...(user as User), 
-    //   sponsors: [...(user as User).sponsors, newSponsor] 
-    // })
-    setShowAddSponsor(false)
-  }
-
-  const handleEditSponsor = (editedSponsor: ISponsor) => {
-    // setUser({ 
-    //   ...(user as User),
-    //   sponsors: (user as User).sponsors.map((sponsor) => 
-    //     sponsor.name === editedSponsor.name ? editedSponsor : sponsor
-    //   )
-    // })
-    setEditingSponsor(null)
   }
 
   const router = useRouter()
@@ -163,48 +137,6 @@ export default function UserProfile() {
           )}
         </CardFooter>
       </Card>
-      <Card className="w-full max-w-4xl mx-auto mt-4">
-      <CardHeader>
-        <CardTitle>Mis Patrocinadores</CardTitle>
-        <CardDescription>
-          Aquí puedes ver a las personas o empresas que te patrocinan.
-        </CardDescription>
-      </CardHeader>
-
-
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-8">
-          <Sponsors
-              sponsors={[]}
-              onViewDetails={(sponsor) => setViewingSponsor(sponsor)}
-              onEdit={(sponsor) => setEditingSponsor(sponsor)}
-            />
-            <Button onClick={() => setShowAddSponsor(true)} className="mt-4">
-              Add New Sponsor
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      <AddSponsorForm
-        isOpen={showAddSponsor}
-        onClose={() => setShowAddSponsor(false)}
-        onAddSponsor={handleAddSponsor}
-      />
-      {editingSponsor && (
-        <EditSponsorForm
-          sponsor={editingSponsor}
-          isOpen={!!editingSponsor}
-          onClose={() => setEditingSponsor(null)}
-          onEditSponsor={handleEditSponsor}
-        />
-      )}
-      {viewingSponsor && (
-        <SponsorDetailModal
-          sponsor={viewingSponsor}
-          isOpen={!!viewingSponsor}
-          onClose={() => setViewingSponsor(null)}
-        />
-      )}
     </div>
   )
 }

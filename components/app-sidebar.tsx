@@ -3,13 +3,16 @@
 import * as React from "react"
 import {
   AudioWaveform,
+  BadgeDollarSign,
   BookOpen,
   Bot,
+  Building2,
   Command,
   Frame,
   GalleryVerticalEnd,
   Map,
   PieChart,
+  Receipt,
   Settings2,
   SquareTerminal,
 } from "lucide-react"
@@ -52,86 +55,40 @@ const data = {
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Organizacion",
       url: "#",
-      icon: SquareTerminal,
+      icon: Building2 ,
       isActive: true,
       items: [
         {
-          title: "History",
+          title: "Patrocinadores",
+          url: "/sponsor",
+        },
+        {
+          title: "Staffs",
           url: "#",
         },
         {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
+          title: "Configuracion",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "Transacciones",
       url: "#",
-      icon: BookOpen,
+      icon: Receipt  ,
       items: [
         {
-          title: "Introduction",
+          title: "Patrocinadores",
           url: "#",
         },
         {
-          title: "Get Started",
+          title: "Staffs",
           url: "#",
         },
         {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
+          title: "Todas las transacciones",
           url: "#",
         },
       ],
