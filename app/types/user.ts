@@ -1,6 +1,6 @@
 import { IOrganization } from "./organization";
 
-enum UserRole {
+export enum UserRole {
   CEO = 'CEO',
   STAFF = 'STAFF',
   ROOT = 'ROOT',
@@ -15,4 +15,9 @@ export interface User {
   advertisements: string[];
   role: UserRole;
   organizationId: IOrganization;
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
 }

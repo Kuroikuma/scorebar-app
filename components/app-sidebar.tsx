@@ -89,7 +89,7 @@ const data = {
         },
         {
           title: "Todas las transacciones",
-          url: "#",
+          url: "/transaction",
         },
       ],
     },

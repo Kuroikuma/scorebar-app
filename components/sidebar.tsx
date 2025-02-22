@@ -6,9 +6,10 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { ThemeToggle } from "./MatchComponents/theme-toggle"
-import { usePathname } from "next/navigation";
-import React from "react"
+import { usePathname, useRouter } from "next/navigation";
+import React, { useEffect } from "react"
 import { DynamicBreadcrumb } from "./dynamic-breadcrumb"
+import { useAuth } from "@/app/context/AuthContext";
 
 
 interface SidebarProps {
@@ -16,6 +17,17 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ children }: SidebarProps) {
+
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+
+  useEffect(() => {
+    if (!user && !loading) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
+
   return (
     <SidebarProvider>
       <AppSidebar />
