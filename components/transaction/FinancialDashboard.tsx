@@ -96,7 +96,7 @@ export default function FinancialDashboard({ userId, organizationId }: { userId:
 
         <TabsContent value="overview">
           <MainDashboard transactions={transactions} finances={formattedFinances} />
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Financial Summary</CardTitle>
@@ -105,7 +105,7 @@ export default function FinancialDashboard({ userId, organizationId }: { userId:
                 <FinancialSummary finances={formattedFinances} />
               </CardContent>
             </Card>
-          </div>
+          </div> */}
         </TabsContent>
 
         <TabsContent value="transactions">

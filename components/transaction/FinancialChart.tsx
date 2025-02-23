@@ -56,8 +56,21 @@ export default function FinancialChart({ transactions }: FinancialChartProps) {
     ],
   };
 
+  const abbreviate = (text: string, maxLength: number = 10): string => {
+    const words = text.trim().split(/\s+/);
+  
+    // Si hay espacios, tomar la primera letra de cada palabra
+    if (words.length > 1) {
+      const acronym = words.map(word => word[0].toUpperCase()).join("");
+      return acronym.length <= maxLength ? acronym : acronym.substring(0, maxLength);
+    }
+  
+    // Si es una sola palabra larga, devolver solo las primeras 3 letras
+    return text.length > maxLength ? text.substring(0, 3) : text;
+  };
+
   const categoryData = {
-    labels: Object.values(TransactionCategory),
+    labels: Object.values(TransactionCategory).map(abbreviate),
     datasets: [
       {
         label: 'Ingresos',

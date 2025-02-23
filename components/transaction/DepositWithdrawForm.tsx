@@ -15,6 +15,7 @@ import { IOrganization } from '@/app/types/organization';
 import { useStaffStore } from '@/app/store/useStaffStore';
 import { useTransactionStore } from '@/app/store/useTransactionStore';
 import { Textarea } from '../ui/textarea';
+import { User } from '@/app/types/user';
 
 interface DepositWithdrawFormProps {
   userId: string;
@@ -32,7 +33,7 @@ export default function DepositWithdrawForm({ userId, organizationId, isCEO, onC
   const [category, setCategory] = useState<TransactionCategory>(TransactionCategory.OTHER_INCOME);
   const { sponsors, getSponsorsByOrganizationId } = useSponsorStore();
   const { staffs, getStaffByOrganizationId } = useStaffStore();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { createTransaction } = useTransactionStore();
 
   useEffect(() => {
@@ -59,7 +60,21 @@ export default function DepositWithdrawForm({ userId, organizationId, isCEO, onC
         date: new Date(),
       };
 
-      await createTransaction(newTransaction);
+      let newTransactionService = await createTransaction(newTransaction);
+      let totalBalance = (newTransactionService.organization as IOrganization).totalBalance
+
+      let updatedUser = {
+        ...{
+          ...(user as User),
+          organizationId: {
+            ...((user as User).organizationId as IOrganization),
+            totalBalance: totalBalance,
+          },
+        },
+      }
+
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
 
       toast.success(
         `Transaction Successful: ${type === TransactionType.DEPOSIT ? 'Depositado' : 'Retirado'} $${amount}`

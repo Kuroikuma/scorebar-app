@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ArrowUpIcon, ArrowDownIcon, AlertTriangleIcon } from "lucide-react"
 import { ITransaction, TransactionType } from "@/app/types/ITransaction"
+import { useAuth } from "@/app/context/AuthContext"
+import { IOrganization } from "@/app/types/organization"
 
 interface MainDashboardProps {
   transactions: ITransaction[]
@@ -15,8 +17,12 @@ interface MainDashboardProps {
 }
 
 export default function MainDashboard({ transactions, finances }: MainDashboardProps) {
+  const { user } = useAuth()
+  const totalBalance = (user?.organizationId as IOrganization)?.totalBalance
   const latestTransactions = transactions.slice(0, 5)
-  const netIncome = finances.totalDeposits - finances.totalWithdrawals
+  const rangeTotalIncome = transactions.filter((t) => t.type === TransactionType.DEPOSIT).reduce((acc, t) => acc + t.amount, 0)
+  const rangeTotalExpenses = transactions.filter((t) => t.type === TransactionType.WITHDRAWAL).reduce((acc, t) => acc + t.amount, 0)
+  const netIncome = rangeTotalIncome - rangeTotalExpenses
   const isPositiveNetIncome = netIncome >= 0
 
   // Calculate month-over-month growth
@@ -50,13 +56,13 @@ export default function MainDashboard({ transactions, finances }: MainDashboardP
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${finances.totalBalance.toFixed(2)}</div>
+            <div className="text-2xl font-bold">${totalBalance?.$numberDecimal}</div>
             <p className="text-xs text-muted-foreground">+{growthRate.toFixed(2)}% from last month</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Income</CardTitle>
+            <CardTitle className="text-sm font-medium">Ingreso neto entre el rango</CardTitle>
             {isPositiveNetIncome ? (
               <ArrowUpIcon className="h-4 w-4 text-green-500" />
             ) : (
@@ -65,25 +71,25 @@ export default function MainDashboard({ transactions, finances }: MainDashboardP
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${netIncome.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">{isPositiveNetIncome ? "Profit" : "Loss"}</p>
+            <p className="text-xs text-muted-foreground">{isPositiveNetIncome ? "Ganancia" : "Pérdida"}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Income</CardTitle>
+            <CardTitle className="text-sm font-medium">Ingresos entre el rango</CardTitle>
             <ArrowUpIcon className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${finances.monthlyIncome.toFixed(2)}</div>
+            <div className="text-2xl font-bold">${rangeTotalIncome.toFixed(2)}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
+            <CardTitle className="text-sm font-medium">Gastos entre el rango</CardTitle>
             <ArrowDownIcon className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${finances.monthlyExpenses.toFixed(2)}</div>
+            <div className="text-2xl font-bold">${rangeTotalExpenses.toFixed(2)}</div>
           </CardContent>
         </Card>
       </div>
