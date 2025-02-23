@@ -12,28 +12,38 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 
 import { Contact } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-export function NavMain({
-  items,
-}: {
-  items: {
+interface itemNav {
+  title: string;
+  url: string;
+  icon?: LucideIcon;
+  isActive?: boolean;
+  items?: {
     title: string;
     url: string;
-    icon?: LucideIcon;
-    isActive?: boolean;
-    items?: {
-      title: string;
-      url: string;
-    }[];
   }[];
-}) {
+}
+
+interface NavMainProps {
+  items: itemNav[];
+}
+
+export function NavMain({ items }: NavMainProps) {
+  const isMobile = useIsMobile();
+  const { toggleSidebar } = useSidebar();
 
   const router = useRouter();
-  const toURL = (url:string) => router.push(url);
+
+  const toURL = (url: string) => {
+    router.push(url);
+    isMobile && toggleSidebar();
+  };
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>

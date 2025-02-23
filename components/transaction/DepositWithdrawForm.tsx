@@ -7,14 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ITransaction, TransactionCategory, TransactionType } from '@/app/types/ITransaction';
-import { depositMoney, withdrawMoney } from '@/app/service/organization.service';
+import { TransactionCategory, TransactionType } from '@/app/types/ITransaction';
 import { toast } from 'sonner';
 import { useSponsorStore } from '@/app/store/useSponsor';
 import { useAuth } from '@/app/context/AuthContext';
 import { IOrganization } from '@/app/types/organization';
 import { useStaffStore } from '@/app/store/useStaffStore';
 import { useTransactionStore } from '@/app/store/useTransactionStore';
+import { Textarea } from '../ui/textarea';
 
 interface DepositWithdrawFormProps {
   userId: string;
@@ -47,7 +47,10 @@ export default function DepositWithdrawForm({ userId, organizationId, isCEO, onC
     try {
       let newTransaction = {
         organization: organizationId,
-        amount: Number.parseFloat(amount),
+        amount:
+          category === TransactionCategory.SPONSOR_PAYMENT && selectedSponsor
+            ? sponsors.find((s) => s._id === selectedSponsor)?.sponsorshipFee.$numberDecimal
+            : Number.parseFloat(amount),
         description,
         category,
         type,
@@ -143,11 +146,12 @@ export default function DepositWithdrawForm({ userId, organizationId, isCEO, onC
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Descripción</Label>
-        <Input
+        <Textarea
           id="description"
-          type="text"
+          name="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          className="col-span-3"
           required
         />
       </div>

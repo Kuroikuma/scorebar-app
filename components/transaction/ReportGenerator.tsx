@@ -8,7 +8,6 @@ import * as XLSX from "xlsx"
 import { jsPDF } from "jspdf"
 import "jspdf-autotable"
 import saveAs from "file-saver"
-import { DatePickerWithRange } from "../DatePickerWithRange"
 import { ITransaction, TransactionType } from "@/app/types/ITransaction"
 
 interface ReportGeneratorProps {
@@ -54,10 +53,12 @@ export default function ReportGenerator({ transactions }: ReportGeneratorProps) 
     console.log(report)
     
     const doc = new jsPDF()
-    doc.text("Financial Report", 14, 15)
+    doc.text("Informe Financiero", 14, 15)
     //@ts-ignore
     doc.autoTable({
-      head: [["Date", "Type", "Amount", "Category", "Description"]],
+      theme: 'grid',
+      startY: 30,
+      head: [["Fecha", "Tipo", "Monto", "Categoría", "Descripción"]],
       body: report.map((t) => [
         format(new Date(t.createdAt), "yyyy-MM-dd"),
         t.type,
@@ -74,7 +75,7 @@ export default function ReportGenerator({ transactions }: ReportGeneratorProps) 
       <div className="flex flex-wrap gap-4">
         <Select onValueChange={(value) => setReportType(value as "all" | "income" | "expense")}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Report Type" />
+            <SelectValue placeholder="Tipo de Reporte" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Transactions</SelectItem>
@@ -84,9 +85,9 @@ export default function ReportGenerator({ transactions }: ReportGeneratorProps) 
         </Select>
       </div>
       <div className="flex gap-4">
-        <Button onClick={exportCSV}>Export CSV</Button>
-        <Button onClick={exportExcel}>Export Excel</Button>
-        <Button onClick={exportPDF}>Export PDF</Button>
+        <Button onClick={exportCSV}>Exportar CSV</Button>
+        <Button onClick={exportExcel}>Exportar Excel</Button>
+        <Button onClick={exportPDF}>Exportar PDF</Button>
       </div>
     </div>
   )

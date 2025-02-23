@@ -34,10 +34,10 @@ export default function FinancialDashboard({ userId, organizationId }: { userId:
           organizationId: (user?.organizationId as IOrganization)._id as string,
           startDatesStr: formatearFecha(range.from),
           endDateStr: formatearFecha(range.to),
-        })
+        });
       }
     }
-  }
+  };
 
   // Ensure finances has the expected structure
   const formattedFinances = {
@@ -50,16 +50,15 @@ export default function FinancialDashboard({ userId, organizationId }: { userId:
 
   useEffect(() => {
     const fetchFinances = async () => {
-
-      const now = new Date()
-      const pastDate = new Date()
-      pastDate.setDate(now.getDate() - 30)
+      const now = new Date();
+      const pastDate = new Date();
+      pastDate.setDate(now.getDate() - 30);
 
       await getTransactionByOrganizationId({
         organizationId: (user?.organizationId as IOrganization)._id as string,
         startDatesStr: formatearFecha(pastDate),
         endDateStr: formatearFecha(now),
-      })
+      });
 
       const finances = await getOrganizationFinances(organizationId);
 
@@ -73,21 +72,26 @@ export default function FinancialDashboard({ userId, organizationId }: { userId:
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Dashboard Financiero</h1>
-        <DepositWithdrawModal
-          userId={userId}
-          organizationId={organizationId}
-          isCEO={true}
-        />
+        <div className="md:flex hidden">
+          <DepositWithdrawModal userId={userId} organizationId={organizationId} isCEO={true} />
+        </div>
+      </div>
+
+      <div className="md:hidden flex justify-between items-center flex-col gap-2">
+        <DatePickerWithRange onDateRangeChange={handleDateRangeChange} />
+        <DepositWithdrawModal userId={userId} organizationId={organizationId} isCEO={true} />
       </div>
 
       <Tabs defaultValue="overview">
         <div className="flex gap-4">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
+            <TabsTrigger value="overview">Resumen</TabsTrigger>
+            <TabsTrigger value="transactions">Transacciones</TabsTrigger>
+            <TabsTrigger value="reports">Reportes</TabsTrigger>
           </TabsList>
-          <DatePickerWithRange onDateRangeChange={handleDateRangeChange} />
+          <div className="md:flex hidden">
+            <DatePickerWithRange onDateRangeChange={handleDateRangeChange} />
+          </div>
         </div>
 
         <TabsContent value="overview">
@@ -118,7 +122,7 @@ export default function FinancialDashboard({ userId, organizationId }: { userId:
         <TabsContent value="reports">
           <Card>
             <CardHeader>
-              <CardTitle>Financial Reports</CardTitle>
+              <CardTitle>Reportes Financieros</CardTitle>
             </CardHeader>
             <CardContent>
               <ReportGenerator transactions={transactions} />

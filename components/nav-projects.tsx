@@ -11,14 +11,26 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useRouter } from 'next/navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function NavSports() {
   const router = useRouter();
 
-  const toGame = () => router.push(`/games`);
-  const toMatch = () => router.push(`/match`);
+  const isMobile = useIsMobile();
+  const { toggleSidebar } = useSidebar();
+
+  const toGame = () => {
+    router.push(`/games`)
+    isMobile && toggleSidebar();
+  };
+
+  const toMatch = () => {
+    router.push(`/match`)
+    isMobile && toggleSidebar();
+  };
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">

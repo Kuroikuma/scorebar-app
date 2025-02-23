@@ -24,13 +24,13 @@ interface TransactionTableProps {
 
 export default function TransactionTable({ transactions, showUserFilter }: TransactionTableProps) {
   const [userFilter, setUserFilter] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
   const filteredTransactions = transactions.filter((transaction) => {
     const userMatches = userFilter ? (transaction.user as User).username.includes(userFilter) : true
-    const categoryMatches = categoryFilter ? transaction.category === categoryFilter : true
+    const categoryMatches = (categoryFilter !== "all" && categoryFilter !== "") ? transaction.category === categoryFilter : true
     return userMatches && categoryMatches
   })
 
@@ -48,7 +48,7 @@ export default function TransactionTable({ transactions, showUserFilter }: Trans
             onChange={(e) => setUserFilter(e.target.value)}
           />
         )}
-        <Select onValueChange={setCategoryFilter}>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filtrar por categoría" />
           </SelectTrigger>
@@ -73,12 +73,12 @@ export default function TransactionTable({ transactions, showUserFilter }: Trans
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Category</TableHead>
-            {showUserFilter && <TableHead>User</TableHead>}
+            <TableHead>Fecha</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead>Monto</TableHead>
+            <TableHead>Descripción</TableHead>
+            <TableHead>Categoría</TableHead>
+            {showUserFilter && <TableHead>Usuario</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
