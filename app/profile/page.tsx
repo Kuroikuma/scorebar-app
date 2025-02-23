@@ -20,6 +20,7 @@ import ImageUpload from './ImageUploap'
 import { BreadcrumbProfile } from './Breadcrumb'
 import { updateUser } from '../service/api'
 import { User } from '../types/user'
+import { IOrganization } from '../types/organization'
 
 export default function UserProfile() {
   const [isEditing, setIsEditing] = useState(false)
@@ -79,7 +80,7 @@ export default function UserProfile() {
               <div className="mb-4 flex flex-col justify-center items-center">
                 <Label htmlFor="companyLogo">Company Logo</Label>
                 <ImageUpload
-                  currentImage={(user as User).organizationId.logo}
+                  currentImage={((user as User).organizationId as IOrganization).logo}
                   onImageChange={(newImage) =>
                     setUser({ ...(user as User)})
                   }

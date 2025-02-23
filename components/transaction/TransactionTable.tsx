@@ -23,17 +23,15 @@ interface TransactionTableProps {
 }
 
 export default function TransactionTable({ transactions, showUserFilter }: TransactionTableProps) {
-  const [dateFilter, setDateFilter] = useState("")
   const [userFilter, setUserFilter] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
   const filteredTransactions = transactions.filter((transaction) => {
-    const dateMatches = dateFilter ? format(new Date(transaction.createdAt), "yyyy-MM-dd") === dateFilter : true
     const userMatches = userFilter ? (transaction.user as User).username.includes(userFilter) : true
     const categoryMatches = categoryFilter ? transaction.category === categoryFilter : true
-    return dateMatches && userMatches && categoryMatches
+    return userMatches && categoryMatches
   })
 
   const pageCount = Math.ceil(filteredTransactions.length / itemsPerPage)
@@ -42,21 +40,20 @@ export default function TransactionTable({ transactions, showUserFilter }: Trans
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-4">
-        <Input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="w-auto" />
         {showUserFilter && (
           <Input
             type="text"
-            placeholder="Filter by user"
+            placeholder="Filtrar por usuario"
             value={userFilter}
             onChange={(e) => setUserFilter(e.target.value)}
           />
         )}
         <Select onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by category" />
+            <SelectValue placeholder="Filtrar por categoría" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">Todas las categorías</SelectItem>
             {Object.values(TransactionCategory).map((cat) => (
               <SelectItem key={cat} value={cat}>
                 {cat}
@@ -66,12 +63,11 @@ export default function TransactionTable({ transactions, showUserFilter }: Trans
         </Select>
         <Button
           onClick={() => {
-            setDateFilter("")
             setUserFilter("")
             setCategoryFilter("")
           }}
         >
-          Clear Filters
+          Limpiar filtros
         </Button>
       </div>
       <Table>

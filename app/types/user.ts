@@ -14,7 +14,8 @@ export interface User {
   avatar: string;
   advertisements: string[];
   role: UserRole;
-  organizationId: IOrganization;
+  organizationId: IOrganization | string;
+  deleted_at: Date | null;
 }
 
 export interface StaffMember {

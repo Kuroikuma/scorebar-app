@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoaderCircle, PlusCircle, Upload } from 'lucide-react';
 import { useFileStorage } from '@/app/hooks/useUploadFile';
 import { User } from '../types/user';
+import { IOrganization } from '../types/organization';
 
 interface NewGameProps {
   open: boolean
@@ -73,7 +74,7 @@ export default function NewGame({ open }: NewGameProps) {
     if (user) {
 
       const dataCreate:Omit<Game, 'id'> = {
-        organizationId: (user as User).organizationId._id, 
+        organizationId: ((user as User).organizationId as IOrganization)._id, 
         date: new Date(gameDate),
         status: 'upcoming',
         teams: [{ 

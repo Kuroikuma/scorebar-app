@@ -1,25 +1,43 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getAllTransactions, getOrganizationFinances, getStaffMembers, OrganizationFinances } from "@/app/service/organization.service"
-import TransactionTable from "./TransactionTable"
-import FinancialSummary from "./FinancialSummary"
-import FinancialChart from "./FinancialChart"
-import CategorySummary from "./CategorySummary"
-import ReportGenerator from "./ReportGenerator"
-import MainDashboard from "./MainDashboard"
-import DepositWithdrawModal from "./DepositWithdrawModal"
-import { StaffMember, User } from "@/app/types/user"
-import { ITransaction } from "@/app/types/ITransaction"
-import { useEffect, useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  getAllTransactions,
+  getOrganizationFinances,
+  getStaffMembers,
+  OrganizationFinances,
+} from '@/app/service/organization.service';
+import TransactionTable from './TransactionTable';
+import FinancialSummary from './FinancialSummary';
+import FinancialChart from './FinancialChart';
+import CategorySummary from './CategorySummary';
+import ReportGenerator from './ReportGenerator';
+import MainDashboard from './MainDashboard';
+import DepositWithdrawModal from './DepositWithdrawModal';
+import { useEffect, useState } from 'react';
+import { DatePickerWithRange } from '../DatePickerWithRange';
+import { useAuth } from '@/app/context/AuthContext';
+import { useTransactionStore } from '@/app/store/useTransactionStore';
+import { IOrganization } from '@/app/types/organization';
+import { format } from 'date-fns';
 
-export default function FinancialDashboard({
-  userId,
-  organizationId,
-}: { userId: string; organizationId: string }) {
+export default function FinancialDashboard({ userId, organizationId }: { userId: string; organizationId: string }) {
+  const [finances, setFinances] = useState<OrganizationFinances | null>(null);
+  const { user } = useAuth();
+  const { transactions, getTransactionByOrganizationId } = useTransactionStore();
 
-  const [finances, setFinances] = useState<OrganizationFinances | null>(null)
-  const [transactions, setTransactions] = useState<ITransaction[]>([])
-  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([])
+  const formatearFecha = (fecha: Date) => format(fecha, 'dd-MM-yyyy');
+
+  const handleDateRangeChange = async (range: { from: Date; to: Date } | undefined) => {
+    if (range) {
+      if (range.from && range.to) {
+        await getTransactionByOrganizationId({
+          organizationId: (user?.organizationId as IOrganization)._id as string,
+          startDatesStr: formatearFecha(range.from),
+          endDateStr: formatearFecha(range.to),
+        })
+      }
+    }
+  }
 
   // Ensure finances has the expected structure
   const formattedFinances = {
@@ -28,40 +46,49 @@ export default function FinancialDashboard({
     totalWithdrawals: finances?.totalWithdrawals ?? 0,
     monthlyIncome: finances?.monthlyIncome ?? 0,
     monthlyExpenses: finances?.monthlyExpenses ?? 0,
-  }
+  };
 
   useEffect(() => {
     const fetchFinances = async () => {
-      const finances = await getOrganizationFinances(organizationId)
-      const transactions = await getAllTransactions(organizationId)
-      const staffMembers = await getStaffMembers(organizationId)
-      setFinances(finances)
-      setTransactions(transactions)
-      setStaffMembers(staffMembers)
-    }
 
-    fetchFinances()
+      const now = new Date()
+      const pastDate = new Date()
+      pastDate.setDate(now.getDate() - 30)
+
+      await getTransactionByOrganizationId({
+        organizationId: (user?.organizationId as IOrganization)._id as string,
+        startDatesStr: formatearFecha(pastDate),
+        endDateStr: formatearFecha(now),
+      })
+
+      const finances = await getOrganizationFinances(organizationId);
+
+      setFinances(finances);
+    };
+
+    fetchFinances();
   }, [organizationId]);
-
 
   return (
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Financial Dashboard</h1>
+        <h1 className="text-3xl font-bold">Dashboard Financiero</h1>
         <DepositWithdrawModal
           userId={userId}
           organizationId={organizationId}
-          staffMembers={staffMembers}
           isCEO={true}
         />
       </div>
 
       <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-        </TabsList>
+        <div className="flex gap-4">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="reports">Reports</TabsTrigger>
+          </TabsList>
+          <DatePickerWithRange onDateRangeChange={handleDateRangeChange} />
+        </div>
 
         <TabsContent value="overview">
           <MainDashboard transactions={transactions} finances={formattedFinances} />
@@ -80,7 +107,7 @@ export default function FinancialDashboard({
         <TabsContent value="transactions">
           <Card>
             <CardHeader>
-              <CardTitle>Transaction History</CardTitle>
+              <CardTitle>Historial de transacciones</CardTitle>
             </CardHeader>
             <CardContent>
               <TransactionTable transactions={transactions} showUserFilter={true} />
@@ -106,6 +133,5 @@ export default function FinancialDashboard({
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-

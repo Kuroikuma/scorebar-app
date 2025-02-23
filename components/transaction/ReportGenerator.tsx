@@ -17,22 +17,14 @@ interface ReportGeneratorProps {
 
 export default function ReportGenerator({ transactions }: ReportGeneratorProps) {
   const [reportType, setReportType] = useState<"all" | "income" | "expense">("all")
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>()
+
 
   const generateReport = () => {
     let filteredTransactions = transactions
-
     if (reportType === "income") {
       filteredTransactions = filteredTransactions.filter((t) => t.type === TransactionType.DEPOSIT)
     } else if (reportType === "expense") {
       filteredTransactions = filteredTransactions.filter((t) => t.type === TransactionType.WITHDRAWAL)
-    }
-
-    if (dateRange) {
-      filteredTransactions = filteredTransactions.filter((t) => {
-        const date = new Date(t.createdAt)
-        return date >= dateRange.from && date <= dateRange.to
-      })
     }
 
     return filteredTransactions
@@ -59,6 +51,8 @@ export default function ReportGenerator({ transactions }: ReportGeneratorProps) 
 
   const exportPDF = () => {
     const report = generateReport()
+    console.log(report)
+    
     const doc = new jsPDF()
     doc.text("Financial Report", 14, 15)
     //@ts-ignore
@@ -88,7 +82,6 @@ export default function ReportGenerator({ transactions }: ReportGeneratorProps) 
             <SelectItem value="expense">Expenses Only</SelectItem>
           </SelectContent>
         </Select>
-        <DatePickerWithRange onDateRangeChange={setDateRange} />
       </div>
       <div className="flex gap-4">
         <Button onClick={exportCSV}>Export CSV</Button>

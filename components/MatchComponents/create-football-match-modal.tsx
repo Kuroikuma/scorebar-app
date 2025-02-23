@@ -16,6 +16,7 @@ import { useAuth } from "@/app/context/AuthContext"
 import { User } from "@/app/types/user"
 import { defaultFormation } from "@/app/lib/defaultFormation"
 import { createMatchService } from "@/app/service/apiMatch"
+import { IOrganization } from "@/app/types/organization"
 
 const defaultOverlay: IOverlays = {
   visible: false,
@@ -105,7 +106,7 @@ const CreateFootballMatchModal = ({ onCreateMatch, open }: CreateFootballMatchMo
       leagueLogo,
       stadiumName,
       matchDate,
-      organizationId: (user as User).organizationId._id, // This should be dynamically set in a real application
+      organizationId: ((user as User).organizationId as IOrganization)._id, // This should be dynamically set in a real application
       past: [],
       future: [],
     }

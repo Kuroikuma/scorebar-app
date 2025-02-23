@@ -15,14 +15,12 @@ import DepositWithdrawForm from "./DepositWithdrawForm"
 interface DepositWithdrawModalProps {
   userId: string
   organizationId: string
-  staffMembers: { id: string; name: string }[]
   isCEO: boolean
 }
 
 export default function DepositWithdrawModal({
   userId,
   organizationId,
-  staffMembers,
   isCEO,
 }: DepositWithdrawModalProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -30,17 +28,16 @@ export default function DepositWithdrawModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Deposit / Withdraw</Button>
+        <Button variant="outline">Depósito / Retirar</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Deposit / Withdraw</DialogTitle>
-          <DialogDescription>Make a deposit or withdrawal from your account.</DialogDescription>
+          <DialogTitle>Depósito / Retirar</DialogTitle>
+          <DialogDescription>Realice un depósito o retiro en su cuenta.</DialogDescription>
         </DialogHeader>
         <DepositWithdrawForm
           userId={userId}
           organizationId={organizationId}
-          staffMembers={staffMembers}
           isCEO={isCEO}
           onComplete={() => setIsOpen(false)}
         />

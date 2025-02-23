@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { ISponsor } from '@/app/types/sponsor';
 import { useAuth } from '@/app/context/AuthContext';
 import { Textarea } from "@/components/ui/textarea"
+import { IOrganization } from '@/app/types/organization';
 
 
 interface AddSponsorFormProps {
@@ -58,7 +59,10 @@ export function AddSponsorForm({ onAddSponsor, isOpen, onClose }: AddSponsorForm
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAddSponsor({...newSponsor, organizationId: user?.organizationId._id as string,});
+    
+    let organizationId = (user?.organizationId as IOrganization)._id as string;
+
+    onAddSponsor({...newSponsor, organizationId});
     onClose();
   };
 

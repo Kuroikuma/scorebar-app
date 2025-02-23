@@ -36,3 +36,9 @@ export interface ITransaction {
   date: Date
   sponsor: string | ISponsor | null
 }
+
+export interface IGetTransactionByOrganizationIdParams {
+  organizationId: string
+  startDatesStr: string, 
+  endDateStr: string
+}

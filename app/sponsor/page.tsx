@@ -10,6 +10,7 @@ import { EditSponsorForm } from '../sponsor/components/Edit';
 import { SponsorDetailModal } from '../sponsor/components/Details';
 import { ISponsor } from '../types/sponsor';
 import { useSponsorStore } from '../store/useSponsor';
+import { IOrganization } from '../types/organization';
 
 const Sponsor = () => {
   const [showAddSponsor, setShowAddSponsor] = useState(false);
@@ -22,7 +23,8 @@ const Sponsor = () => {
 
   useEffect(() => {
     if (!user) return;
-    getSponsorsByOrganizationId(user.organizationId._id as string);
+    const organizationId = (user.organizationId as IOrganization)._id as string;
+    getSponsorsByOrganizationId(organizationId);
   }, [user]);
 
   const handleAddSponsor = async (newSponsor: ISponsor) => {

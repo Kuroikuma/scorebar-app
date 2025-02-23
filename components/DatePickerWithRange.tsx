@@ -14,6 +14,13 @@ interface DatePickerWithRangeProps {
 export function DatePickerWithRange({ onDateRangeChange }: DatePickerWithRangeProps) {
   const [date, setDate] = useState<{ from: Date; to: Date } | undefined>(undefined)
 
+  // const [date, setDate] = useState<{ from: Date; to: Date } | undefined>(
+  //   {
+  //     from: new Date(new Date().setDate(new Date().getDate() - 30)),
+  //     to: new Date(),
+  //   }
+  // )
+
   return (
     <div className="grid gap-2">
       <Popover>
@@ -21,7 +28,7 @@ export function DatePickerWithRange({ onDateRangeChange }: DatePickerWithRangePr
           <Button
             id="date"
             variant={"outline"}
-            className={cn("w-[180px] justify-start text-left font-normal", !date && "text-muted-foreground")}
+            className={cn("w-[240px] justify-start text-left font-normal", !date && "text-muted-foreground")}
           >
             {date?.from ? (
               date.to ? (
@@ -30,7 +37,7 @@ export function DatePickerWithRange({ onDateRangeChange }: DatePickerWithRangePr
                 format(date.from, "MMM dd, yyyy")
               )
             ) : (
-              <span>Pick a date</span>
+              <span>Selecciona un rango de fechas</span>
             )}
           </Button>
         </PopoverTrigger>

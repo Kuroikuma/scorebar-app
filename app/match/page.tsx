@@ -9,6 +9,7 @@ import CreateFootballMatchModal from '@/components/MatchComponents/create-footba
 import { MatchCard } from '@/components/MatchComponents/MatchCard'
 import { PopoverCreateGame } from '../games/popoverCreate'
 import { getAllGamesServices } from '../service/organization.service'
+import { IOrganization } from '../types/organization'
 
 interface getAllGamesResponse {
   games: Game[]
@@ -34,7 +35,7 @@ export default function MatchList() {
   useEffect(() => {
     const fetchGames = async () => {
       if (user) {
-        let response = (await getAllGamesServices(user.organizationId._id)) as getAllGamesResponse
+        let response = (await getAllGamesServices((user.organizationId as IOrganization)._id)) as getAllGamesResponse
         const fetchedGames = response.games.map((game: any) => {
           return {
             ...game,
