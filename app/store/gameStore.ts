@@ -73,7 +73,7 @@ export type GameState = {
   setBases: (bases: boolean[]) => void
   setBase: (base: boolean, index: number) => void
   changeInning: (increment: boolean, isSaved?: boolean) => Promise<void>
-  handleOutsChange: (newOuts: number, isSaved?: boolean) => Promise<void>
+  handleOutsChange: (newOuts: number, isSaved?: boolean, isAbvancedbatter?: boolean) => Promise<void>
   handleStrikeChange: (newStrikes: number, isSaved?: boolean) => Promise<void>
   handleBallChange: (newBalls: number, isSaved?: boolean) => Promise<void>
   changeGameStatus: (newStatus: 'upcoming' | 'in_progress' | 'finished') => void
@@ -222,13 +222,13 @@ export const useGameStore = create<GameState>((set, get) => ({
       await changeInningService(id, newInning, newIsTopInning)
     }
   },
-  handleOutsChange: async (newOuts, isSaved = true) => {
+  handleOutsChange: async (newOuts, isSaved = true, isAbvancedbatter = true) => {
     const { changeInning, updateGame, advanceBatter, handleOutPlay, id } = get()
 
     if (isSaved) registerHistory('out')
 
     await handleOutPlay(isSaved)
-    await advanceBatter(isSaved)
+    if (isAbvancedbatter) await advanceBatter(isSaved)
 
     if (newOuts === 3) {
       set({ outs: 0, balls: 0, strikes: 0 })
