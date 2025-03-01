@@ -125,6 +125,11 @@ export const advanceBatterService = async (id: string, teamIndex: number, curren
   return response.data;
 };
 
+export const updatePlayerService = async (id: string, teamIndex: number, lineup: Player[]) => {
+  const response = await api.put(`/games/player/${id}`, { teamIndex, lineup });
+  return response.data;
+};
+
 export const setDHService = async (id: string) => {
   const response = await api.put(`/games/dh/${id}`);
   return response.data;

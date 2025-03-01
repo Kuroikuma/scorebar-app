@@ -10,6 +10,8 @@ import { ScorebugClassic } from '@/components/overlay/scorebug-classic'
 import { ScoreBugBallySports } from '@/components/overlay/ScoreBugBally'
 import { InningScoreOverlay } from '@/components/overlay/inning-score-overlay'
 import { PlayerOverlay } from '@/components/overlay/player-stats-overlay'
+import { Player } from '@/app/store/teamsStore'
+import { useOverlayStore } from '@/app/store/overlayStore'
 
 interface IOverlaysItemProps {
   item: IOverlays
@@ -33,14 +35,23 @@ interface ScorebugProps {
   item: IOverlays
 }
 
+interface ISocketUpdatePlayer {
+  teamIndex: number
+  lineup: Player[]
+  lineupSubmitted: boolean
+}
+
 export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
   const { handlePositionOverlay, handleVisibleOverlay, handleScaleOverlay } =
     useGameStore()
+
+    const { changeLineupOverlay } = useOverlayStore();
 
   useEffect(() => {
     const eventName = `server:handlePositionOverlay/${gameId}/${item.id}`
     const eventNameScale = `server:handleScaleOverlay/${gameId}/${item.id}`
     const eventNameVisible = `server:handleVisibleOverlay/${gameId}/${item.id}`
+    const eventNameUpdatePlayer = `server:updatePlayer/${gameId}`
 
     const handlePosition = (imagesSocket: ISocketPosition) => {
       handlePositionOverlay(
@@ -48,6 +59,10 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
         { x: imagesSocket.x, y: imagesSocket.y },
         false
       )
+    }
+
+    const refreshLineup = (socketData: ISocketUpdatePlayer) => {
+      changeLineupOverlay(socketData.teamIndex, socketData.lineup, socketData.lineupSubmitted)
     }
 
     const handleScale = (imagesSocket: ISocketScale) => {
@@ -61,11 +76,14 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
     socket.on(eventName, handlePosition)
     socket.on(eventNameScale, handleScale)
     socket.on(eventNameVisible, handleVisible)
+    socket.on(eventNameUpdatePlayer, refreshLineup)
+
 
     return () => {
       socket.off(eventName, handlePosition)
       socket.off(eventNameScale, handleScale)
       socket.off(eventNameVisible, handleVisible)
+      socket.off(eventNameUpdatePlayer, refreshLineup)
     }
   }, [gameId, item.id])
 

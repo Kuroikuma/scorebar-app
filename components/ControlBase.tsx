@@ -22,7 +22,9 @@ const ControlBase = () => {
   };
 
   const handleBaseClick = (base: boolean, index: number) => {
-    if (base) {
+    console.log(base, index);
+    
+    if (!base) {
       // Si la base está ocupada y el usuario hace clic, mostrar el modal
       setSelectedBase(index);
       setIsModalOpen(true);

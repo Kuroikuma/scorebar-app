@@ -11,6 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Pencil, Trash2 } from 'lucide-react'
+import ListPlayer from "./gameComponent/ListPlayer"
+import AddPlayer from "./gameComponent/addPlayer"
+
+export interface IEditingPlayer {
+  teamIndex: number
+  playerIndex: number
+}
 
 export function LineupPanel() {
   const { teams, updatePlayer, submitLineup } = useTeamsStore()
@@ -19,8 +26,10 @@ export function LineupPanel() {
     { name: '', position: '', number: '', battingOrder: 0, turnsAtBat: [], defensiveOrder: 0 },
     { name: '', position: '', number: '', battingOrder: 0, turnsAtBat: [], defensiveOrder: 0 }
   ])
+
+  const [selectedTeam, setSelectedTeam] = useState<number>(0)
   
-  const [editingPlayer, setEditingPlayer] = useState<{ teamIndex: number, playerIndex: number } | null>(null)
+  const [editingPlayer, setEditingPlayer] = useState<IEditingPlayer | null>(null)
 
   const allPositions = [
     "P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH"
@@ -93,9 +102,9 @@ export function LineupPanel() {
     updatePlayer(teamIndex, playerIndex, null)
   }
 
-  const isLineupComplete = (teamIndex: number) => {
+  const isLineupComplete = () => {
     const requiredPlayers = isDHEnabled ? 10 : 9
-    return teams[teamIndex].lineup.length === requiredPlayers
+    return teams[selectedTeam].lineup.length === requiredPlayers
   }
 
   const renderTeamLineup = (teamIndex: number) => {
@@ -163,14 +172,14 @@ export function LineupPanel() {
             </div>
           ))}
         </div>
-        {!isLineupComplete(teamIndex) && (
+        {!isLineupComplete() && (
           <Alert variant="destructive">
             <AlertDescription>
               Necesitas {isDHEnabled ? 10 : 9} jugadores en la alineación.
             </AlertDescription>
           </Alert>
         )}
-        {isLineupComplete(teamIndex) && (
+        {isLineupComplete() && (
           <Button 
             onClick={() => submitLineup(teamIndex)} 
             className="w-full bg-green-500 hover:bg-green-600"
@@ -197,9 +206,20 @@ export function LineupPanel() {
             />
             <Label htmlFor="dh-mode">Habilitar bateador designado (DH)</Label>
           </div>
+          <div className="flex items-center space-x-2">
+            <Select value={`${selectedTeam}`} onValueChange={(value: string) => setSelectedTeam(Number(value))}>
+              <SelectTrigger className="bg-[#2a2438]">
+                <SelectValue placeholder="Select team" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">{teams[0].name}</SelectItem>
+                <SelectItem value="1">{teams[1].name}</SelectItem>
+              </SelectContent>
+            </Select>
+         </div>
           
-          {renderTeamLineup(0)}
-          {renderTeamLineup(1)}
+          <AddPlayer selectedTeam={selectedTeam} setEditingPlayer={setEditingPlayer} editingPlayer={editingPlayer} />
+          <ListPlayer selectedTeam={selectedTeam} setEditingPlayer={setEditingPlayer} />
         </CardContent>
       </Card>
     </div>
