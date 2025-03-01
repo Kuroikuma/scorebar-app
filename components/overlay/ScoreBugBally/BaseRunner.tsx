@@ -1,38 +1,14 @@
 import { cn } from '@/app/lib/utils'
 import OutsCircle from './OutsCircle'
-import { useEffect } from 'react'
 import { useGameStore } from '@/app/store/gameStore'
-import { useOverlayStore } from '@/app/store/overlayStore'
-import socket from '@/app/service/socket'
 import { useTeamsStore } from '@/app/store/teamsStore'
-
-interface ISocketBase {
-  baseIndex: number
-  isOccupied: boolean
-}
 
 export function BaseRunner() {
 
-  const { id, bases, isTopInning } = useGameStore()
+  const { bases, isTopInning } = useGameStore()
 
   const { teams } = useTeamsStore()
   const currentTeamColor = teams[isTopInning ? 0 : 1].color
-
-  const { changeBasesRunnersOverlay } = useOverlayStore();
-
-  useEffect(() => {
-    const eventName = `server:baseRunner/${id}`
-    
-    const updateBaseRunners = (socketData: ISocketBase) => {
-      changeBasesRunnersOverlay(socketData.baseIndex, socketData.isOccupied)
-    }
-
-    socket.on(eventName, updateBaseRunners)
-
-    return () => {
-      socket.off(eventName, updateBaseRunners)
-    }
-  }, [ id ])
 
   return (
     <div

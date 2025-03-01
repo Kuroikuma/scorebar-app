@@ -94,7 +94,7 @@ const AddPlayer = ({ selectedTeam, editingPlayer, setEditingPlayer }: AddPlayerP
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-[#fafafa] dark:bg-[#18181b]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">Crear nuevo partido de fútbol</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center">{editingPlayer && editingPlayer.teamIndex === selectedTeam ? 'Editar jugador' : 'Crear nuevo jugador'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-2">
           <Input
@@ -123,7 +123,7 @@ const AddPlayer = ({ selectedTeam, editingPlayer, setEditingPlayer }: AddPlayerP
           />
           <Button
             onClick={() => handleAddPlayer()}
-            className="w-full bg-[#4c3f82] hover:bg-[#5a4b99]"
+            className="w-full bg-[#4c3f82] hover:bg-[#5a4b99] dark:text-white"
             disabled={!newPlayers.name || !newPlayers.position || !newPlayers.number}
           >
             {editingPlayer && editingPlayer.teamIndex === selectedTeam ? 'Actualizar jugador' : 'Añadir jugador'}

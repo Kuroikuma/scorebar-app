@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { Game, useGameStore } from './gameStore'
 import { Team, useTeamsStore } from './teamsStore'
-import { useConfigStore } from './configStore'
 import { changePastAndFutureGame } from '../service/api'
 
 

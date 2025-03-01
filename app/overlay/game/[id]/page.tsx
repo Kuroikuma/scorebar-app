@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { useParams } from 'next/navigation'
 import { useGameStore } from '@/app/store/gameStore'
 import { OverlaysItem } from './OverlaysItem'
+import { useSocketOverlayGame } from '@/app/hooks/useSocketOverlayGame'
 
 const DraggableComponent = dynamic(
   () =>
@@ -63,6 +64,7 @@ export default function OverlayPage() {
     playerStatsOverlay,
   ]
 
+
   useEffect(() => {
     if (id) {
       loadOverlay(id)
@@ -76,6 +78,8 @@ export default function OverlayPage() {
     setMounted(true)
   }, [])
 
+  useSocketOverlayGame(id);
+
   const handleDragStop = useCallback(
     (id: string, data: { x: number; y: number }) => {
       data.y = parseFloat(((data.y / window.innerHeight) * 100).toFixed(2));
@@ -87,6 +91,8 @@ export default function OverlayPage() {
   if (!mounted) {
     return null
   }
+
+
 
   return (
     <div className="relative w-screen h-[calc(100vh)] bg-[#1a472a00] overflow-hidden">

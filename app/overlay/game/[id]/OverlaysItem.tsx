@@ -1,91 +1,22 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { OverlayItem } from './page'
-import { SetStateAction, useEffect } from 'react'
-import socket from '@/app/service/socket'
-import { IOverlays, useGameStore } from '@/app/store/gameStore'
-import { ClassicScoreboard } from '@/components/classic-scoreboard'
-import { BaseballFormationOverlay } from '@/components/overlay/improved-field-lineup'
-import { EnhancedRunsTable } from '@/components/overlay/enhanced-runs-table'
-import { ScorebugClassic } from '@/components/overlay/scorebug-classic'
-import { ScoreBugBallySports } from '@/components/overlay/ScoreBugBally'
-import { InningScoreOverlay } from '@/components/overlay/inning-score-overlay'
-import { PlayerOverlay } from '@/components/overlay/player-stats-overlay'
-import { Player } from '@/app/store/teamsStore'
-import { useOverlayStore } from '@/app/store/overlayStore'
+import { IOverlays, useGameStore } from '@/app/store/gameStore';
+import { BaseballFormationOverlay } from '@/components/overlay/improved-field-lineup';
+import { EnhancedRunsTable } from '@/components/overlay/enhanced-runs-table';
+import { ScoreBugBallySports } from '@/components/overlay/ScoreBugBally';
+import { InningScoreOverlay } from '@/components/overlay/inning-score-overlay';
+import { PlayerOverlay } from '@/components/overlay/player-stats-overlay';
+import { useSocketHandleOverlays } from '@/app/hooks/useSocketHandleOverlayGame';
 
 interface IOverlaysItemProps {
-  item: IOverlays
-  gameId: string
-}
-
-interface ISocketPosition {
-  x: number
-  y: number
-}
-
-interface ISocketScale {
-  scale: number
-}
-
-interface ISocketVisible {
-  visible: boolean
+  item: IOverlays;
+  gameId: string;
 }
 
 interface ScorebugProps {
-  item: IOverlays
-}
-
-interface ISocketUpdatePlayer {
-  teamIndex: number
-  lineup: Player[]
-  lineupSubmitted: boolean
+  item: IOverlays;
 }
 
 export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
-  const { handlePositionOverlay, handleVisibleOverlay, handleScaleOverlay } =
-    useGameStore()
-
-    const { changeLineupOverlay } = useOverlayStore();
-
-  useEffect(() => {
-    const eventName = `server:handlePositionOverlay/${gameId}/${item.id}`
-    const eventNameScale = `server:handleScaleOverlay/${gameId}/${item.id}`
-    const eventNameVisible = `server:handleVisibleOverlay/${gameId}/${item.id}`
-    const eventNameUpdatePlayer = `server:updatePlayer/${gameId}`
-
-    const handlePosition = (imagesSocket: ISocketPosition) => {
-      handlePositionOverlay(
-        item.id,
-        { x: imagesSocket.x, y: imagesSocket.y },
-        false
-      )
-    }
-
-    const refreshLineup = (socketData: ISocketUpdatePlayer) => {
-      changeLineupOverlay(socketData.teamIndex, socketData.lineup, socketData.lineupSubmitted)
-    }
-
-    const handleScale = (imagesSocket: ISocketScale) => {
-      handleScaleOverlay(item.id, imagesSocket.scale, false)
-    }
-
-    const handleVisible = (imagesSocket: ISocketVisible) => {
-      handleVisibleOverlay(item.id, imagesSocket.visible, false)
-    }
-
-    socket.on(eventName, handlePosition)
-    socket.on(eventNameScale, handleScale)
-    socket.on(eventNameVisible, handleVisible)
-    socket.on(eventNameUpdatePlayer, refreshLineup)
-
-
-    return () => {
-      socket.off(eventName, handlePosition)
-      socket.off(eventNameScale, handleScale)
-      socket.off(eventNameVisible, handleVisible)
-      socket.off(eventNameUpdatePlayer, refreshLineup)
-    }
-  }, [gameId, item.id])
+  useSocketHandleOverlays(item, gameId);
 
   return item.id === 'scorebug' ? (
     <ScoreBoard item={item} />
@@ -99,13 +30,15 @@ export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
     <InningScoreOverlay visible={item.visible} />
   ) : item.id === 'playerStats' ? (
     <PlayerOverlay visible={item.visible} />
-    ) : <></>
-}
+  ) : (
+    <></>
+  );
+};
 
 const ScoreBoard = ({ item }: ScorebugProps) => {
   return (
     <div className="flex-1 max-w-[100%] bg-black text-white max-[768px]:px-4 flex flex-col font-['Roboto_Condensed']">
       <ScoreBugBallySports visible={item.visible} />
     </div>
-  )
-}
+  );
+};

@@ -49,6 +49,11 @@ export const updateUser = async (id: string, userData: Partial<User>) => {
   return response.data;
 };
 
+export const changeCurrentBatterService = async (id: string, newCurrentBatterIndex: number, teamIndex: number) => {
+  const response = await api.put(`/games/changeCurrentBatter/${id}`, { newCurrentBatterIndex, teamIndex });
+  return response.data;
+};
+
 export const createGame = async (gameData: Omit<Game, "id">) => {
   const response = await api.post('/games', gameData);
   return response.data;

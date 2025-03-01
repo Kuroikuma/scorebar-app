@@ -57,9 +57,9 @@ const CustomizeOverlays = () => {
 const CustomizeOverlay = ({ overlay: overaly }: CustomizeOverlayProps) => {
   const { handlePositionOverlay, handleScaleOverlay, handleVisibleOverlay } = useGameStore()
   return (
-    <CardContent className="space-y-6 border rounded-xl pt-4 border-[#2d2b3b]">
+    <>
       {/* Position Controls */}
-      <div className="space-y-4">
+      <div className="space-y-4 py-4">
         <div className="flex items-center justify-between">
           <Label className="text-sm text-white font-semibold">
             Mostrar Overlay
@@ -196,7 +196,7 @@ const CustomizeOverlay = ({ overlay: overaly }: CustomizeOverlayProps) => {
           </div>
         </div>
       </div>
-    </CardContent>
+    </>
   )
 }
 

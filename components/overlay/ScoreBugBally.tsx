@@ -1,14 +1,11 @@
 'use client'
 
-import { Game, useGameStore } from '@/app/store/gameStore'
+import { Game } from '@/app/store/gameStore'
 import { BaseRunner } from './ScoreBugBally/BaseRunner'
 import Teams from './ScoreBugBally/Teams'
 import GameScore from '../scorebug/GameScore'
 import Ticker from './ScoreBugBally/Tiecker'
 import GameInnings from '../scorebug/GameInnings'
-import { useOverlayStore } from '@/app/store/overlayStore'
-import { useEffect } from 'react'
-import socket from '@/app/service/socket'
 import { AnimatePresence, motion } from 'framer-motion'
 
 interface ISocketData {
@@ -20,28 +17,6 @@ interface ScorebugClassicProps {
 }
 
 export function ScoreBugBallySports({ visible }: ScorebugClassicProps) {
-  const { id } = useGameStore()
-
-  const { updateGameOverlay } = useOverlayStore()
-
-  useEffect(() => {
-    const eventName = `server:updateGame/${id}`
-
-    const updateScorebugClassic = (socketData: ISocketData) => {
-      if ((socketData.game as any).socketId !== id) {
-        console.log('updateScorebugClassic')
-
-        updateGameOverlay(socketData.game)
-      }
-    }
-
-    socket.on(eventName, updateScorebugClassic)
-
-    return () => {
-      socket.off(eventName, updateScorebugClassic)
-    }
-  }, [id])
-
   return (
     <AnimatePresence initial={false}>
       {visible ? (

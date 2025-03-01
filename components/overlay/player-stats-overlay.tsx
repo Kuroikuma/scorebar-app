@@ -1,51 +1,14 @@
 'use client'
 
 import usePlayer from '@/app/hooks/usePlayer'
-import socket from '@/app/service/socket'
-import { IBase, useGameStore } from '@/app/store/gameStore'
-import { useOverlayStore } from '@/app/store/overlayStore'
-import { Team } from '@/app/store/teamsStore'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Diamond } from 'lucide-react'
-import { useEffect } from 'react'
 
 interface PlayerOverlayProps {
   visible: boolean
 }
 
-export interface ISocketDataPlayer {
-  teamIndex: number;
-  strikes: number;
-  balls: number;
-  team: Team;
-  bases: IBase[];
-  socketId: string;
-}
-
 export const PlayerOverlay = ({ visible }: PlayerOverlayProps) => {
-
-  const { id } = useGameStore()
-  const socketId = socket.id
-
-  const { handlePlayerOverlay } = useOverlayStore()
-
-  useEffect(() => {
-    const eventName = `server:handlePlay/${id}`
-
-    const updatePlayerOverlay = (socketData: ISocketDataPlayer) => {
-      if (socketData.socketId !== socketId) {
-        console.log(socketData)
-        
-        handlePlayerOverlay(socketData);
-      }
-    }
-
-    socket.on(eventName, updatePlayerOverlay)
-
-    return () => {
-      socket.off(eventName, updatePlayerOverlay)
-    }
-  }, [id])
 
   return (
     <div className="w-full flex justify-center">

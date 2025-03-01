@@ -1,20 +1,7 @@
-import socket from '@/app/service/socket'
-import { IBase, useGameStore } from '@/app/store/gameStore'
-import { useOverlayStore } from '@/app/store/overlayStore'
 import { motion } from 'framer-motion'
-import { useEffect } from 'react'
 
 interface InningsProps {
   inning: number
-}
-
-export interface ISocketData {
-  inning: number
-  isTopInning: boolean
-  balls: number
-  strikes: number
-  outs: number
-  bases: IBase[]
 }
 
 const inningNames = [
@@ -31,24 +18,6 @@ const inningNames = [
 ]
 
 export function Innings({ inning }: InningsProps) {
-
-  const { changeInningCountOverlay } = useOverlayStore()
-  const { id } = useGameStore()
-
-  useEffect(() => {
-    const eventName = `server:inning/${id}`
-
-    const updateInningCountOverlay = (socketData: ISocketData) => {
-      changeInningCountOverlay(socketData)
-    }
-
-    socket.on(eventName, updateInningCountOverlay)
-
-    return () => {
-      socket.off(eventName, updateInningCountOverlay)
-    }
-  }, [id])
-
   return (
     <motion.div
       className="bg-gradient-to-r from-[#B31942] via-[#C41E3A] to-[#B31942] py-3 relative overflow-hidden"

@@ -6,6 +6,7 @@ import { AlertCircle } from 'lucide-react'
 import { useState } from 'react'
 import { Slider } from './ui/slider'
 import { cn } from '@/app/lib/utils'
+import UpdateCurrentBatter from './gameComponent/updateCurrentbatter'
 
 let timeoutId: NodeJS.Timeout | null = null
 
@@ -24,9 +25,6 @@ export const StatusGame = () => {
   const currentPitcher = getCurrentPitcher()
   const isLineupComplete = teams[0].lineupSubmitted && teams[1].lineupSubmitted
   const [segShow, setSegShow] = useState<number>(10)
-
-  console.log(isLineupComplete);
-  
 
   const showBattingOrder = () => {
     handleVisibleOverlay('playerStats', true)
@@ -77,7 +75,7 @@ export const StatusGame = () => {
         <div className="bg-gray-800 p-4 rounded-md mb-4 text-white">
           <div className="flex justify-between">
             <div>
-              <h3 className="text-lg font-semibold">Current Batter</h3>
+              <h3 className="text-lg font-semibold">Bateador en turno</h3>
               <p>
                 {currentBatter
                   ? `${currentBatter.name} (#${currentBatter.number})`
@@ -85,7 +83,7 @@ export const StatusGame = () => {
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Current Pitcher</h3>
+              <h3 className="text-lg font-semibold">Pitcher en turno</h3>
               <p>
                 {currentPitcher
                   ? `${currentPitcher.name} (#${currentPitcher.number})`
@@ -110,6 +108,7 @@ export const StatusGame = () => {
         >
           Mostrar bateador al turno
         </Button>
+        <UpdateCurrentBatter />
         </>
       )}
     </div>

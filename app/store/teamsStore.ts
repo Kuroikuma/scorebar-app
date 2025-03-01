@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { advanceBatterService, changeErrors, changeHits, scoreRun, updateLineupTeamService, updatePlayerService } from '@/app/service/api'
+import { advanceBatterService, changeCurrentBatterService, changeErrors, changeHits, scoreRun, updateLineupTeamService, updatePlayerService } from '@/app/service/api'
 import { useGameStore } from './gameStore'
 import { useHistoryStore } from './historiStore';
 import { toast } from 'sonner';
@@ -78,6 +78,7 @@ export type TeamsState = {
   updatePlayer: (teamIndex: number, playerIndex: number, player: Player | null) => void
   submitLineup: (teamIndex: number) => Promise<void>
   changeTeamShortName: (teamIndex: any, newShortName: any) => Promise<void>
+  changeCurrentBatter: (newCurrentBatterIndex: number) => void
 }
 
 export const useTeamsStore = create<TeamsState>((set, get) => ({
@@ -110,6 +111,17 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       shortName: 'AWAY',
     },
   ],
+  changeCurrentBatter: async (newCurrentBatterIndex) => {
+
+    const { isTopInning } = useGameStore.getState()
+    const teamIndex = isTopInning ? 0 : 1
+
+    set((state) => ({
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, currentBatter: newCurrentBatterIndex } : team)),
+    }));
+    
+    await changeCurrentBatterService(useGameStore.getState().id!, newCurrentBatterIndex, teamIndex)
+  },
   setTeams: (teams) => set({ teams }),
   incrementRunsOverlay: async (teamIndex, runs, newRuns) => {
     set((state) => ({

@@ -14,6 +14,7 @@ import { useParams } from "next/navigation"
 import { LineupPanel } from "@/components/lineup-panel"
 import { StatusGame } from "@/components/statusGame"
 import CustomizeOverlays from "@/components/CustomizeOverlays"
+import { useSocketOverlayGame } from "@/app/hooks/useSocketOverlayGame"
 
 export default function BaseballScoreboard() {
 
@@ -32,6 +33,8 @@ export default function BaseballScoreboard() {
       setGameId(id);
     }
   }, [user, gameId, loadGame, setGameId, loading, paramas, id]);
+
+  useSocketOverlayGame(id);
 
    if (loading) {
     return <div>Loading...</div>;

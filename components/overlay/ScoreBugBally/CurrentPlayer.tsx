@@ -1,63 +1,33 @@
-import { useGameStore } from '@/app/store/gameStore'
-import CurrentBatter from './CurrentBatter'
-import CurrentPitcher from './CurrentPitcher'
-import { darkenColor } from '@/app/lib/utils'
-import { useEffect } from 'react'
-import socket from '@/app/service/socket'
-import { useOverlayStore } from '@/app/store/overlayStore'
-import { Player, useTeamsStore } from '@/app/store/teamsStore'
+import { useGameStore } from '@/app/store/gameStore';
+import CurrentBatter from './CurrentBatter';
+import CurrentPitcher from './CurrentPitcher';
+import { darkenColor } from '@/app/lib/utils';
 
 interface CurrentPlayerProps {
-  teamIndex: number
-  color: string
-}
-
-interface ISocketData {
-  teamIndex: number
-  lineup: Player[]
-  lineupSubmitted: boolean
+  teamIndex: number;
+  color: string;
 }
 
 const CurrentPlayer = ({ teamIndex, color }: CurrentPlayerProps) => {
-  const { isTopInning, id } = useGameStore()
-  const { teams } = useTeamsStore()
-
-  const { changeLineupOverlay } = useOverlayStore();
-  const isLineupComplete = teams[0].lineupSubmitted && teams[1].lineupSubmitted
-
-  useEffect(() => {
-    const eventName = `server:updateLineupTeam/${id}`
-    
-    const refreshLineup = (socketData: ISocketData) => {
-      if (socketData.teamIndex === teamIndex) {
-        changeLineupOverlay(socketData.teamIndex, socketData.lineup, socketData.lineupSubmitted)
-      }
-    }
-
-    socket.on(eventName, refreshLineup)
-
-    return () => {
-      socket.off(eventName, refreshLineup)
-    }
-  }, [ id ])
+  const { isTopInning } = useGameStore();
 
   return (
-    <div className='px-[6px] pt-[6px]'>
-      <div className='border-x-4 h-9 border-t-4 border-white' style={{ backgroundColor: darkenColor(color, 50) }}>
-      {teamIndex === 0 ? (
-        isTopInning ? (
-          <CurrentBatter teamIndex={teamIndex} />
-        ) : (
+    <div className="px-[6px] pt-[6px]">
+      <div className="border-x-4 h-9 border-t-4 border-white" style={{ backgroundColor: darkenColor(color, 50) }}>
+        {teamIndex === 0 ? (
+          isTopInning ? (
+            <CurrentBatter />
+          ) : (
+            <CurrentPitcher />
+          )
+        ) : isTopInning ? (
           <CurrentPitcher />
-        )
-      ) : isTopInning ? (
-        <CurrentPitcher />
-      ) : (
-        <CurrentBatter teamIndex={teamIndex} />
-      )}
+        ) : (
+          <CurrentBatter />
+        )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CurrentPlayer
+export default CurrentPlayer;
