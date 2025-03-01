@@ -78,7 +78,7 @@ export const useOverlayStore = create<OverlayState>((set, get) => ({
   },
   changeBasesRunnersOverlay: (baseIndex, isOccupied) => {
     useGameStore.setState((state) => ({
-      bases: state.bases.map((base, index) => index === baseIndex ? isOccupied : base)
+      bases: state.bases.map((base, index) => index === baseIndex ? {isOccupied, playerId: null} : base)
     }))
   },
   changeHitsCountOverlay: (hits, teamIndex) => {

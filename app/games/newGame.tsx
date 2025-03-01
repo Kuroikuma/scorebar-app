@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ConfigGame } from '@/app/store/configStore';
-import { Game } from '@/app/store/gameStore';
+import { __initBases__, Game } from '@/app/store/gameStore';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoaderCircle, PlusCircle, Upload } from 'lucide-react';
@@ -108,7 +108,7 @@ export default function NewGame({ open }: NewGameProps) {
         balls: 0,
         strikes: 0,
         outs: 0,
-        bases: [false, false, false],
+        bases: __initBases__,
         runsByInning: {},
         isDHEnabled: false,
         scoreboardOverlay: {

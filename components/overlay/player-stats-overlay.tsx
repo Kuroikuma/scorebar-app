@@ -2,7 +2,7 @@
 
 import usePlayer from '@/app/hooks/usePlayer'
 import socket from '@/app/service/socket'
-import { useGameStore } from '@/app/store/gameStore'
+import { IBase, useGameStore } from '@/app/store/gameStore'
 import { useOverlayStore } from '@/app/store/overlayStore'
 import { Team } from '@/app/store/teamsStore'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -18,7 +18,7 @@ export interface ISocketDataPlayer {
   strikes: number;
   balls: number;
   team: Team;
-  bases: boolean[];
+  bases: IBase[];
   socketId: string;
 }
 

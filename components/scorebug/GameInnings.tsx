@@ -1,5 +1,5 @@
 import { cn } from '@/app/lib/utils'
-import { useGameStore } from '@/app/store/gameStore'
+import { IBase, useGameStore } from '@/app/store/gameStore'
 import { useTeamsStore } from '@/app/store/teamsStore'
 import { Triangle } from 'lucide-react'
 import AnimatePopLayout from '../ui/AnimatePopLayout'
@@ -13,7 +13,7 @@ export interface ISocketData {
   balls: number
   strikes: number
   outs: number
-  bases: boolean[]
+  bases: IBase[]
 }
 
 interface IGameInningsProps {

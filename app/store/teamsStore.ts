@@ -34,6 +34,7 @@ export interface ITurnAtBat {
 }
 
 export type Player = {
+  _id?: string
   name: string
   position: string
   number: string

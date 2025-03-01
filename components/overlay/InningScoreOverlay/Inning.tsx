@@ -1,5 +1,5 @@
 import socket from '@/app/service/socket'
-import { useGameStore } from '@/app/store/gameStore'
+import { IBase, useGameStore } from '@/app/store/gameStore'
 import { useOverlayStore } from '@/app/store/overlayStore'
 import { motion } from 'framer-motion'
 import { useEffect } from 'react'
@@ -14,7 +14,7 @@ export interface ISocketData {
   balls: number
   strikes: number
   outs: number
-  bases: boolean[]
+  bases: IBase[]
 }
 
 const inningNames = [

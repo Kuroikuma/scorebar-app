@@ -16,9 +16,9 @@ const ControlBase = () => {
   const { bases, setBase, handleOutsChange, outs } = useGameStore();
 
   const handleBaseChange = (index: number, checked: boolean) => {
-    const newBases = [...bases];
-    newBases[index] = checked;
-    setBase(checked, index);
+    const base = { isOccupied: checked, playerId: null }
+
+    setBase(base, index);
   };
 
   const handleBaseClick = (base: boolean, index: number) => {
@@ -54,7 +54,7 @@ const ControlBase = () => {
           <div key={base} className="flex items-center justify-between">
             <span className="text-sm text-white font-semibold">{base} Base Runner</span>
             <Switch
-              checked={bases[index]}
+              checked={bases[index].isOccupied}
               onCheckedChange={(checked) => handleBaseClick(checked, index)}
               className="data-[state=checked]:bg-[#4c3f82]"
             />

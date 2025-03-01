@@ -1,4 +1,4 @@
-import { Game, RunsByInning, Status } from '@/app/store/gameStore';
+import { Game, IBase, RunsByInning, Status } from '@/app/store/gameStore';
 import axios from 'axios';
 import { Player, Team, useTeamsStore } from '@/app/store/teamsStore';
 import { ConfigGame } from '../store/configStore';
@@ -225,7 +225,7 @@ export const handleVisibleOverlayServices = async (id: string, visible: boolean,
   return response.data;
 };
 
-export const handlePlayServices = async (id: string, teamIndex: number, team: Team, bases: boolean[]) => {
+export const handlePlayServices = async (id: string, teamIndex: number, team: Team, bases: IBase[]) => {
   const response = await api.put(`/overlay/play`, {  id, teamIndex, team, bases });
   return response.data;
 };
