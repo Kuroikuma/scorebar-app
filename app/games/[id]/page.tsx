@@ -88,7 +88,7 @@ const BaseballScoreboardMovil = () => {
   const { activeTab, scoreboardStyle } = useUIStore()
 
   return (
-    <div className="h-screen p-4 font-['Roboto_Condensed'] flex flex-col">
+    <div className="h-screen w-screen p-4 font-['Roboto_Condensed'] flex flex-col">
       {/* Scoreboard */}
       <div className="flex-shrink-0">
         {scoreboardStyle === "classic" ? (
