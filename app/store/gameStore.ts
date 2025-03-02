@@ -27,6 +27,12 @@ export type IOverlays = {
   id: string;
 }
 
+interface RunnerAdvance {
+  fromBase: number
+  toBase: number | null
+  isOut?: boolean
+}
+
 export interface Game {
   id: string | null;
   status: Status;
@@ -115,6 +121,7 @@ export type GameState = {
   handleOutPlay: ( isSaved:boolean) => Promise<void>
   handleBBPlay: () => Promise<void>
   loadGameHistory: (game: Partial<Omit<Game, "userId">>) => Promise<void>
+  handleAdvanceRunners: (advances: RunnerAdvance[]) => void
 }
 
 const __initBase__ = {
@@ -174,6 +181,32 @@ export const useGameStore = create<GameState>((set, get) => ({
   playerStatsOverlay: {
     ...__initOverlays,
     id: 'playerStats',
+  },
+  handleAdvanceRunners: (advances: RunnerAdvance[]) => {
+    // Filtrar solo los avances safe
+    const safeAdvances = advances.filter((advance) => !advance.isOut && advance.toBase !== null)
+
+    // Crear nuevo estado de bases
+    const newBases = [...get().bases]
+
+    // Procesar los avances en orden inverso (de home a primera) para evitar sobreescribir
+    safeAdvances
+      .sort((a, b) => b.fromBase - a.fromBase)
+      .forEach((advance) => {
+        // Marcar la base original como vacía
+        newBases[advance.fromBase].isOccupied = false
+
+        // Si el avance no es a home (base 3), marcar la nueva base como ocupada
+        if (advance.toBase! < 3) {
+          newBases[advance.toBase!].isOccupied = true
+        }
+      })
+
+    // Actualizar el estado
+    set({
+      bases: newBases,
+      outs: get().outs + advances.filter((advance) => advance.isOut).length,
+    })
   },
   setInning: (inning) => set({ inning }),
   setIsTopInning: (isTop) => set({ isTopInning: isTop }),

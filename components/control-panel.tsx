@@ -13,6 +13,7 @@ import { ErrorPlay } from './errorPlay';
 import Undo from './undo';
 import Redo from './redo';
 import ControlBase from './ControlBase';
+import { AdvanceRunners } from './gameComponent/advance-runners';
 
 export function ControlPanel() {
   const {
@@ -44,6 +45,7 @@ export function ControlPanel() {
           <div className="flex items-center gap-2">
             <HitPlay />
             <ErrorPlay />
+            <AdvanceRunners />
             <Undo />
             <Redo />
           </div>

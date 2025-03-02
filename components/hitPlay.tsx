@@ -1,27 +1,17 @@
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { useState } from "react"
-import { Check, X } from "lucide-react"
+import { BeerIcon as Baseball, Check, ChevronRight, X } from "lucide-react"
 import { useGameStore } from "@/app/store/gameStore"
 import { TypeAbbreviatedBatting, TypeHitting } from "@/app/store/teamsStore"
+import { cn } from "@/app/lib/utils"
 
 export function HitPlay() {
   const { handleSingle, handleDouble, handleTriple, handleHomeRun, handleHitByPitch, bases, outs } = useGameStore()
@@ -32,51 +22,47 @@ export function HitPlay() {
   const [pendingRuns, setPendingRuns] = useState<number>(0)
   const [runnerResults, setRunnerResults] = useState<{ base: number; isOut: boolean }[]>([])
   const [currentOuts, setCurrentOuts] = useState<number>(outs)
+  const [step, setStep] = useState<"select-hit" | "runner-results">("select-hit")
 
   const returnNameBase = (index: number) => {
     return index === 0 ? "1st" : index === 1 ? "2nd" : index === 2 ? "3rd" : "Home"
   }
 
-  const handleHitAction = (hitType: TypeHitting) => {
-    // Store the hit type and reset outs counter for this play
+  const handleHitAction = async (hitType: TypeHitting) => {
     setHitType(hitType)
     setCurrentOuts(outs)
 
-    // Determine which bases are occupied
     const occupiedBases = bases
       .map((base, index) => ({ base: index, isOccupied: base.isOccupied }))
       .filter((base) => base.isOccupied)
 
-    // If no bases are occupied and it's not a home run, just execute the hit
     if (occupiedBases.length === 0 && hitType !== TypeHitting.HomeRun) {
-      executeHit(hitType, 0)
+      await executeHit(hitType, 0)
+      setIsModalOpen(false)
       return
     }
 
-    // For home runs, we know all runners score
     if (hitType === TypeHitting.HomeRun) {
-      executeHit(hitType, occupiedBases.length + 1) // +1 for the batter
+      await executeHit(hitType, occupiedBases.length + 1)
+      setIsModalOpen(false)
       return
     }
 
-    // For hit by pitch, just advance the runner
     if (hitType === TypeHitting.HitByPitch) {
       handleHitByPitch()
+      setIsModalOpen(false)
       return
     }
 
-    // Calculate potential runs based on hit type and occupied bases
     let potentialRuns = 0
     const runnersToCheck: { base: number; isOccupied: boolean }[] = []
 
     if (hitType === TypeHitting.Single) {
-      // On a single, only the runner on 3rd might score
       if (bases[2].isOccupied) {
         potentialRuns = 1
         runnersToCheck.push({ base: 2, isOccupied: true })
       }
     } else if (hitType === TypeHitting.Double) {
-      // On a double, runners on 2nd and 3rd might score
       if (bases[2].isOccupied) {
         potentialRuns++
         runnersToCheck.push({ base: 2, isOccupied: true })
@@ -86,7 +72,6 @@ export function HitPlay() {
         runnersToCheck.push({ base: 1, isOccupied: true })
       }
     } else if (hitType === TypeHitting.Triple) {
-      // On a triple, all runners might score
       for (let i = 0; i < 3; i++) {
         if (bases[i].isOccupied) {
           potentialRuns++
@@ -95,59 +80,51 @@ export function HitPlay() {
       }
     }
 
-    // Sort runners from 3rd to 1st
     runnersToCheck.sort((a, b) => b.base - a.base)
 
-    // If there are potential runs, open the modal
     if (potentialRuns > 0) {
       setBaseRunners(runnersToCheck)
       setPendingRuns(potentialRuns)
       setRunnerResults([])
-      setIsModalOpen(true)
+      setStep("runner-results")
     } else {
-      // Otherwise, just execute the hit
-      executeHit(hitType, 0)
+      await executeHit(hitType, 0)
+      setIsModalOpen(false)
     }
   }
 
-  const executeHit = (hitType: TypeHitting, runsScored: number) => {
+  const executeHit = async (hitType: TypeHitting, runsScored: number) => {
     switch (hitType) {
       case TypeHitting.Single:
-        handleSingle(runsScored)
+        await handleSingle(runsScored)
         break
       case TypeHitting.Double:
-        handleDouble(runsScored)
+        await handleDouble(runsScored)
         break
       case TypeHitting.Triple:
-        handleTriple(runsScored)
+        await handleTriple(runsScored)
         break
       case TypeHitting.HomeRun:
-        handleHomeRun()
+        await handleHomeRun()
         break
       default:
         break
     }
   }
 
-  const handleRunnerResult = (base: number, isOut: boolean) => {
-    // Check if we can interact with this base
+  const handleRunnerResult = async (base: number, isOut: boolean) => {
     const canInteract = canInteractWithBase(base)
     if (!canInteract) return
 
-    // Check if we've reached 3 outs
     if (currentOuts >= 3) return
 
-    // Add or update the result for this runner
     const updatedResults = [...runnerResults]
     const existingIndex = updatedResults.findIndex((r) => r.base === base)
 
     if (existingIndex >= 0) {
-      // If changing from safe to out, increment outs
       if (!updatedResults[existingIndex].isOut && isOut) {
         setCurrentOuts((prev) => prev + 1)
-      }
-      // If changing from out to safe, decrement outs
-      else if (updatedResults[existingIndex].isOut && !isOut) {
+      } else if (updatedResults[existingIndex].isOut && !isOut) {
         setCurrentOuts((prev) => prev - 1)
       }
       updatedResults[existingIndex] = { base, isOut }
@@ -160,19 +137,19 @@ export function HitPlay() {
 
     setRunnerResults(updatedResults)
 
-    // If all runners have been decided or we've reached 3 outs, close the modal and execute the hit
-    if (updatedResults.length === baseRunners.length || currentOuts >= 3) {
+    let sumOuts = isOut ? currentOuts + 1 : currentOuts
+
+    if (updatedResults.length === baseRunners.length || sumOuts >= 3) {
       const actualRuns = updatedResults.filter((r) => !r.isOut).length
       setIsModalOpen(false)
-      executeHit(hitType as TypeHitting, actualRuns)
+      await executeHit(hitType as TypeHitting, actualRuns)
+      await useGameStore.getState().handleOutsChange(sumOuts)
     }
   }
 
   const canInteractWithBase = (base: number): boolean => {
-    // Get all bases that should be decided before this one
     const previousBases = baseRunners.filter((runner) => runner.base > base).map((runner) => runner.base)
 
-    // Check if all previous bases have been decided
     const allPreviousBasesDecided = previousBases.every((prevBase) =>
       runnerResults.some((result) => result.base === prevBase),
     )
@@ -184,103 +161,201 @@ export function HitPlay() {
     return !canInteractWithBase(base) || currentOuts >= 3
   }
 
+  const handleOpenChange = (open: boolean) => {
+    setIsModalOpen(open)
+    if (!open) {
+      // Reset state when closing
+      setStep("select-hit")
+      setHitType(null)
+      setBaseRunners([])
+      setRunnerResults([])
+    }
+  }
+
+  const hitTypes = [
+    {
+      type: TypeHitting.Single,
+      abbr: TypeAbbreviatedBatting.Single,
+      description: "El bateador alcanza la primera base",
+    },
+    {
+      type: TypeHitting.Double,
+      abbr: TypeAbbreviatedBatting.Double,
+      description: "El bateador alcanza la segunda base",
+    },
+    {
+      type: TypeHitting.Triple,
+      abbr: TypeAbbreviatedBatting.Triple,
+      description: "El bateador alcanza la tercera base",
+    },
+    {
+      type: TypeHitting.HomeRun,
+      abbr: TypeAbbreviatedBatting.HomeRun,
+      description: "¡Home run! Todos los corredores anotan",
+    },
+    {
+      type: TypeHitting.HitByPitch,
+      abbr: TypeAbbreviatedBatting.HitByPitch,
+      description: "El bateador es golpeado por el lanzamiento",
+    },
+  ]
+
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="bg-[#4c3f82] hover:bg-[#5a4b99]">
-            Hit
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56 bg-gray-800 border-[#2d2b3b]">
-          <DropdownMenuLabel className="text-white">Hits</DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-gray-600" />
-          <DropdownMenuGroup className="text-white">
-            <DropdownMenuItem className="cursor-pointer" onClick={() => handleHitAction(TypeHitting.Single)}>
-              {TypeHitting.Single}
-              <DropdownMenuShortcut>{TypeAbbreviatedBatting.Single}</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => handleHitAction(TypeHitting.Double)}>
-              {TypeHitting.Double}
-              <DropdownMenuShortcut>{TypeAbbreviatedBatting.Double}</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => handleHitAction(TypeHitting.Triple)}>
-              {TypeHitting.Triple}
-              <DropdownMenuShortcut>{TypeAbbreviatedBatting.Triple}</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => handleHitAction(TypeHitting.HomeRun)}>
-              {TypeHitting.HomeRun}
-              <DropdownMenuShortcut>{TypeAbbreviatedBatting.HomeRun}</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => handleHitByPitch()}>
-              {TypeHitting.HitByPitch}
-              <DropdownMenuShortcut>{TypeAbbreviatedBatting.HitByPitch}</DropdownMenuShortcut>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button
+        variant="outline"
+        className="bg-[#4c3f82] hover:bg-[#5a4b99] text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 ease-in-out hover:shadow-lg hover:scale-105 active:scale-95"
+        onClick={() => setIsModalOpen(true)}
+      >
+        <Baseball className="w-5 h-5 mr-2" />
+        Hit
+      </Button>
 
-      {/* Modal for runner outcomes */}
-      <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <AlertDialogContent className="bg-gray-800 text-white border-[#2d2b3b]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Resultado de los corredores</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-300">
-              Indica si los corredores anotaron o fueron eliminados en esta jugada.
-              {currentOuts < 3 ? (
-                <div className="mt-2">Outs en el inning: {currentOuts}</div>
-              ) : (
-                <div className="mt-2 text-red-500 font-semibold">¡3 Outs! Inning terminado</div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+      <Dialog open={isModalOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="bg-gray-800/95 backdrop-blur-sm text-white border-[#2d2b3b] rounded-xl shadow-2xl max-w-md w-full mx-auto">
+          {step === "select-hit" ? (
+            <>
+              <DialogHeader className="space-y-3">
+                <DialogTitle className="text-2xl font-bold">Seleccionar Tipo de Hit</DialogTitle>
+                <DialogDescription className="text-gray-300">
+                  Elige el tipo de hit realizado por el bateador.
+                </DialogDescription>
+              </DialogHeader>
 
-          <div className="py-4 space-y-4">
-            {baseRunners.map((runner, index) => {
-              const result = runnerResults.find((r) => r.base === runner.base)
-              const isDisabled = isBaseDisabled(runner.base)
+              <div className="py-4 space-y-2">
+                {hitTypes.map((hit) => (
+                  <button
+                    key={hit.type}
+                    onClick={() => handleHitAction(hit.type)}
+                    className="w-full group text-left px-4 py-3 rounded-lg transition-all duration-200 hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{hit.type}</span>
+                          <span className="text-xs text-gray-400 font-mono">{hit.abbr}</span>
+                        </div>
+                        <p className="text-sm text-gray-400">{hit.description}</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
+                    </div>
+                  </button>
+                ))}
+              </div>
 
-              return (
-                <div key={index} className={`flex items-center justify-between ${isDisabled ? "opacity-50" : ""}`}>
-                  <span>Corredor de {returnNameBase(runner.base)} a Home:</span>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={result?.isOut === false ? "default" : "outline"}
-                      size="sm"
-                      disabled={isDisabled}
-                      className={
-                        result?.isOut === false
-                          ? "bg-green-600 hover:bg-green-700"
-                          : "border-green-600 text-green-600 hover:bg-green-900/20"
-                      }
-                      onClick={() => handleRunnerResult(runner.base, false)}
-                    >
-                      <Check className="mr-1 h-4 w-4" /> Safe
-                    </Button>
-                    <Button
-                      variant={result?.isOut === true ? "default" : "outline"}
-                      size="sm"
-                      disabled={isDisabled}
-                      className={
-                        result?.isOut === true
-                          ? "bg-red-600 hover:bg-red-700"
-                          : "border-red-600 text-red-600 hover:bg-red-900/20"
-                      }
-                      onClick={() => handleRunnerResult(runner.base, true)}
-                    >
-                      <X className="mr-1 h-4 w-4" /> Out
-                    </Button>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                  className="bg-gray-700 hover:bg-gray-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  Cancelar
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader className="space-y-3">
+                <DialogTitle className="text-2xl font-bold">Resultado de la Jugada ({hitType})</DialogTitle>
+                <DialogDescription className="text-gray-300 space-y-4">
+                  <p className="text-sm">
+                    Selecciona si el corredor anotó (safe) o fue eliminado (out) al llegar a home, comenzando desde tercera base.
+                  </p>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-700/50">
+                    <span className="text-sm font-medium">Outs en el inning:</span>
+                    <div className="flex items-center gap-2">
+                      {[...Array(3)].map((_, i) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            "w-3 h-3 rounded-full transition-all duration-300",
+                            i < currentOuts ? "bg-red-500 scale-110" : "bg-gray-600",
+                          )}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                  {currentOuts >= 3 && (
+                    <div className="text-red-400 font-semibold text-center p-2 rounded-lg bg-red-500/20 border border-red-500/30">
+                      ¡3 Outs! Inning terminado
+                    </div>
+                  )}
+                </DialogDescription>
+              </DialogHeader>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-700 hover:bg-gray-600 text-white">Cancelar</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              <div className="py-6 space-y-4">
+                {baseRunners.map((runner, index) => {
+                  const result = runnerResults.find((r) => r.base === runner.base)
+                  const isDisabled = isBaseDisabled(runner.base)
+                  const canInteract = canInteractWithBase(runner.base)
+
+                  return (
+                    <div
+                      key={index}
+                      className={cn(
+                        "relative rounded-lg p-4 transition-all duration-200",
+                        isDisabled ? "opacity-50" : "bg-gray-700/30",
+                        !canInteract && !isDisabled && "animate-pulse",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">Corredor de {returnNameBase(runner.base)} a HP</span>
+                          {!canInteract && !isDisabled && (
+                            <span className="text-xs text-gray-400">Decide primero las bases anteriores</span>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant={result?.isOut === false ? "default" : "outline"}
+                            size="sm"
+                            disabled={isDisabled}
+                            className={cn(
+                              "transition-all duration-200",
+                              result?.isOut === false
+                                ? "bg-green-600 hover:bg-green-700 shadow-lg shadow-green-900/20"
+                                : "border-green-600 text-green-600 hover:bg-green-900/20",
+                            )}
+                            onClick={() => handleRunnerResult(runner.base, false)}
+                          >
+                            <Check className="mr-1 h-4 w-4" />
+                            Safe
+                          </Button>
+                          <Button
+                            variant={result?.isOut === true ? "default" : "outline"}
+                            size="sm"
+                            disabled={isDisabled}
+                            className={cn(
+                              "transition-all duration-200",
+                              result?.isOut === true
+                                ? "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-900/20"
+                                : "border-red-600 text-red-600 hover:bg-red-900/20",
+                            )}
+                            onClick={() => handleRunnerResult(runner.base, true)}
+                          >
+                            <X className="mr-1 h-4 w-4" />
+                            Out
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setStep("select-hit")}
+                  className="bg-gray-700 hover:bg-gray-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  Volver
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
