@@ -58,7 +58,6 @@ const data = {
       title: "Organizacion",
       url: "#",
       icon: Building2 ,
-      isActive: true,
       items: [
         {
           title: "Patrocinadores",

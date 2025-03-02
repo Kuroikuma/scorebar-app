@@ -11,7 +11,9 @@ import { useUIStore } from "@/app/store/uiStore"
 import { Team, useTeamsStore } from "@/app/store/teamsStore"
 import { useCallback } from "react"
 import debounce from "lodash/debounce";
-import { changeTeamColorService, changeTeamNameService, changeTeamShortNameService, changeTeamTextColorService } from "@/app/service/api"
+import { changeTeamColorService, changeTeamNameService, changeTeamShortNameService, changeTeamTextColorService, updateGameService } from "@/app/service/api"
+import { useGameStore } from "@/app/store/gameStore"
+import { useFileStorage } from "@/app/hooks/useUploadFile"
 
 export function CustomizePanel() {
 
@@ -24,10 +26,16 @@ export function CustomizePanel() {
     verticalPosition, setVerticalPosition
   } = useUIStore()
 
-  const updateTeam = (index: number, updates: Partial<Team>) => {
+  const { fileHandler } = useFileStorage()
+
+  
+
+  const updateTeam = async (index: number, updates: Partial<Team>) => {
     setTeams(
       teams.map((team, i) => (i === index ? { ...team, ...updates } : team))
     )
+
+    await useGameStore.getState().updateGame()
   }
 
   const debounceUpdate = useCallback(
@@ -61,14 +69,11 @@ export function CustomizePanel() {
     }
   }
 
-  const handleLogoUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        updateTeam(index, { logo: e.target?.result as string })
-      }
-      reader.readAsDataURL(file)
+      const linkUrl = await fileHandler(file)
+      updateTeam(index, { logo: linkUrl })
     }
   }
 
