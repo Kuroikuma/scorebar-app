@@ -351,7 +351,7 @@ export function HitPlay() {
                         !canInteract && !isDisabled && "animate-pulse",
                       )}
                     >
-                      <div className="flex items-center justify-between gap-4">
+                      <div className="flex flex-col items-start justify-between gap-4">
                         <div className="flex flex-col">
                           <span className="text-sm font-medium">Corredor de {returnNameBase(runner.base)} a HP</span>
                           {!canInteract && !isDisabled && (
@@ -360,7 +360,7 @@ export function HitPlay() {
                           {runner.isForced ? (
                               <span className="text-xs text-amber-400 mt-1">Jugada forzada - debe avanzar</span>
                             ) : (
-                              <span className="text-xs text-blue-400 mt-1">No forzado - puede quedarse en la base</span>
+                              <span className="text-xs text-blue-400 mt-1">No forzado - puede quedarse en 3rd base</span>
                             )}
                         </div>
                         <div className="flex gap-2">
