@@ -36,6 +36,7 @@ import { SkeletonMenu } from "./skeleton/SkeletonMenu"
 export function NavUser() {
 
   const { user, logout } = useAuth()
+  const { isMobile } = useSidebar()
 
   const router = useRouter()
 
@@ -56,7 +57,6 @@ export function NavUser() {
       return <SkeletonMenu />;
     }
 
-  const { isMobile } = useSidebar()
 
   return (
     <SidebarMenu>

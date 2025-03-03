@@ -473,7 +473,7 @@ export function AdvanceRunners() {
 
               <div className="py-4 space-y-4">{getOccupiedBases().map(({ base }) => renderRunnerCard({ base }))}</div>
 
-              <DialogFooter className="flex justify-between">
+              <DialogFooter className="flex justify-between md:gap-0 gap-2">
                 <Button
                   variant="outline"
                   onClick={() => setIsModalOpen(false)}
