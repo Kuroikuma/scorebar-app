@@ -126,6 +126,7 @@ const BaseballScoreboardMovil = () => {
         >
           {activeTab === 'controls' && <ControlPanel />}
           {activeTab === 'customize' && <CustomizePanel />}
+          {activeTab === 'controlsBase' && <ControlBase />}
           {activeTab === 'lineup' && <LineupPanel />}
           {activeTab === 'status' && <StatusGame />}
           {activeTab === 'overlays' && <CustomizeOverlays />}
