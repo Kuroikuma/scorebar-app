@@ -121,7 +121,7 @@ export type GameState = {
   handleOutPlay: ( isSaved:boolean) => Promise<void>
   handleBBPlay: () => Promise<void>
   loadGameHistory: (game: Partial<Omit<Game, "userId">>) => Promise<void>
-  handleAdvanceRunners: (advances: RunnerAdvance[]) => void
+  handleAdvanceRunners: (advances: RunnerAdvance[]) => Promise<void>
 }
 
 const __initBase__ = {
@@ -182,9 +182,18 @@ export const useGameStore = create<GameState>((set, get) => ({
     ...__initOverlays,
     id: 'playerStats',
   },
-  handleAdvanceRunners: (advances: RunnerAdvance[]) => {
+  handleAdvanceRunners: async (advances: RunnerAdvance[]) => {
+    const { isTopInning, updateGame, outs, changeInning } = get()
+    const { teams, setTeams } = useTeamsStore.getState()
+
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+    
     // Filtrar solo los avances safe
     const safeAdvances = advances.filter((advance) => !advance.isOut && advance.toBase !== null)
+    const runsScored = currentTeam.runs + advances.filter((advance) => !advance.isOut && advance.toBase === 3).length
+    const newOuts = outs + advances.filter((advance) => advance.isOut).length
+
 
     // Crear nuevo estado de bases
     const newBases = [...get().bases]
@@ -199,14 +208,29 @@ export const useGameStore = create<GameState>((set, get) => ({
         // Si el avance no es a home (base 3), marcar la nueva base como ocupada
         if (advance.toBase! < 3) {
           newBases[advance.toBase!].isOccupied = true
+          newBases[advance.toBase!].playerId = newBases[advance.fromBase].playerId
+          newBases[advance.fromBase].playerId = null
         }
       })
+
+      currentTeam.runs = runsScored
 
     // Actualizar el estado
     set({
       bases: newBases,
-      outs: get().outs + advances.filter((advance) => advance.isOut).length,
+      outs: newOuts,
     })
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? { ...currentTeam }
+          : team
+      )
+    )
+
+    changeInning(true, false)
+    await updateGame()
   },
   setInning: (inning) => set({ inning }),
   setIsTopInning: (isTop) => set({ isTopInning: isTop }),

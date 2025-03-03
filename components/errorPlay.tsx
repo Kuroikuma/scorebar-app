@@ -38,6 +38,7 @@ export function ErrorPlay() {
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => handleErrorPlay(player.defensiveOrder)}
+              key={player._id}
             >
               {player.name}
               <DropdownMenuShortcut>{player.position}</DropdownMenuShortcut>

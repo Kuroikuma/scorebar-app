@@ -144,6 +144,7 @@ export function HitPlay() {
       setIsModalOpen(false)
       await executeHit(hitType as TypeHitting, actualRuns)
       await useGameStore.getState().handleOutsChange(sumOuts)
+      setStep("select-hit")
     }
   }
 
