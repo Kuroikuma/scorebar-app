@@ -14,6 +14,7 @@ import { useGameStore } from "@/app/store/gameStore"
 import { cn } from "@/app/lib/utils"
 import { Icon } from 'lucide-react';
 import { hatBaseball } from '@lucide/lab';
+import { useTeamsStore } from "@/app/store/teamsStore"
 
 interface RunnerAdvance {
   fromBase: number
@@ -24,12 +25,16 @@ interface RunnerAdvance {
 }
 
 export function AdvanceRunners() {
-  const { bases, outs, handleAdvanceRunners } = useGameStore()
+  const { bases, outs, handleAdvanceRunners, isTopInning } = useGameStore()
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [currentOuts, setCurrentOuts] = useState<number>(outs)
   const [runnerAdvances, setRunnerAdvances] = useState<RunnerAdvance[]>([])
   const [step, setStep] = useState<"select-runners" | "resolve-advances">("select-runners")
+  const { teams } = useTeamsStore();
+
+  const teamIndex = isTopInning ? 0 : 1;
+  const currentTeam = teams[teamIndex];
 
   useEffect(() => {
     setCurrentOuts(outs)
@@ -308,10 +313,12 @@ export function AdvanceRunners() {
   }
 
   const renderRunnerCard = ({ base }: { base: number }) => {
-    const advance = runnerAdvances.find((adv) => adv.fromBase === base)
-    const availableBases = getAvailableBases(base)
-    const dependencies = getAllDependencies(base)
-    const isBlocked = !canAdvanceBasedOnDependencies(base)
+    const advance = runnerAdvances.find((adv) => adv.fromBase === base);
+    const availableBases = getAvailableBases(base);
+    const dependencies = getAllDependencies(base);
+    const isBlocked = !canAdvanceBasedOnDependencies(base);
+    const playerId = bases[base].playerId;
+    const runnerBase = playerId ? currentTeam.lineup.find((player) => player._id === playerId)?.name : "Corredor" as string;
 
     return (
       <div
@@ -319,10 +326,10 @@ export function AdvanceRunners() {
         className={cn("rounded-lg p-4 transition-all duration-200", isBlocked ? "bg-gray-700/20" : "bg-gray-700/30")}
       >
         <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
+          <div className={cn("flex items-center justify-between", isRunnerSelected(base) && "flex-col items-start gap-1")}>
             <div className="flex items-center gap-3">
               <Icon iconNode={hatBaseball} className="w-5 h-5" />
-              <span>Corredor en {baseNames[base]}</span>
+              <span>{runnerBase} en {baseNames[base]}</span>
             </div>
             {!isRunnerSelected(base) ? (
               <TooltipProvider>
