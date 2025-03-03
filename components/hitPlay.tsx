@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import { BeerIcon as Baseball, Check, ChevronRight, X } from "lucide-react"
+import { BeerIcon as Baseball, Check, ChevronRight, Pause, X } from "lucide-react"
 import { useGameStore } from "@/app/store/gameStore"
 import { TypeAbbreviatedBatting, TypeHitting } from "@/app/store/teamsStore"
 import { cn } from "@/app/lib/utils"
@@ -18,14 +18,58 @@ export function HitPlay() {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [hitType, setHitType] = useState<TypeHitting | null>(null)
-  const [baseRunners, setBaseRunners] = useState<{ base: number; isOccupied: boolean }[]>([])
+  const [baseRunners, setBaseRunners] = useState<{ base: number; isOccupied: boolean, isForced: boolean }[]>([])
   const [pendingRuns, setPendingRuns] = useState<number>(0)
-  const [runnerResults, setRunnerResults] = useState<{ base: number; isOut: boolean }[]>([])
+  const [runnerResults, setRunnerResults] = useState<{ base: number; result: "safe" | "out" | "stay" }[]>([])
   const [currentOuts, setCurrentOuts] = useState<number>(outs)
   const [step, setStep] = useState<"select-hit" | "runner-results">("select-hit")
 
   const returnNameBase = (index: number) => {
     return index === 0 ? "1st" : index === 1 ? "2nd" : index === 2 ? "3rd" : "Home"
+  }
+
+  const determineForced = (
+    base: number,
+    hitType: TypeHitting,
+    occupiedBases: { base: number; isOccupied: boolean }[],
+  ) => {
+    // Convertir el array a un mapa para facilitar la verificación
+    const basesMap = occupiedBases.reduce(
+      (map, curr) => {
+        map[curr.base] = curr.isOccupied
+        return map
+      },
+      {} as Record<number, boolean>,
+    )
+
+    // En un home run, todos los corredores están forzados a avanzar
+    if (hitType === TypeHitting.HomeRun) {
+      return true
+    }
+
+    // En un triple, todos los corredores están forzados a avanzar
+    if (hitType === TypeHitting.Triple) {
+      return true
+    }
+
+    // Lógica para singles y doubles
+    if (hitType === TypeHitting.Single) {
+      // Corredor en 3ra
+      if (base === 2) {
+        // Está forzado solo si hay corredores en 1ra y 2da (porque el de 2da debe ir a 3ra)
+        return basesMap[0] && basesMap[1]
+      }
+    }
+
+    if(hitType === TypeHitting.Double){
+      // Corredor en 3ra
+      if (base === 1) {
+        // Está forzado solo si hay corredores en 1ra y 2da (porque el de 2da debe ir a 3ra)
+        return basesMap[0]
+      }
+    }
+
+    return false
   }
 
   const handleHitAction = async (hitType: TypeHitting) => {
@@ -37,13 +81,13 @@ export function HitPlay() {
       .filter((base) => base.isOccupied)
 
     if (occupiedBases.length === 0 && hitType !== TypeHitting.HomeRun) {
-      await executeHit(hitType, 0)
+      await executeHit(hitType, 0, false)
       setIsModalOpen(false)
       return
     }
 
     if (hitType === TypeHitting.HomeRun) {
-      await executeHit(hitType, occupiedBases.length + 1)
+      await executeHit(hitType, occupiedBases.length + 1, false)
       setIsModalOpen(false)
       return
     }
@@ -55,27 +99,29 @@ export function HitPlay() {
     }
 
     let potentialRuns = 0
-    const runnersToCheck: { base: number; isOccupied: boolean }[] = []
+    const runnersToCheck: { base: number; isOccupied: boolean, isForced: boolean }[] = []
 
     if (hitType === TypeHitting.Single) {
       if (bases[2].isOccupied) {
         potentialRuns = 1
-        runnersToCheck.push({ base: 2, isOccupied: true })
+        const isForced = determineForced(2, hitType, occupiedBases)
+        runnersToCheck.push({ base: 2, isOccupied: true, isForced })
       }
     } else if (hitType === TypeHitting.Double) {
       if (bases[2].isOccupied) {
         potentialRuns++
-        runnersToCheck.push({ base: 2, isOccupied: true })
+        runnersToCheck.push({ base: 2, isOccupied: true, isForced:true })
       }
       if (bases[1].isOccupied) {
         potentialRuns++
-        runnersToCheck.push({ base: 1, isOccupied: true })
+        const isForced = determineForced(1, hitType, occupiedBases)
+        runnersToCheck.push({ base: 1, isOccupied: true, isForced })
       }
     } else if (hitType === TypeHitting.Triple) {
       for (let i = 0; i < 3; i++) {
         if (bases[i].isOccupied) {
           potentialRuns++
-          runnersToCheck.push({ base: i, isOccupied: true })
+          runnersToCheck.push({ base: i, isOccupied: true, isForced:true })
         }
       }
     }
@@ -88,18 +134,18 @@ export function HitPlay() {
       setRunnerResults([])
       setStep("runner-results")
     } else {
-      await executeHit(hitType, 0)
+      await executeHit(hitType, 0, false)
       setIsModalOpen(false)
     }
   }
 
-  const executeHit = async (hitType: TypeHitting, runsScored: number) => {
+  const executeHit = async (hitType: TypeHitting, runsScored: number, isStay: boolean) => {
     switch (hitType) {
       case TypeHitting.Single:
-        await handleSingle(runsScored)
+        await handleSingle(runsScored, isStay)
         break
       case TypeHitting.Double:
-        await handleDouble(runsScored)
+        await handleDouble(runsScored, isStay)
         break
       case TypeHitting.Triple:
         await handleTriple(runsScored)
@@ -112,7 +158,7 @@ export function HitPlay() {
     }
   }
 
-  const handleRunnerResult = async (base: number, isOut: boolean) => {
+  const handleRunnerResult = async (base: number, result: "safe" | "out" | "stay") => {
     const canInteract = canInteractWithBase(base)
     if (!canInteract) return
 
@@ -122,31 +168,36 @@ export function HitPlay() {
     const existingIndex = updatedResults.findIndex((r) => r.base === base)
 
     if (existingIndex >= 0) {
-      if (!updatedResults[existingIndex].isOut && isOut) {
+      // If changing from not-out to out, increment outs
+      if (updatedResults[existingIndex].result !== "out" && result === "out") {
         setCurrentOuts((prev) => prev + 1)
-      } else if (updatedResults[existingIndex].isOut && !isOut) {
+      }
+      // If changing from out to not-out, decrement outs
+      else if (updatedResults[existingIndex].result === "out" && result !== "out") {
         setCurrentOuts((prev) => prev - 1)
       }
-      updatedResults[existingIndex] = { base, isOut }
+      updatedResults[existingIndex] = { base, result }
     } else {
-      if (isOut) {
+      if (result === "out") {
         setCurrentOuts((prev) => prev + 1)
       }
-      updatedResults.push({ base, isOut })
+      updatedResults.push({ base, result })
     }
 
     setRunnerResults(updatedResults)
 
-    let sumOuts = isOut ? currentOuts + 1 : currentOuts
+    let sumOuts = result === "out" ? currentOuts + 1 : currentOuts
 
     if (updatedResults.length === baseRunners.length || sumOuts >= 3) {
-      const actualRuns = updatedResults.filter((r) => !r.isOut).length
+      const actualRuns = updatedResults.filter((r) => r.result === "safe").length
+      const isStay = updatedResults.some((r) => r.result === "stay")
       setIsModalOpen(false)
-      await executeHit(hitType as TypeHitting, actualRuns)
-      await useGameStore.getState().handleOutsChange(sumOuts)
+      await executeHit(hitType as TypeHitting, actualRuns, isStay);
+      sumOuts !== currentOuts && await useGameStore.getState().handleOutsChange(sumOuts);
       setStep("select-hit")
     }
   }
+
 
   const canInteractWithBase = (base: number): boolean => {
     const previousBases = baseRunners.filter((runner) => runner.base > base).map((runner) => runner.base)
@@ -172,6 +223,8 @@ export function HitPlay() {
       setRunnerResults([])
     }
   }
+
+  
 
   const hitTypes = [
     {
@@ -304,38 +357,61 @@ export function HitPlay() {
                           {!canInteract && !isDisabled && (
                             <span className="text-xs text-gray-400">Decide primero las bases anteriores</span>
                           )}
+                          {runner.isForced ? (
+                              <span className="text-xs text-amber-400 mt-1">Jugada forzada - debe avanzar</span>
+                            ) : (
+                              <span className="text-xs text-blue-400 mt-1">No forzado - puede quedarse en la base</span>
+                            )}
                         </div>
                         <div className="flex gap-2">
                           <Button
-                            variant={result?.isOut === false ? "default" : "outline"}
+                            variant={result?.result === "safe" ? "default" : "outline"}
                             size="sm"
                             disabled={isDisabled}
                             className={cn(
                               "transition-all duration-200",
-                              result?.isOut === false
+                              result?.result === "safe"
                                 ? "bg-green-600 hover:bg-green-700 shadow-lg shadow-green-900/20"
                                 : "border-green-600 text-green-600 hover:bg-green-900/20",
                             )}
-                            onClick={() => handleRunnerResult(runner.base, false)}
+                            onClick={() => handleRunnerResult(runner.base, "safe")}
                           >
                             <Check className="mr-1 h-4 w-4" />
                             Safe
                           </Button>
                           <Button
-                            variant={result?.isOut === true ? "default" : "outline"}
+                            variant={result?.result === "out" ? "default" : "outline"}
                             size="sm"
                             disabled={isDisabled}
                             className={cn(
                               "transition-all duration-200",
-                              result?.isOut === true
+                              result?.result === "out"
                                 ? "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-900/20"
                                 : "border-red-600 text-red-600 hover:bg-red-900/20",
                             )}
-                            onClick={() => handleRunnerResult(runner.base, true)}
+                            onClick={() => handleRunnerResult(runner.base, "out")}
                           >
                             <X className="mr-1 h-4 w-4" />
                             Out
                           </Button>
+
+                          {!runner.isForced && (
+                            <Button
+                              variant={result?.result === "stay" ? "default" : "outline"}
+                              size="sm"
+                              disabled={isDisabled}
+                              className={cn(
+                                "transition-all duration-200",
+                                result?.result === "stay"
+                                  ? "bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/20"
+                                  : "border-blue-600 text-blue-600 hover:bg-blue-900/20",
+                              )}
+                              onClick={() => handleRunnerResult(runner.base, "stay")}
+                            >
+                              <Pause className="mr-1 h-4 w-4" />
+                              Quedarse
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>

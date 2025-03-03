@@ -112,8 +112,8 @@ export type GameState = {
   handlePositionOverlay: (id: string, data: { x: number; y: number; }, isSaved?: boolean) => Promise<void>
   handleScaleOverlay: (id: string, scale: number, isSaved?: boolean) => Promise<void>
   handleVisibleOverlay: (id: string, visible: boolean, isSaved?: boolean) => Promise<void>
-  handleSingle: (runsScored:number) => Promise<void>
-  handleDouble: (runsScored:number) => Promise<void>
+  handleSingle: (runsScored:number, isStay:boolean) => Promise<void>
+  handleDouble: (runsScored:number, isStay:boolean) => Promise<void>
   handleTriple: (runsScored:number) => Promise<void>
   handleHomeRun: () => Promise<void>
   handleHitByPitch: () => Promise<void>
@@ -734,7 +734,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   // Acción para manejar un sencillo (Single)
-  handleSingle: async (runsScored) => {
+  handleSingle: async (runsScored, isStay) => {
     const { bases, isTopInning, getCurrentBatter } = get()
     const { teams, setTeams, advanceBatter } = useTeamsStore.getState()
     const teamIndex = isTopInning ? 0 : 1
@@ -749,7 +749,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
-    const newBases:IBase[] = [{ isOccupied:true, playerId: currentBatter._id as string }, bases[0], bases[1]]
+
+    const segunda = isStay ? bases[1].isOccupied ? bases[1] : bases[0] : bases[0]
+    
+    const newBases: IBase[] = isStay
+      ? [{ isOccupied: true, playerId: currentBatter._id as string }, segunda, bases[2]] 
+      : [{ isOccupied: true, playerId: currentBatter._id as string }, bases[0], bases[1]]
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -798,7 +803,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   // Acción para manejar un doble (Double)
-  handleDouble: async (runsScored:number) => {
+  handleDouble: async (runsScored:number, isStay:boolean) => {
     const { bases, isTopInning, getCurrentBatter } = get()
     const { teams, setTeams, advanceBatter } = useTeamsStore.getState()
     const teamIndex = isTopInning ? 0 : 1
@@ -813,7 +818,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
-    const newBases = [__initBase__ , { isOccupied:true, playerId: currentBatter._id as string }, bases[0]]
+    const tercera = isStay ? bases[1] : bases[0]
+
+    const newBases = [__initBase__ , { isOccupied:true, playerId: currentBatter._id as string }, tercera]
     // const runsScored = (bases[2].isOccupied ? 1 : 0) + (bases[1].isOccupied ? 1 : 0)
 
     let turnsAtBat: ITurnAtBat = {
