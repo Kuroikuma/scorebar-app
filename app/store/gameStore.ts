@@ -183,6 +183,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     id: 'playerStats',
   },
   handleAdvanceRunners: async (advances: RunnerAdvance[]) => {
+    console.log(advances);
+    
     const { isTopInning, updateGame, outs, changeInning } = get()
     const { teams, setTeams } = useTeamsStore.getState()
 
@@ -190,7 +192,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const currentTeam = teams[teamIndex]
     
     // Filtrar solo los avances safe
-    const safeAdvances = advances.filter((advance) => !advance.isOut && advance.toBase !== null)
+    const safeAdvances = advances.filter((advance) => advance.toBase !== null)
     const runsScored = currentTeam.runs + advances.filter((advance) => !advance.isOut && advance.toBase === 3).length
     const newOuts = outs + advances.filter((advance) => advance.isOut).length
 
@@ -206,11 +208,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         newBases[advance.fromBase].isOccupied = false
 
         // Si el avance no es a home (base 3), marcar la nueva base como ocupada
-        if (advance.toBase! < 3) {
+        if (advance.toBase! < 3 && !advance.isOut) {
           newBases[advance.toBase!].isOccupied = true
           newBases[advance.toBase!].playerId = newBases[advance.fromBase].playerId
-          newBases[advance.fromBase].playerId = null
         }
+
+        newBases[advance.fromBase].playerId = null
       })
 
       currentTeam.runs = runsScored
@@ -229,7 +232,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       )
     )
 
-    changeInning(true, false)
+    newOuts === 3 && changeInning(true, false)
     await updateGame()
   },
   setInning: (inning) => set({ inning }),

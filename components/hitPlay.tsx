@@ -208,7 +208,6 @@ export function HitPlay() {
         className="bg-[#4c3f82] hover:bg-[#5a4b99] text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 ease-in-out hover:shadow-lg hover:scale-105 active:scale-95"
         onClick={() => setIsModalOpen(true)}
       >
-        <Baseball className="w-5 h-5 mr-2" />
         Hit
       </Button>
 

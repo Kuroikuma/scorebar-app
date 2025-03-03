@@ -16,6 +16,7 @@ import { StatusGame } from '@/components/statusGame';
 import CustomizeOverlays from '@/components/CustomizeOverlays';
 import { useSocketOverlayGame } from '@/app/hooks/useSocketOverlayGame';
 import { useSocketHandleOverlays } from '@/app/hooks/useSocketHandleOverlayGame';
+import ControlBase from '@/components/ControlBase';
 
 export default function BaseballScoreboard() {
   const { user, loading } = useAuth();
@@ -93,6 +94,7 @@ const BaseballScoreboardDestok = () => {
       <div className="w-[350px] ml-4">
         <TabsLayout />
         {activeTab === 'controls' && <ControlPanel />}
+        {activeTab === 'controlsBase' && <ControlBase />}
         {activeTab === 'customize' && <CustomizePanel />}
         {activeTab === 'lineup' && <LineupPanel />}
         {activeTab === 'overlays' && <CustomizeOverlays />}

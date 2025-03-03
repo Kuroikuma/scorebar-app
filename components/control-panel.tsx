@@ -45,7 +45,6 @@ export function ControlPanel() {
           <div className="flex items-center gap-2">
             <HitPlay />
             <ErrorPlay />
-            <AdvanceRunners />
             <Undo />
             <Redo />
           </div>
@@ -172,7 +171,6 @@ export function ControlPanel() {
           </div>
 
           {/* Base Runners */}
-          <ControlBase />
 
           {/* Team Runs */}
           {teams.map((team, teamIndex) => (
