@@ -12,13 +12,21 @@ export function TabsLayout() {
           value="controls"
           className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center"
         >
-          Baseball Scorebug
+          Panel de Control
         </TabsTrigger>
+
+        <TabsTrigger
+          value="controlsBase"
+          className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center"
+        >
+          Control Bases
+        </TabsTrigger>
+
         <TabsTrigger
           value="customize"
           className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white h-11 flex items-center justify-center"
         >
-          Customize
+          Modificar Equipos
         </TabsTrigger>
         <TabsTrigger
           value="lineup"
@@ -36,7 +44,7 @@ export function TabsLayout() {
           value="overlays"
           className="flex-1 data-[state=active]:bg-[#4C3F82] data-[state=active]:text-white  h-11 flex items-center justify-center"
         >
-          Personalizar Overlays
+          Modificar Overlays
         </TabsTrigger>
       </TabsList>
     </Tabs>

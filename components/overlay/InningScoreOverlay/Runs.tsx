@@ -1,10 +1,6 @@
 import { cn } from '@/app/lib/utils'
-import socket from '@/app/service/socket'
-import { useGameStore } from '@/app/store/gameStore'
-import { useOverlayStore } from '@/app/store/overlayStore'
 import { Team } from '@/app/store/teamsStore'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect } from 'react'
 
 interface InninScoreOverlayProps {
   index: number
@@ -12,34 +8,8 @@ interface InninScoreOverlayProps {
   team: Team
 }
 
-interface ISocketRuns {
-  teamIndex: number
-  runs: number
-  runsInning: number
-}
 
 export function Runs({ index, isTopInning, team }: InninScoreOverlayProps) {
-  const { id } = useGameStore()
-  const { incrementRunsOverlay } = useOverlayStore()
-
-  useEffect(() => {
-    const eventName = `server:scoreRun/${id}`
-
-    const updateRuns = (socketData: ISocketRuns) => {
-      incrementRunsOverlay(
-        socketData.teamIndex,
-        socketData.runs,
-        socketData.runsInning
-      )
-    }
-
-    socket.on(eventName, updateRuns)
-
-    return () => {
-      socket.off(eventName, updateRuns)
-    }
-  }, [id])
-
   return (
     <div
       className={cn(

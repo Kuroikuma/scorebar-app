@@ -168,9 +168,9 @@ export interface MatchState {
   matchDate: string
   id: string
   status: Status
-  userId: string
-  past: Partial<Omit<IFootballMatch, "userId">>[];
-  future: Partial<Omit<IFootballMatch, "userId">>[];
+  organizationId: string
+  past: Partial<IFootballMatch>[];
+  future: Partial<IFootballMatch>[];
 }
 
 export interface IFootballMatch {
@@ -191,8 +191,8 @@ export interface IFootballMatch {
   leagueLogo: string
   stadiumName: string
   matchDate: string
-  userId:string
-  past: Partial<Omit<IFootballMatch, "userId">>[];
-  future: Partial<Omit<IFootballMatch, "userId">>[];
+  organizationId:string
+  past: Partial<IFootballMatch>[];
+  future: Partial<IFootballMatch>[];
   id?: string
 }

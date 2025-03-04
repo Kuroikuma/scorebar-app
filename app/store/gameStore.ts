@@ -27,6 +27,12 @@ export type IOverlays = {
   id: string;
 }
 
+interface RunnerAdvance {
+  fromBase: number
+  toBase: number | null
+  isOut?: boolean
+}
+
 export interface Game {
   id: string | null;
   status: Status;
@@ -36,10 +42,9 @@ export interface Game {
   balls: number;
   strikes: number;
   outs: number;
-  bases: boolean[];
+  bases: IBase[];
   runsByInning: RunsByInning
-  userId: string;
-  configId: string | ConfigGame;
+  organizationId: string;
   date: string | Date;
   isDHEnabled: boolean;
   scoreboardOverlay: IOverlays;
@@ -54,9 +59,14 @@ export interface RunsByInning {
   [inning: string]: number;
 }
 
+export interface IBase {
+  isOccupied: boolean
+  playerId: string | null
+}
+
 export type GameState = {
   id: string | null
-  userId: string | null
+  organizationId: string | null
   date: Date | string | null
   status: Status
   inning: number
@@ -64,17 +74,17 @@ export type GameState = {
   balls: number
   strikes: number
   outs: number
-  bases: boolean[]
+  bases: IBase[]
   runsByInning: RunsByInning;
   setInning: (inning: number) => void
   setIsTopInning: (isTop: boolean) => void
   setBalls: (balls: number) => void
   setStrikes: (strikes: number) => void
   setOuts: (outs: number) => void
-  setBases: (bases: boolean[]) => void
-  setBase: (base: boolean, index: number) => void
+  setBases: (bases: IBase[]) => void
+  setBase: (base: IBase, index: number) => void
   changeInning: (increment: boolean, isSaved?: boolean) => Promise<void>
-  handleOutsChange: (newOuts: number, isSaved?: boolean) => Promise<void>
+  handleOutsChange: (newOuts: number, isSaved?: boolean, isAbvancedbatter?: boolean) => Promise<void>
   handleStrikeChange: (newStrikes: number, isSaved?: boolean) => Promise<void>
   handleBallChange: (newBalls: number, isSaved?: boolean) => Promise<void>
   changeGameStatus: (newStatus: 'upcoming' | 'in_progress' | 'finished') => void
@@ -102,20 +112,41 @@ export type GameState = {
   handlePositionOverlay: (id: string, data: { x: number; y: number; }, isSaved?: boolean) => Promise<void>
   handleScaleOverlay: (id: string, scale: number, isSaved?: boolean) => Promise<void>
   handleVisibleOverlay: (id: string, visible: boolean, isSaved?: boolean) => Promise<void>
-  handleSingle: () => Promise<void>
-  handleDouble: () => Promise<void>
-  handleTriple: () => Promise<void>
+  handleSingle: (runsScored:number, isStay:boolean) => Promise<void>
+  handleDouble: (runsScored:number, isStay:boolean) => Promise<void>
+  handleTriple: (runsScored:number) => Promise<void>
   handleHomeRun: () => Promise<void>
   handleHitByPitch: () => Promise<void>
   handleErrorPlay: (defensiveOrder: number) => Promise<void>
   handleOutPlay: ( isSaved:boolean) => Promise<void>
   handleBBPlay: () => Promise<void>
   loadGameHistory: (game: Partial<Omit<Game, "userId">>) => Promise<void>
+  handleAdvanceRunners: (advances: RunnerAdvance[]) => Promise<void>
 }
+
+const __initBase__ = {
+  isOccupied: false,
+  playerId: null,
+}
+
+export const __initBases__ = [
+  {
+    isOccupied: false,
+    playerId: null,
+  },
+  {
+    isOccupied: false,
+    playerId: null,
+  },
+  {
+    isOccupied: false,
+    playerId: null,
+  },
+];
 
 export const useGameStore = create<GameState>((set, get) => ({
   id: null,
-  userId: null,
+  organizationId: null,
   date: null,
   status: 'upcoming',
   inning: 1,
@@ -123,7 +154,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   balls: 0,
   strikes: 0,
   outs: 0,
-  bases: [false, false, false],
+  bases: __initBases__,
   runsByInning: {},
   hits: 0,
   errorsGame: 0,
@@ -151,6 +182,59 @@ export const useGameStore = create<GameState>((set, get) => ({
     ...__initOverlays,
     id: 'playerStats',
   },
+  handleAdvanceRunners: async (advances: RunnerAdvance[]) => {
+    console.log(advances);
+    
+    const { isTopInning, updateGame, outs, changeInning } = get()
+    const { teams, setTeams } = useTeamsStore.getState()
+
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+    
+    // Filtrar solo los avances safe
+    const safeAdvances = advances.filter((advance) => advance.toBase !== null)
+    const runsScored = currentTeam.runs + advances.filter((advance) => !advance.isOut && advance.toBase === 3).length
+    const newOuts = outs + advances.filter((advance) => advance.isOut).length
+
+
+    // Crear nuevo estado de bases
+    const newBases = [...get().bases]
+
+    // Procesar los avances en orden inverso (de home a primera) para evitar sobreescribir
+    safeAdvances
+      .sort((a, b) => b.fromBase - a.fromBase)
+      .forEach((advance) => {
+        // Marcar la base original como vacía
+        newBases[advance.fromBase].isOccupied = false
+
+        // Si el avance no es a home (base 3), marcar la nueva base como ocupada
+        if (advance.toBase! < 3 && !advance.isOut) {
+          newBases[advance.toBase!].isOccupied = true
+          newBases[advance.toBase!].playerId = newBases[advance.fromBase].playerId
+        }
+
+        newBases[advance.fromBase].playerId = null
+      })
+
+      currentTeam.runs = runsScored
+
+    // Actualizar el estado
+    set({
+      bases: newBases,
+      outs: newOuts,
+    })
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? { ...currentTeam }
+          : team
+      )
+    )
+
+    newOuts === 3 && changeInning(true, false)
+    await updateGame()
+  },
   setInning: (inning) => set({ inning }),
   setIsTopInning: (isTop) => set({ isTopInning: isTop }),
   setBalls: async (balls) => {
@@ -177,7 +261,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     bases[index] = base
     set({ bases })
     if (get().id) {
-      await changeBaseRunner(get().id!, index, base)
+      await changeBaseRunner(get().id!, index, base.isOccupied)
     }
   },
   setBases: async (bases) => {
@@ -216,20 +300,20 @@ export const useGameStore = create<GameState>((set, get) => ({
       balls: 0,
       strikes: 0,
       outs: 0,
-      bases: [false, false, false],
+      bases: __initBases__,
     })
     
     if (id && isSaved) {
       await changeInningService(id, newInning, newIsTopInning)
     }
   },
-  handleOutsChange: async (newOuts, isSaved = true) => {
+  handleOutsChange: async (newOuts, isSaved = true, isAbvancedbatter = true) => {
     const { changeInning, updateGame, advanceBatter, handleOutPlay, id } = get()
 
     if (isSaved) registerHistory('out')
 
     await handleOutPlay(isSaved)
-    await advanceBatter(isSaved)
+    if (isAbvancedbatter) await advanceBatter(isSaved)
 
     if (newOuts === 3) {
       set({ outs: 0, balls: 0, strikes: 0 })
@@ -281,12 +365,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       updateGame,
       advanceBatter,
       handleBBPlay,
+      getCurrentBatter
     } = get()
 
     useHistoryStore.getState().handleBallFlowHistory()
 
     if (newBalls === 4) {
       set({ balls: 0, strikes: 0 })
+      const player = getCurrentBatter()
       await handleBBPlay()
       await advanceBatter()
       const newBases = [...bases]
@@ -300,16 +386,18 @@ export const useGameStore = create<GameState>((set, get) => ({
           .incrementRuns(isTopInning ? 0 : 1, 1, false);
       }
 
-      for (let i = 2; i >= 0; i--) {
-        if (newBases[i]) {
-          if (i === 2) {
-            
-          } else {
-            newBases[i + 1] = true
-          }
+      for (let i = 0; i >= 2; i++) {
+        if (newBases[i].isOccupied) {
+          newBases[i + 1] = { ...newBases[i], playerId: newBases[i].playerId }
         }
       }
-      newBases[0] = true
+
+      newBases[0] = {
+        ...newBases[0],
+        isOccupied: true,
+        playerId: player?._id as string
+      }
+
       set({ bases: newBases })
       if (id) {
         await updateGame()
@@ -436,7 +524,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const gameState = get()
     const id = gameState.id
 
-    let game: Omit<Game, 'userId'> = {
+    let game: Partial<Game> = {
       balls: gameState.balls,
       strikes: gameState.strikes,
       outs: gameState.outs,
@@ -447,7 +535,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       bases: gameState.bases,
       runsByInning: gameState.runsByInning,
       id: gameState.id,
-      configId: useConfigStore.getState().currentConfig?._id as string,
       date: gameState.date as string,
       isDHEnabled: gameState.isDHEnabled,
       scoreboardOverlay: gameState.scoreboardOverlay,
@@ -647,7 +734,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   // Acción para manejar un sencillo (Single)
-  handleSingle: async () => {
+  handleSingle: async (runsScored, isStay) => {
     const { bases, isTopInning, getCurrentBatter } = get()
     const { teams, setTeams, advanceBatter } = useTeamsStore.getState()
     const teamIndex = isTopInning ? 0 : 1
@@ -662,10 +749,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
-    const newBases = [true, bases[0], bases[1]]
-    const runsScored = bases[2] ? 1 : 0
 
-
+    const segunda = isStay ? bases[1].isOccupied ? bases[1] : bases[0] : bases[0]
+    
+    const newBases: IBase[] = isStay
+      ? [{ isOccupied: true, playerId: currentBatter._id as string }, segunda, bases[2]] 
+      : [{ isOccupied: true, playerId: currentBatter._id as string }, bases[0], bases[1]]
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -714,7 +803,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   // Acción para manejar un doble (Double)
-  handleDouble: async () => {
+  handleDouble: async (runsScored:number, isStay:boolean) => {
     const { bases, isTopInning, getCurrentBatter } = get()
     const { teams, setTeams, advanceBatter } = useTeamsStore.getState()
     const teamIndex = isTopInning ? 0 : 1
@@ -729,8 +818,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
-    const newBases = [false, true, bases[0]]
-    const runsScored = (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0)
+    const tercera = isStay ? bases[1] : bases[0]
+
+    const newBases = [__initBase__ , { isOccupied:true, playerId: currentBatter._id as string }, tercera]
+    // const runsScored = (bases[2].isOccupied ? 1 : 0) + (bases[1].isOccupied ? 1 : 0)
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -780,7 +871,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   // Acción para manejar un triple (Triple)
-  handleTriple: async () => {
+  handleTriple: async (runsScored) => {
     const { bases, isTopInning, getCurrentBatter } = get()
     const { teams, setTeams, advanceBatter } = useTeamsStore.getState()
     const teamIndex = isTopInning ? 0 : 1
@@ -795,9 +886,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
-    const newBases = [false, false, true]
-    const runsScored =
-      (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0) + (bases[0] ? 1 : 0)
+    const newBases = [__initBase__, __initBase__, { isOccupied:true, playerId: currentBatter._id as string }]
+    // const runsScored =
+    //   (bases[2].isOccupied ? 1 : 0) + (bases[1].isOccupied ? 1 : 0) + (bases[0].isOccupied ? 1 : 0)
     
 
     let turnsAtBat: ITurnAtBat = {
@@ -864,7 +955,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
     const runsScored =
-      1 + (bases[2] ? 1 : 0) + (bases[1] ? 1 : 0) + (bases[0] ? 1 : 0)
+      1 + (bases[2].isOccupied ? 1 : 0) + (bases[1].isOccupied ? 1 : 0) + (bases[0].isOccupied ? 1 : 0)
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -895,7 +986,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       )
     )
 
-    set({ bases: [false, false, false], strikes: 0, balls: 0 })
+    set({ bases: __initBases__, strikes: 0, balls: 0 })
 
     let newTeam = {
       ...teams[teamIndex],
@@ -903,11 +994,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       hits: teams[teamIndex].hits + 1,
       lineup: newLineup,
     }
-    await handlePlayServices(useGameStore.getState().id!, teamIndex, newTeam, [
-      false,
-      false,
-      false,
-    ])
+    await handlePlayServices(useGameStore.getState().id!, teamIndex, newTeam, __initBases__)
 
     advanceBatter(teamIndex)
   },
@@ -928,18 +1015,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
-    const newBases = [...bases]
-    let runsScored = 0
-
-    if (!bases[0]) {
-      newBases[0] = true
-    } else if (!bases[1]) {
-      newBases[1] = true
-    } else if (!bases[2]) {
-      newBases[2] = true
-    } else {
-      runsScored = 1
-    }
+    const newBases:IBase[] = [{ isOccupied:true, playerId: currentBatter._id as string }, bases[0], bases[1]]
+    const runsScored = bases[2].isOccupied ? 1 : 0
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,

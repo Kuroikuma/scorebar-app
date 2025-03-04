@@ -9,11 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ConfigGame } from '@/app/store/configStore';
-import { Game } from '@/app/store/gameStore';
+import { __initBases__, Game } from '@/app/store/gameStore';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoaderCircle, PlusCircle, Upload } from 'lucide-react';
 import { useFileStorage } from '@/app/hooks/useUploadFile';
+import { User } from '../types/user';
+import { IOrganization } from '../types/organization';
 
 interface NewGameProps {
   open: boolean
@@ -72,7 +74,7 @@ export default function NewGame({ open }: NewGameProps) {
     if (user) {
 
       const dataCreate:Omit<Game, 'id'> = {
-        userId: user._id,
+        organizationId: ((user as User).organizationId as IOrganization)._id, 
         date: new Date(gameDate),
         status: 'upcoming',
         teams: [{ 
@@ -106,8 +108,7 @@ export default function NewGame({ open }: NewGameProps) {
         balls: 0,
         strikes: 0,
         outs: 0,
-        bases: [false, false, false],
-        configId: configId,
+        bases: __initBases__,
         runsByInning: {},
         isDHEnabled: false,
         scoreboardOverlay: {
@@ -164,10 +165,10 @@ export default function NewGame({ open }: NewGameProps) {
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="w-5 h-5 mr-2" />
-          Crear Nuevo Juego De Beisbol
+          Crear Nuevo Partido
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-[#1f2937] text-white">
+      <DialogContent className="sm:max-w-[425px] bg-[#fafafa] dark:bg-[#18181b]">
         <DialogHeader>
           <DialogTitle>Crear Nuevo Juego</DialogTitle>
           <DialogDescription className="text-white">
@@ -339,25 +340,9 @@ export default function NewGame({ open }: NewGameProps) {
               id="date"
               type="date"
               value={gameDate}
-              className='text-white'
               onChange={(e) => setGameDate(e.target.value)}
               required
             />
-          </div>
-          <div>
-            <Label htmlFor="config">Configuración del Juego</Label>
-            <Select onValueChange={setConfigId} required>
-              <SelectTrigger id="config">
-                <SelectValue placeholder="Select a configuration" />
-              </SelectTrigger>
-              <SelectContent>
-                {configs.map((config) => (
-                  <SelectItem key={config._id} value={config._id}>
-                    Config - {config._id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           <Button type="submit" className="w-full">
             {

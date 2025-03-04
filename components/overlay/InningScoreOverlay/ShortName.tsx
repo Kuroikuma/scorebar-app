@@ -1,39 +1,12 @@
 import { cn } from '@/app/lib/utils'
-import socket from '@/app/service/socket'
-import { useGameStore } from '@/app/store/gameStore'
-import { useOverlayStore } from '@/app/store/overlayStore'
 import { Team } from '@/app/store/teamsStore'
-import { useEffect } from 'react'
 
 interface ShortNameProps {
   index: number
   team: Team
 }
 
-interface ISocketShortName {
-  shortName: string
-  teamIndex: number
-}
-
 export function ShortName({ index, team }: ShortNameProps) {
-  const { id } = useGameStore()
-
-  const { changeShortNameOverlay } = useOverlayStore()
-
-  useEffect(() => {
-    const eventName = `server:teamShortName/${id}`
-
-    const updateShortNameOverlay = (socketData: ISocketShortName) => {
-      changeShortNameOverlay(socketData.shortName, socketData.teamIndex)
-    }
-
-    socket.on(eventName, updateShortNameOverlay)
-
-    return () => {
-      socket.off(eventName, updateShortNameOverlay)
-    }
-  }, [id])
-
   return (
     <div
       className={cn(

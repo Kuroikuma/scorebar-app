@@ -1,9 +1,5 @@
-import { Triangle } from 'lucide-react'
-import { cn } from "@/app/lib/utils"
-import { useGameStore } from '@/app/store/gameStore'
-import { useTeamsStore } from '@/app/store/teamsStore'
+import { Game, useGameStore } from '@/app/store/gameStore'
 import { useUIStore } from '@/app/store/uiStore'
-import AnimatePopLayout from './ui/AnimatePopLayout'
 import TeamScore from './scorebug/TeamScore'
 import GameInnings from './scorebug/GameInnings'
 import GameOuts from './scorebug/GameOuts'
@@ -12,6 +8,10 @@ import Bases from './scorebug/Bases'
 
 interface ClassicScoreboardProps {
   orientation?: 'horizontal' | 'vertical'
+}
+
+interface ISocketData {
+  game: Omit<Game, "userId">
 }
 
 export function ClassicScoreboard({ orientation = 'vertical' }: ClassicScoreboardProps) {

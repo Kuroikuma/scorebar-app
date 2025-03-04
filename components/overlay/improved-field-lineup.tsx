@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@/app/context/AuthContext";
-import socket from "@/app/service/socket";
 import { useGameStore } from "@/app/store/gameStore";
 import { useOverlayStore } from "@/app/store/overlayStore";
 import { Player, Team, useTeamsStore } from "@/app/store/teamsStore";
@@ -101,19 +100,19 @@ export const BaseballFormationOverlay = ({ overlayId, visible }: BaseballFormati
 
   const { id } = useGameStore()
 
-  useEffect(() => {
-    const eventName = `server:updateLineupTeam/${id}`
+  // useEffect(() => {
+  //   const eventName = `server:updateLineupTeam/${id}`
     
-    const refreshLineup = (socketData: ISocketData) => {
-      changeLineupOverlay(socketData.teamIndex, socketData.lineup, socketData.lineupSubmitted)
-    }
+  //   const refreshLineup = (socketData: ISocketData) => {
+  //     changeLineupOverlay(socketData.teamIndex, socketData.lineup, socketData.lineupSubmitted)
+  //   }
 
-    socket.on(eventName, refreshLineup)
+  //   socket.on(eventName, refreshLineup)
 
-    return () => {
-      socket.off(eventName, refreshLineup)
-    }
-  }, [ id ])
+  //   return () => {
+  //     socket.off(eventName, refreshLineup)
+  //   }
+  // }, [ id ])
 
   return (
     <AnimatePresence initial={false}>

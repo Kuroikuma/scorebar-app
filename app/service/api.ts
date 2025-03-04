@@ -1,4 +1,4 @@
-import { Game, RunsByInning, Status } from '@/app/store/gameStore';
+import { Game, IBase, RunsByInning, Status } from '@/app/store/gameStore';
 import axios from 'axios';
 import { Player, Team, useTeamsStore } from '@/app/store/teamsStore';
 import { ConfigGame } from '../store/configStore';
@@ -49,12 +49,17 @@ export const updateUser = async (id: string, userData: Partial<User>) => {
   return response.data;
 };
 
+export const changeCurrentBatterService = async (id: string, newCurrentBatterIndex: number, teamIndex: number) => {
+  const response = await api.put(`/games/changeCurrentBatter/${id}`, { newCurrentBatterIndex, teamIndex });
+  return response.data;
+};
+
 export const createGame = async (gameData: Omit<Game, "id">) => {
   const response = await api.post('/games', gameData);
   return response.data;
 };
 
-export const updateGameService = async (id: string, gameData: Omit<Game, "userId">) => {
+export const updateGameService = async (id: string, gameData: Partial<Game>) => {
   const response = await api.put(`/games/${id}`, gameData);
   return response.data;
 };
@@ -122,6 +127,11 @@ export const updateLineupTeamService = async (data: IUpdateLineupTeam) => {
 
 export const advanceBatterService = async (id: string, teamIndex: number, currentBatter: number) => {
   const response = await api.put(`/games/advanceBatter/${id}`, { teamIndex, currentBatter });
+  return response.data;
+};
+
+export const updatePlayerService = async (id: string, teamIndex: number, lineup: Player[]) => {
+  const response = await api.put(`/games/player/${id}`, { teamIndex, lineup });
   return response.data;
 };
 
@@ -220,7 +230,7 @@ export const handleVisibleOverlayServices = async (id: string, visible: boolean,
   return response.data;
 };
 
-export const handlePlayServices = async (id: string, teamIndex: number, team: Team, bases: boolean[]) => {
+export const handlePlayServices = async (id: string, teamIndex: number, team: Team, bases: IBase[]) => {
   const response = await api.put(`/overlay/play`, {  id, teamIndex, team, bases });
   return response.data;
 };

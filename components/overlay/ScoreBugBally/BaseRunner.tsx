@@ -1,38 +1,14 @@
 import { cn } from '@/app/lib/utils'
 import OutsCircle from './OutsCircle'
-import { useEffect } from 'react'
 import { useGameStore } from '@/app/store/gameStore'
-import { useOverlayStore } from '@/app/store/overlayStore'
-import socket from '@/app/service/socket'
 import { useTeamsStore } from '@/app/store/teamsStore'
-
-interface ISocketBase {
-  baseIndex: number
-  isOccupied: boolean
-}
 
 export function BaseRunner() {
 
-  const { id, bases, isTopInning } = useGameStore()
+  const { bases, isTopInning } = useGameStore()
 
   const { teams } = useTeamsStore()
   const currentTeamColor = teams[isTopInning ? 0 : 1].color
-
-  const { changeBasesRunnersOverlay } = useOverlayStore();
-
-  useEffect(() => {
-    const eventName = `server:baseRunner/${id}`
-    
-    const updateBaseRunners = (socketData: ISocketBase) => {
-      changeBasesRunnersOverlay(socketData.baseIndex, socketData.isOccupied)
-    }
-
-    socket.on(eventName, updateBaseRunners)
-
-    return () => {
-      socket.off(eventName, updateBaseRunners)
-    }
-  }, [ id ])
 
   return (
     <div
@@ -47,24 +23,24 @@ export function BaseRunner() {
       <div
         className={cn(
           'border-2',
-          bases[2] ? 'bg-opacity-80' : 'bg-gray-800 border-gray-700'
+          bases[2].isOccupied ? 'bg-opacity-80' : 'bg-gray-800 border-gray-700'
         )}
-        style={{ backgroundColor: bases[2] ? currentTeamColor : "white" }}
+        style={{ backgroundColor: bases[2].isOccupied ? currentTeamColor : "white" }}
       />
       <div
         className={cn(
           'border-2',
-          bases[1] ? 'bg-opacity-80' : 'bg-gray-800 border-gray-700'
+          bases[1].isOccupied ? 'bg-opacity-80' : 'bg-gray-800 border-gray-700'
         )}
-        style={{ backgroundColor: bases[1] ? currentTeamColor : "white" }}
+        style={{ backgroundColor: bases[1].isOccupied ? currentTeamColor : "white" }}
       />
       {/* First Base */}
       <div
         className={cn(
           'border-2 col-start-2 row-start-2',
-          bases[0] ? 'bg-opacity-80' : 'bg-gray-800 border-gray-700'
+          bases[0].isOccupied ? 'bg-opacity-80' : 'bg-gray-800 border-gray-700'
         )}
-        style={{ backgroundColor: bases[0] ? currentTeamColor : "white" }}
+        style={{ backgroundColor: bases[0].isOccupied ? currentTeamColor : "white" }}
       />
       <OutsCircle />
     </div>

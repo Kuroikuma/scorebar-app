@@ -16,6 +16,7 @@ import { useAuth } from "@/app/context/AuthContext"
 import { User } from "@/app/types/user"
 import { defaultFormation } from "@/app/lib/defaultFormation"
 import { createMatchService } from "@/app/service/apiMatch"
+import { IOrganization } from "@/app/types/organization"
 
 const defaultOverlay: IOverlays = {
   visible: false,
@@ -105,14 +106,14 @@ const CreateFootballMatchModal = ({ onCreateMatch, open }: CreateFootballMatchMo
       leagueLogo,
       stadiumName,
       matchDate,
-      userId: (user as User)._id, // This should be dynamically set in a real application
+      organizationId: ((user as User).organizationId as IOrganization)._id, // This should be dynamically set in a real application
       past: [],
       future: [],
     }
 
     let matchesResponse = await createMatchService(newMatch);
     
-    newMatch.id = matchesResponse.data.id;
+    newMatch.id = matchesResponse.data._id;
 
     onCreateMatch(newMatch)
     setIsOpen(false)
@@ -148,12 +149,12 @@ const CreateFootballMatchModal = ({ onCreateMatch, open }: CreateFootballMatchMo
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="w-5 h-5 mr-2" />
-          Crear Nuevo Partido De Fútbol
+          Crear Nuevo Partido
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-[#1f2937] text-white">
+      <DialogContent className="sm:max-w-[425px] bg-[#fafafa] dark:bg-[#18181b]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center text-white">Crear nuevo partido de fútbol</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center">Crear nuevo partido de fútbol</DialogTitle>
         </DialogHeader>
         <AnimatePresence>
           <motion.div
@@ -309,7 +310,7 @@ const TeamForm = ({
             })
           }
         >
-          <SelectTrigger className="bg-[#2a2438]">
+          <SelectTrigger>
             <SelectValue placeholder="Select formation" />
           </SelectTrigger>
           <SelectContent>

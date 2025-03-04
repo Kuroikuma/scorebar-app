@@ -5,42 +5,17 @@ import GameOuts from '../scorebug/GameOuts'
 import GameScore from '../scorebug/GameScore'
 import Bases from '../scorebug/Bases'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Game, IOverlays, useGameStore } from '@/app/store/gameStore'
-import { useOverlayStore } from '@/app/store/overlayStore'
-import { useEffect } from 'react'
-import socket from '@/app/service/socket'
+import { IOverlays } from '@/app/store/gameStore'
+
 
 interface ScorebugClassicProps {
   item: IOverlays
   styleName: "short" | "long"
 }
 
-interface ISocketData {
-  game: Omit<Game, "userId">
-}
-
 export function ScorebugClassic({ item, styleName = 'long' }: ScorebugClassicProps) {
   const { primaryColor, primaryTextColor } = useUIStore()
 
-  const { updateGameOverlay } = useOverlayStore();
-  const { id } = useGameStore()
-
-  useEffect(() => {
-    const eventName = `server:updateGame/${id}`
-    const socketId = socket.id
-    
-    const updateScorebugClassic = (socketData: ISocketData) => {
-      if ((socketData.game as any).socketId !== socketId) {
-        updateGameOverlay(socketData.game)
-      }
-    }
-
-    socket.on(eventName, updateScorebugClassic)
-
-    return () => {
-      socket.off(eventName, updateScorebugClassic)
-    }
-  }, [ id ])
 
   return (
     <div

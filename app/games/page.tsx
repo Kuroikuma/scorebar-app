@@ -2,17 +2,16 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/context/AuthContext'
-import { getAllGames } from '@/app/service/api'
 import { useRouter } from 'next/navigation'
-import { CalendarIcon, CheckIcon, PlayIcon } from 'lucide-react'
 import { Game } from '@/app/store/gameStore'
 import { GameCard } from './gameCard'
-import { Header } from '@/components/header'
 import { IFootballMatch } from '@/matchStore/interfaces'
 import CreateFootballMatchModal from '@/components/MatchComponents/create-football-match-modal'
 import { MatchCard } from '@/components/MatchComponents/MatchCard'
 import { PopoverCreateGame } from './popoverCreate'
 import NewGame from './newGame'
+import { getAllGamesServices } from '../service/organization.service'
+import { IOrganization } from '../types/organization'
 
 interface getAllGamesResponse {
   games: Game[]
@@ -38,7 +37,7 @@ export default function GamesList() {
   useEffect(() => {
     const fetchGames = async () => {
       if (user) {
-        let response = (await getAllGames(user._id)) as getAllGamesResponse
+        let response = (await getAllGamesServices((user.organizationId as IOrganization)._id)) as getAllGamesResponse
         const fetchedGames = response.games.map((game: any) => {
           return {
             ...game,
@@ -61,13 +60,11 @@ export default function GamesList() {
   const [openMatch, setOpenMatch] = useState(false)
 
   return (
-    <div className="h-screen w-screen bg-black">
-      <Header />
+    <div className="h-full w-full">
       <div className="container mx-auto px-4 py-4 font-['Roboto_Condensed']">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-white">My Games</h1>
+          <h1 className="text-3xl font-bold">Mis partidos de Béisbol</h1>
           <div className="hidden md:flex gap-4">
-            <CreateFootballMatchModal open={openMatch} onCreateMatch={handleCreateMatch} />
             <NewGame open={openGame} />
           </div>
           <div className="flex md:hidden">
@@ -81,11 +78,6 @@ export default function GamesList() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
             {games.map((game: Game) => (
               <GameCard key={game.id} game={game} />
-            ))}
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {matches.map((match, index) => (
-              <MatchCard key={index} match={match} />
             ))}
           </div>
         </div>

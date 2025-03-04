@@ -13,7 +13,7 @@ const initialState: MatchState = {
   matchDate: '',
   id: '',
   status: 'upcoming',
-  userId: '',
+  organizationId: '',
   future: [],
   past: [],
 }

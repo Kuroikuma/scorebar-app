@@ -1,7 +1,6 @@
 import { create } from 'zustand'
-import { advanceBatterService, changeErrors, changeHits, scoreRun, updateLineupTeamService } from '@/app/service/api'
+import { advanceBatterService, changeCurrentBatterService, changeErrors, changeHits, scoreRun, updateLineupTeamService, updatePlayerService } from '@/app/service/api'
 import { useGameStore } from './gameStore'
-import { useConfigStore } from './configStore'
 import { useHistoryStore } from './historiStore';
 import { toast } from 'sonner';
 
@@ -35,6 +34,7 @@ export interface ITurnAtBat {
 }
 
 export type Player = {
+  _id?: string
   name: string
   position: string
   number: string
@@ -78,77 +78,83 @@ export type TeamsState = {
   updatePlayer: (teamIndex: number, playerIndex: number, player: Player | null) => void
   submitLineup: (teamIndex: number) => Promise<void>
   changeTeamShortName: (teamIndex: any, newShortName: any) => Promise<void>
+  changeCurrentBatter: (newCurrentBatterIndex: number) => void
 }
 
 export const useTeamsStore = create<TeamsState>((set, get) => ({
   gameId: null,
   teams: [
-    { 
-      name: "HOME", 
-      runs: 0, 
-      color: "#2057D1",
-      textColor: "#ffffff",
-      logo: "",
+    {
+      name: 'HOME',
+      runs: 0,
+      color: '#2057D1',
+      textColor: '#ffffff',
+      logo: '',
       hits: 0,
       errorsGame: 0,
       lineup: [],
       currentBatter: 0,
       lineupSubmitted: false,
-      shortName: "HOME"
+      shortName: 'HOME',
     },
-    { 
-      name: "AWAY", 
-      runs: 0, 
-      color: "#A31515",
-      textColor: "#ffffff",
-      logo: "",
+    {
+      name: 'AWAY',
+      runs: 0,
+      color: '#A31515',
+      textColor: '#ffffff',
+      logo: '',
       hits: 0,
       errorsGame: 0,
       lineup: [],
       currentBatter: 0,
       lineupSubmitted: false,
-      shortName: "AWAY"
+      shortName: 'AWAY',
     },
   ],
+  changeCurrentBatter: async (newCurrentBatterIndex) => {
+
+    const { isTopInning } = useGameStore.getState()
+    const teamIndex = isTopInning ? 0 : 1
+
+    set((state) => ({
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, currentBatter: newCurrentBatterIndex } : team)),
+    }));
+    
+    await changeCurrentBatterService(useGameStore.getState().id!, newCurrentBatterIndex, teamIndex)
+  },
   setTeams: (teams) => set({ teams }),
   incrementRunsOverlay: async (teamIndex, runs, newRuns) => {
     set((state) => ({
-      teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, runs } : team
-      )
-    }))
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, runs } : team)),
+    }));
 
-    useGameStore.getState().changeRunsByInning(teamIndex, newRuns, false)
+    useGameStore.getState().changeRunsByInning(teamIndex, newRuns, false);
   },
-  incrementRuns: async (teamIndex, newRuns, isSaved=true) => {
-
+  incrementRuns: async (teamIndex, newRuns, isSaved = true) => {
     if (isSaved) {
-      useHistoryStore.getState().handleRunsHistory(teamIndex)
+      useHistoryStore.getState().handleRunsHistory(teamIndex);
     }
-    
+
     set((state) => ({
-      teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, runs: team.runs + newRuns } : team
-      )
-    }))
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, runs: team.runs + newRuns } : team)),
+    }));
 
-    await useGameStore.getState().changeRunsByInning(teamIndex, newRuns, isSaved)
+    await useGameStore.getState().changeRunsByInning(teamIndex, newRuns, isSaved);
 
-    let runs = get().teams[teamIndex].runs
+    let runs = get().teams[teamIndex].runs;
 
-    let contendName = `${teamIndex + 1 === 1 ? "a" : "b"}Score`;
+    let contendName = `${teamIndex + 1 === 1 ? 'a' : 'b'}Score`;
     let content = {
-      [contendName]: runs
+      [contendName]: runs,
     };
     // useGameStore.getState().setScoreBoardMinimal(content)
 
     if (get().gameId && isSaved) {
-
       let contendName = `Team ${teamIndex + 1} Runs`;
       let content = {
-        [contendName]: runs
+        [contendName]: runs,
       };
-  
+
       try {
         // Enviar al overlay
         await useGameStore.getState().setScoreBug(content);
@@ -156,142 +162,124 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
         console.error('Failed to update overlay content:', error);
         // No detener la operación si el overlay falla
       }
-      await scoreRun(get().gameId!, teamIndex, newRuns)
+      await scoreRun(get().gameId!, teamIndex, newRuns);
     }
   },
   changeTeamName: async (teamIndex, newName) => {
     set((state) => ({
-      teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, name: newName } : team
-      )
-    }))
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, name: newName } : team)),
+    }));
   },
   changeTeamShortName: async (teamIndex, newShortName) => {
     set((state) => ({
-      teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, shortName: newShortName } : team
-      )
-    }))
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, shortName: newShortName } : team)),
+    }));
   },
   changeTeamColor: async (teamIndex, newColor) => {
     set((state) => ({
-      teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, color: newColor } : team
-      )
-    }))
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, color: newColor } : team)),
+    }));
   },
   changeTeamTextColor: async (teamIndex, newTextColor) => {
     set((state) => ({
-      teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, textColor: newTextColor } : team
-      )
-    }))
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, textColor: newTextColor } : team)),
+    }));
   },
   setGameId: (id) => set({ gameId: id }),
   incrementHits: async (newHits) => {
-    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
+    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1;
     set((state) => ({
-      teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, hits: team.hits + 1 } : team
-      )
-    }))
-    const { updateHits, advanceBatter } = get()
-    updateHits(get().teams[teamIndex].hits, teamIndex)
-    advanceBatter(teamIndex)
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, hits: team.hits + 1 } : team)),
+    }));
+    const { updateHits, advanceBatter } = get();
+    updateHits(get().teams[teamIndex].hits, teamIndex);
+    advanceBatter(teamIndex);
   },
   decrementHits: async (newHits) => {
-    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
+    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1;
     set((state) => ({
-      teams: state.teams.map((team, index) => 
-        index === teamIndex ? { ...team, hits: team.hits - 1 } : team
-      )
-    }))
-    const { updateHits } = get()
-    updateHits(get().teams[teamIndex].hits, teamIndex)
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, hits: team.hits - 1 } : team)),
+    }));
+    const { updateHits } = get();
+    updateHits(get().teams[teamIndex].hits, teamIndex);
   },
   incrementErrors: async (newErrors) => {
-    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
+    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1;
     set((state) => ({
-      teams: state.teams.map((team, index) => 
+      teams: state.teams.map((team, index) =>
         index === teamIndex ? { ...team, errorsGame: team.errorsGame + 1 } : team
-      )
-    }))
-    const { updateErrors } = get()
-    updateErrors(get().teams[teamIndex].errorsGame, teamIndex)
+      ),
+    }));
+    const { updateErrors } = get();
+    updateErrors(get().teams[teamIndex].errorsGame, teamIndex);
   },
   decrementErrors: async (newErrors) => {
-    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1
+    const teamIndex = useGameStore.getState().isTopInning ? 0 : 1;
     set((state) => ({
-      teams: state.teams.map((team, index) => 
+      teams: state.teams.map((team, index) =>
         index === teamIndex ? { ...team, errorsGame: team.errorsGame - 1 } : team
-      )
-    }))
-    const { updateErrors } = get()
-    updateErrors(get().teams[teamIndex].errorsGame, teamIndex)
+      ),
+    }));
+    const { updateErrors } = get();
+    updateErrors(get().teams[teamIndex].errorsGame, teamIndex);
   },
   updateHits: async (newHits, teamIndex) => {
-    let { id, } = useGameStore.getState()
+    let { id } = useGameStore.getState();
     if (id) {
-      await changeHits(id!, newHits, teamIndex)
+      await changeHits(id!, newHits, teamIndex);
     }
   },
   updateErrors: async (newErrors, teamIndex) => {
-    let { id } = useGameStore.getState()
+    let { id } = useGameStore.getState();
     if (id) {
-      await changeErrors(id!, newErrors, teamIndex)
+      await changeErrors(id!, newErrors, teamIndex);
     }
   },
-  updateLineup: (teamIndex, lineup) => set((state) => ({
-    teams: state.teams.map((team, index) =>
-      index === teamIndex ? { ...team, lineup } : team
-    )
-  })),
-  advanceBatter: async (teamIndex, isSaved=true) => {
+  updateLineup: (teamIndex, lineup) =>
+    set((state) => ({
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, lineup } : team)),
+    })),
+  advanceBatter: async (teamIndex, isSaved = true) => {
     let nextBatter = 1;
 
-    const { getCurrentBatter } = useGameStore.getState()
+    const { getCurrentBatter } = useGameStore.getState();
 
-    const currentBatter = getCurrentBatter()
+    const currentBatter = getCurrentBatter();
 
-    if(!currentBatter) {
-      toast.error("El lineup no tiene jugador actualmente")
-      return
+    if (!currentBatter) {
+      toast.error('El lineup no tiene jugador actualmente');
+      return;
     }
 
     set((state) => {
       const isDHEnabled = useGameStore.getState().isDHEnabled;
       const team = state.teams[teamIndex];
       nextBatter = (team.currentBatter + 1) % team.lineup.length;
-  
+
       if (isDHEnabled) {
         // Skip the pitcher if DH is enabled
         while (team.lineup[nextBatter].position === 'P') {
           nextBatter = (nextBatter + 1) % team.lineup.length;
         }
       }
-  
+
       return {
-        teams: state.teams.map((team, index) =>
-          index === teamIndex ? { ...team, currentBatter: nextBatter } : team
-        )
+        teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, currentBatter: nextBatter } : team)),
       };
-    })
+    });
     // setActiveNumber((nextBatter + 1), teamIndex)
     if (isSaved) {
-      await advanceBatterService(useGameStore.getState().id!, teamIndex, nextBatter)
+      await advanceBatterService(useGameStore.getState().id!, teamIndex, nextBatter);
     }
   },
-  updatePlayer: (teamIndex, playerIndex, player) => set((state) => {
-    const team = state.teams[teamIndex];
+  updatePlayer: async (teamIndex, playerIndex, player) => {
+    const { teams } = get();
+    const team = teams[teamIndex];
     let newLineup;
 
     if (player) {
       // If adding or updating a player
-      newLineup = [
-        ...team.lineup.slice(0, playerIndex),
-        player,
-        ...team.lineup.slice(playerIndex + 1)
-      ];
+      newLineup = [...team.lineup.slice(0, playerIndex), player, ...team.lineup.slice(playerIndex + 1)];
     } else {
       // If removing a player
       newLineup = team.lineup.filter((_, i) => i !== playerIndex);
@@ -301,22 +289,18 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     const isDHEnabled = useGameStore.getState().isDHEnabled;
     newLineup = newLineup.map((p, index) => ({
       ...p,
-      battingOrder: isDHEnabled && p.position === 'P' ? 0 : index + 1
+      battingOrder: isDHEnabled && p.position === 'P' ? 0 : index + 1,
     }));
 
-    return {
-      teams: state.teams.map((team, index) =>
-        index === teamIndex ? { ...team, lineup: newLineup } : team
-      )
-    };
-  }),
-  submitLineup: async (teamIndex) => {
-    const { teams} = get()
-    set((state) => ({
-      teams: state.teams.map((team, index) =>
-        index === teamIndex ? { ...team, lineupSubmitted: true } : team
-      )
-    }))
-    await updateLineupTeamService({ teamIndex, lineup: teams[teamIndex].lineup, id: useGameStore.getState().id! })
+    await updatePlayerService(useGameStore.getState().id!, teamIndex, newLineup);
+
+    set({ teams: teams.map((team, index) => (index === teamIndex ? { ...team, lineup: newLineup } : team)) });
   },
-}))
+  submitLineup: async (teamIndex) => {
+    const { teams } = get();
+    set((state) => ({
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, lineupSubmitted: true } : team)),
+    }));
+    await updateLineupTeamService({ teamIndex, lineup: teams[teamIndex].lineup, id: useGameStore.getState().id! });
+  },
+}));

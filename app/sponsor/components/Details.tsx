@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { ISponsor } from "@/app/types/user"
+import { ISponsor } from "@/app/types/sponsor"
 
 interface SponsorDetailModalProps {
   sponsor: ISponsor
@@ -22,7 +22,7 @@ export function SponsorDetailModal({ sponsor, isOpen, onClose }: SponsorDetailMo
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Image
+            <img
               src={sponsor.logo || "/placeholder.svg"}
               alt={sponsor.name}
               width={24}
@@ -41,16 +41,22 @@ export function SponsorDetailModal({ sponsor, isOpen, onClose }: SponsorDetailMo
             </a>
           </div>
           <div>
-            <strong>Owner:</strong> {sponsor.owner}
+            <strong>Propietario:</strong> {sponsor.owner}
           </div>
           <div>
             <strong>Email:</strong> {sponsor.email}
           </div>
           <div>
-            <strong>Phone:</strong> {sponsor.phone}
+            <strong>Teléfono:</strong> {sponsor.phone}
           </div>
           <div>
-            <strong>Address:</strong> {sponsor.address}
+            <strong>Dirección:</strong> {sponsor.address}
+          </div>
+          <div>
+            <strong>Fecha de pago:</strong> Los {sponsor.paymentDate} de cada mes
+          </div>
+          <div>
+            <strong>Cuota de patrocinio:</strong> C$ {sponsor.sponsorshipFee.$numberDecimal}
           </div>
         </div>
         <DialogClose asChild>

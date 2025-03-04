@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { Game, useGameStore } from './gameStore';
 import { Player, useTeamsStore } from './teamsStore';
-import { ISocketData } from '@/components/scorebug/GameInnings';
-import { ISocketDataPlayer } from '@/components/overlay/player-stats-overlay';
+import { useHistoryStore } from './historiStore';
+import { ISocketDataInning, ISocketDataPlayer } from '../hooks/useSocketOverlayGame';
 
 
 
@@ -12,7 +12,7 @@ type OverlayState = {
   changeOutCountOverlay: (out: number, strikes: number, balls: number) => void
   changeBallsCountOveraly: (balls: number) => void
   changeStrikesCountOveraly: (strikes: number) => void
-  changeInningCountOverlay: (socketData: ISocketData) => void
+  changeInningCountOverlay: (socketData: ISocketDataInning) => void
   changeBasesRunnersOverlay: (baseIndex: number, isOccupied: boolean) => void
   changeHitsCountOverlay: (hits: number, teamIndex: number) => void
   changeErrorsGameOverlay: (errorsGame: number, teamIndex: number) => void
@@ -23,9 +23,18 @@ type OverlayState = {
   changeTeamNameOverlay: (teamIndex: number, name: string) => void
   changeLineupOverlay: (teamIndex: number, lineup: Player[], lineupSubmitted: boolean) => void
   handlePlayerOverlay: (socketData: ISocketDataPlayer) => void
+  changeCurrentBatter: (newCurrentBatterIndex: number) => void
+  setIsDHEnabled: (enabled: any) => void
+  changePastAndFutureGameOverlay: (past: Partial<Omit<Game, "userId">>[], future: Partial<Omit<Game, "userId">>[]) => void
 }
 
 export const useOverlayStore = create<OverlayState>((set, get) => ({
+  changePastAndFutureGameOverlay: async (past, future) => {
+    useHistoryStore.setState({ past, future })
+  },
+  setIsDHEnabled: async (enabled) => {
+    useGameStore.setState({ isDHEnabled: enabled })
+  },
   changeRunsByInningOverlay: async (teamIndex, runs) => {
     const { runsByInning, inning } = useGameStore.getState()
 
@@ -66,7 +75,7 @@ export const useOverlayStore = create<OverlayState>((set, get) => ({
       strikes: strikes
     }))
   },
-  changeInningCountOverlay: (socketData: ISocketData) => {
+  changeInningCountOverlay: (socketData: ISocketDataInning) => {
     useGameStore.setState(({
       inning: socketData.inning,
       isTopInning: socketData.isTopInning,
@@ -78,7 +87,7 @@ export const useOverlayStore = create<OverlayState>((set, get) => ({
   },
   changeBasesRunnersOverlay: (baseIndex, isOccupied) => {
     useGameStore.setState((state) => ({
-      bases: state.bases.map((base, index) => index === baseIndex ? isOccupied : base)
+      bases: state.bases.map((base, index) => index === baseIndex ? {isOccupied, playerId: null} : base)
     }))
   },
   changeHitsCountOverlay: (hits, teamIndex) => {
@@ -152,6 +161,14 @@ export const useOverlayStore = create<OverlayState>((set, get) => ({
         index === socketData.teamIndex ? socketData.team : team
       )
     }))
+  },
+  changeCurrentBatter: async (newCurrentBatterIndex) => {
+    const { isTopInning } = useGameStore.getState()
+    const teamIndex = isTopInning ? 0 : 1
+
+    useTeamsStore.setState((state) => ({
+      teams: state.teams.map((team, index) => (index === teamIndex ? { ...team, currentBatter: newCurrentBatterIndex } : team)),
+    }));
   }
 }));
 

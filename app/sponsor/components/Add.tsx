@@ -1,38 +1,70 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { ISponsor } from "@/app/types/user"
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { ISponsor } from '@/app/types/sponsor';
+import { useAuth } from '@/app/context/AuthContext';
+import { Textarea } from "@/components/ui/textarea"
+import { IOrganization } from '@/app/types/organization';
+
 
 interface AddSponsorFormProps {
-  onAddSponsor: (sponsor: ISponsor) => void
-  isOpen: boolean
-  onClose: () => void
+  onAddSponsor: (sponsor: ISponsor) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export function AddSponsorForm({ onAddSponsor, isOpen, onClose }: AddSponsorFormProps) {
+
+  const { user } = useAuth();
+
   const [newSponsor, setNewSponsor] = useState<ISponsor>({
-    name: "",
-    logo: "/placeholder.svg?height=50&width=50",
-    link: "",
-    ad: "",
-    phone: "",
-    address: "",
-    owner: "",
-    email: "",
-  })
+    name: '',
+    logo: '/placeholder.svg?height=50&width=50',
+    link: '',
+    ad: '',
+    phone: '',
+    address: '',
+    owner: '',
+    email: '',
+    organizationId: '',
+    _id: '',
+    transaction: [],
+    paymentDate: 0,
+    sponsorshipFee: { $numberDecimal: 0 },
+    deleted_at: null,
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setNewSponsor((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setNewSponsor((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewSponsor((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePaymentDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setNewSponsor((prev) => ({ ...prev, [name]: value.split("-")[2] }));
+  };
+
+  const handleSponsorshipFeeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewSponsor((prev) => ({ ...prev, [name]: { $numberDecimal: value } }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onAddSponsor(newSponsor)
-    onClose()
-  }
+    e.preventDefault();
+    
+    let organizationId = (user?.organizationId as IOrganization)._id as string;
+
+    onAddSponsor({...newSponsor, organizationId});
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -72,11 +104,11 @@ export function AddSponsorForm({ onAddSponsor, isOpen, onClose }: AddSponsorForm
               <Label htmlFor="ad" className="text-right">
                 Ad
               </Label>
-              <Input
+              <Textarea
                 id="ad"
                 name="ad"
                 value={newSponsor.ad}
-                onChange={handleInputChange}
+                onChange={handleTextareaChange}
                 className="col-span-3"
                 required
               />
@@ -134,6 +166,35 @@ export function AddSponsorForm({ onAddSponsor, isOpen, onClose }: AddSponsorForm
                 required
               />
             </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="organizationId" className="text-right">
+                Fecha de pago
+              </Label>
+              <Input
+                id="paymentDate"
+                name="paymentDate"
+                type='date'
+                onChange={handlePaymentDateChange}
+                className="col-span-3"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="address" className="text-right">
+                Cuota de patrocinio
+              </Label>
+              <Input
+                id="sponsorshipFee"
+                name="sponsorshipFee"
+                value={newSponsor.sponsorshipFee.$numberDecimal}
+                onChange={handleSponsorshipFeeChange}
+                className="col-span-3"
+                type='number'
+                required
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button type="submit">Add Sponsor</Button>
@@ -141,6 +202,5 @@ export function AddSponsorForm({ onAddSponsor, isOpen, onClose }: AddSponsorForm
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-
