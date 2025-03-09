@@ -1,21 +1,22 @@
-"use client"
-import { IBannerSettings } from "@/app/types/Banner"
-import { ISponsor } from "@/app/types/sponsor"
-import { motion } from "framer-motion"
+'use client';
+import { IBannerSettings } from '@/app/types/Banner';
+import { ISponsor } from '@/app/types/sponsor';
+import { motion } from 'framer-motion';
+import FieldBanner from '../FieldBanner';
 
 interface SportsProps {
-  sponsor: ISponsor
-  settings: IBannerSettings
-  isAnimating?: boolean
-  isExiting?: boolean
+  sponsor: ISponsor;
+  settings: IBannerSettings;
+  isAnimating?: boolean;
+  isExiting?: boolean;
 }
 
 export default function Sports({ sponsor, settings, isAnimating = false, isExiting = false }: SportsProps) {
-  const { displayFields, styleSettings } = settings
+  const { displayFields, styleSettings } = settings;
 
   // Usar colores personalizados o los predeterminados
-  const primaryColor = styleSettings.backgroundColor || "#FF69B4"
-  const accentColor = styleSettings.textColor || "#39FF14"
+  const primaryColor = styleSettings.backgroundColor || '#FF69B4';
+  const accentColor = styleSettings.textColor || '#39FF14';
 
   return (
     <div className="relative">
@@ -24,14 +25,14 @@ export default function Sports({ sponsor, settings, isAnimating = false, isExiti
         {/* Logo container */}
         <motion.div
           className="bg-white rounded-lg overflow-hidden z-10 shadow-lg"
-          style={{ width: "56px", height: "56px" }}
+          style={{ width: '56px', height: '56px' }}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: isExiting ? 0 : 1, opacity: isExiting ? 0 : 1 }}
-          transition={{ duration: 0.3, ease: isExiting ? "easeIn" : "easeOut" }}
+          transition={{ duration: 0.3, ease: isExiting ? 'easeIn' : 'easeOut' }}
         >
           {sponsor.logo && (
             <img
-              src={sponsor.logo || "/placeholder.svg?height=64&width=64"}
+              src={sponsor.logo || '/placeholder.svg?height=64&width=64'}
               alt={sponsor.name}
               className="w-full h-full object-cover"
             />
@@ -43,12 +44,12 @@ export default function Sports({ sponsor, settings, isAnimating = false, isExiti
           className="relative ml-[-8px]"
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: isExiting ? -50 : 0, opacity: isExiting ? 0 : 1 }}
-          transition={{ duration: 0.3, delay: isExiting ? 0 : 0.1, ease: isExiting ? "easeIn" : "easeOut" }}
+          transition={{ duration: 0.3, delay: isExiting ? 0 : 0.1, ease: isExiting ? 'easeIn' : 'easeOut' }}
         >
           {/* Background with diagonal cut */}
           <div
             className="relative"
-            style={{ backgroundColor: primaryColor, paddingLeft: "1rem", paddingRight: "4rem" }}
+            style={{ backgroundColor: primaryColor, paddingLeft: '1rem', paddingRight: '4rem' }}
           >
             {/* Top text */}
             <motion.div
@@ -69,19 +70,28 @@ export default function Sports({ sponsor, settings, isAnimating = false, isExiti
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              <p className="text-white text-xl font-black tracking-wide">{sponsor.name.toUpperCase()}</p>
+              <FieldBanner
+                field={'name'}
+                index={displayFields.indexOf('name')}
+                settings={settings}
+                isAnimating={isAnimating}
+                isExiting={isExiting}
+              >
+                <p className="text-white text-xl font-black tracking-wide">{sponsor.name.toUpperCase()}</p>
+              </FieldBanner>
               {displayFields
-                .filter((field) => field !== "name")
+                .filter((field) => field !== 'name')
+                .filter((field) => field !== 'logo')
                 .map((field, index) => (
-                  <motion.p
-                    key={field}
-                    className="text-white text-sm font-bold"
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: 0.3, delay: 0.3 + 0.1 * index }}
+                  <FieldBanner
+                    field={field}
+                    index={index}
+                    settings={settings}
+                    isAnimating={isAnimating}
+                    isExiting={isExiting}
                   >
                     {sponsor[field]}
-                  </motion.p>
+                  </FieldBanner>
                 ))}
             </motion.div>
 
@@ -90,7 +100,7 @@ export default function Sports({ sponsor, settings, isAnimating = false, isExiti
               className="absolute top-0 right-0 h-full w-16"
               style={{
                 backgroundColor: primaryColor,
-                clipPath: "polygon(100% 0, 0 0, 100% 100%)",
+                clipPath: 'polygon(100% 0, 0 0, 100% 100%)',
               }}
             />
           </div>
@@ -102,14 +112,13 @@ export default function Sports({ sponsor, settings, isAnimating = false, isExiti
         className="absolute bottom-0 left-0 h-1 rounded-full"
         style={{ backgroundColor: accentColor }}
         initial={{ width: 0 }}
-        animate={{ width: isExiting ? 0 : "100%" }}
+        animate={{ width: isExiting ? 0 : '100%' }}
         transition={{
           duration: 0.5,
           delay: isExiting ? 0 : 0.4,
-          ease: isExiting ? "easeIn" : "easeOut",
+          ease: isExiting ? 'easeIn' : 'easeOut',
         }}
       />
     </div>
-  )
+  );
 }
-

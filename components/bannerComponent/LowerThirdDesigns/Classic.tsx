@@ -75,26 +75,36 @@ export default function Classic({ sponsor, settings, isAnimating = false, isExit
     >
       <div className="flex items-center p-4">
         {displayFields.some((field) => field === 'logo') && (
-          <div className="mr-4 rounded-lg overflow-hidden shadow-lg">
-            <img
-              src={sponsor.logo || '/placeholder.svg?height=64&width=64'}
-              alt={sponsor.name}
-              className="w-16 h-16 object-contain"
-            />
-          </div>
+          <FieldBanner
+            field={'logo'}
+            index={displayFields.indexOf('logo')}
+            settings={settings}
+            isAnimating={isAnimating}
+            isExiting={isExiting}
+          >
+            <div className="mr-4 rounded-lg overflow-hidden shadow-lg">
+              <img
+                src={sponsor.logo || '/placeholder.svg?height=64&width=64'}
+                alt={sponsor.name}
+                className="w-16 h-16 object-contain"
+              />
+            </div>
+          </FieldBanner>
         )}
         <div className="space-y-1">
-          {displayFields.map((field, index) => (
-            <FieldBanner
-              field={field}
-              index={index}
-              settings={settings}
-              isAnimating={isAnimating}
-              isExiting={isExiting}
-            >
-              {sponsor[field]}
-            </FieldBanner>
-          ))}
+          {displayFields
+            .filter((field) => field !== 'logo')
+            .map((field, index) => (
+              <FieldBanner
+                field={field}
+                index={index}
+                settings={settings}
+                isAnimating={isAnimating}
+                isExiting={isExiting}
+              >
+                {sponsor[field]}
+              </FieldBanner>
+            ))}
         </div>
       </div>
     </div>

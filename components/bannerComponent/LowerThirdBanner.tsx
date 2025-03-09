@@ -18,6 +18,7 @@ interface LowerThirdBannerProps {
   sponsor: ISponsor
   settings: IBannerSettings
   isVisible?: boolean
+  isExiting: boolean
 }
 
 // Mapeo de tipos de animación a configuraciones de Framer Motion
@@ -132,10 +133,10 @@ const designs: Record<
   flipCard: FlipCard,
 }
 
-export default function LowerThirdBanner({ sponsor, settings, isVisible = true }: LowerThirdBannerProps) {
+export default function LowerThirdBanner({ sponsor, settings, isExiting, isVisible = true }: LowerThirdBannerProps) {
   const { animationSettings, styleSettings } = settings
   const [isAnimating, setIsAnimating] = useState(true)
-  const [isExiting, setIsExiting] = useState(false)
+  // const [isExiting, setIsExiting] = useState(false)
 
   const bannerAnimation = animations[animationSettings.type]
   const SelectedDesign = designs[styleSettings.design]
@@ -160,18 +161,18 @@ export default function LowerThirdBanner({ sponsor, settings, isVisible = true }
   }
 
   // Método para iniciar la animación de salida
-  useEffect(() => {
-    // Si el banner no está visible, iniciar la animación de salida
-    if (!isVisible && !isExiting) {
-      setIsExiting(true)
-    } else if (isVisible && isExiting) {
-      setIsExiting(false)
-    }
-  }, [isVisible, isExiting])
+  // useEffect(() => {
+  //   // Si el banner no está visible, iniciar la animación de salida
+  //   if (!isVisible && !isExiting) {
+  //     setIsExiting(true)
+  //   } else if (isVisible && isExiting) {
+  //     setIsExiting(false)
+  //   }
+  // }, [isVisible, isExiting])
 
   return (
-    <AnimatePresence mode="wait" onExitComplete={() => setIsExiting(false)}>
-      {!isExiting && isVisible && (
+    <AnimatePresence mode="wait">
+      {isVisible && (
         <motion.div
           key={settings._id}
           {...animationConfig}
@@ -180,7 +181,6 @@ export default function LowerThirdBanner({ sponsor, settings, isVisible = true }
             transition: {
               duration: animationSettings.duration,
               ease: easingFunctions[animationSettings.easing],
-              delay: 2,
             },
           }}
           aria-live="polite"

@@ -57,26 +57,25 @@ export default function Modern({ sponsor, settings, isAnimating, isExiting }: Mo
         }}
       >
         <div className="flex items-center p-4">
-          {displayFields.some((field) => field === "logo") && (
+          {displayFields.some((field) => field === 'logo') && (
             <FieldBanner
-            field={"logo"}
-            index={displayFields.indexOf("logo")}
-            settings={settings}
-            isAnimating={isAnimating}
-            isExiting={isExiting}
-          >
+              field={'logo'}
+              index={displayFields.indexOf('logo')}
+              settings={settings}
+              isAnimating={isAnimating}
+              isExiting={isExiting}
+            >
               <div className="mr-4 rounded-full overflow-hidden border-2 border-white/20 shadow-lg">
-              <img
-                src={sponsor.logo || '/placeholder.svg?height=64&width=64'}
-                alt={sponsor.name}
-                className="w-14 h-14 object-cover"
-              />
+                <img
+                  src={sponsor.logo || '/placeholder.svg?height=64&width=64'}
+                  alt={sponsor.name}
+                  className="w-14 h-14 object-cover"
+                />
               </div>
-              
-              </FieldBanner>
+            </FieldBanner>
           )}
           <div className="space-y-0.5">
-            {displayFields.map((field, index) => {
+            {displayFields.filter((field) => field !== 'logo').map((field, index) => {
               return (
                 <div key={field} className="relative overflow-hidden">
                   <FieldBanner

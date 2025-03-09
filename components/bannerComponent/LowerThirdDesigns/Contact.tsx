@@ -26,7 +26,7 @@ export default function Contact({ sponsor, settings, isAnimating = false, isExit
           className="relative z-10"
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: isExiting ? 0 : 1, opacity: isExiting ? 0 : 1 }}
-          transition={{ duration: 0.3, ease: isExiting ? "easeIn" : "easeOut" }}
+          transition={{ duration: 0.3, ease: isExiting ? "easeIn" : "easeOut", delay: isExiting ? 0.5 : 0 }}
         >
           <div
             className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
@@ -54,9 +54,9 @@ export default function Contact({ sponsor, settings, isAnimating = false, isExit
             style={{ backgroundColor: primaryColor }}
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: isExiting ? -50 : 0, opacity: isExiting ? 0 : 1 }}
-            transition={{ duration: 0.3, delay: isExiting ? 0 : 0.1, ease: isExiting ? "easeIn" : "easeOut" }}
+            transition={{ duration: 0.3, delay: isExiting ? 0 : 0.5, ease: isExiting ? "easeIn" : "easeOut" }}
           >
-            <p className="text-sm font-medium tracking-wide">{sponsor.email}</p>
+            <p className="text-white/90 text-sm font-medium">{sponsor.name}</p>
           </motion.div>
 
           {/* Name container */}
@@ -65,9 +65,9 @@ export default function Contact({ sponsor, settings, isAnimating = false, isExit
             style={{ backgroundColor: secondaryColor }}
             initial={{ x: -30, opacity: 0 }}
             animate={{ x: isExiting ? -30 : 0, opacity: isExiting ? 0 : 1 }}
-            transition={{ duration: 0.3, delay: isExiting ? 0 : 0.2, ease: isExiting ? "easeIn" : "easeOut" }}
+            transition={{ duration: 0.3, delay: isExiting ? 0 : 0.5, ease: isExiting ? "easeIn" : "easeOut" }}
           >
-            <p className="text-white/90 text-sm font-medium">{sponsor.name}</p>
+            <p className="text-sm font-medium tracking-wide">{sponsor.email}</p>
           </motion.div>
         </div>
       </div>

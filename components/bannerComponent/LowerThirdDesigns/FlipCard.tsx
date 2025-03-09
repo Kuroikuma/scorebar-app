@@ -1,22 +1,24 @@
-"use client"
-import { IBannerSettings } from "@/app/types/Banner"
-import { ISponsor, SponsorBanner } from "@/app/types/sponsor"
-import { motion } from "framer-motion"
+'use client';
+import { IBannerSettings } from '@/app/types/Banner';
+import { ISponsor, SponsorBanner } from '@/app/types/sponsor';
+import { motion } from 'framer-motion';
 
 interface FlipCardProps {
-  sponsor: ISponsor
-  settings: IBannerSettings
-  isAnimating?: boolean
-  isExiting?: boolean
+  sponsor: ISponsor;
+  settings: IBannerSettings;
+  isAnimating?: boolean;
+  isExiting?: boolean;
 }
 
 export default function FlipCard({ sponsor, settings, isAnimating = false, isExiting = false }: FlipCardProps) {
-  const { displayFields, styleSettings } = settings
+  const { displayFields, styleSettings } = settings;
 
   const backgroundStyle =
-    styleSettings.backgroundType === "gradient"
-      ? `linear-gradient(135deg, ${styleSettings.backgroundColor}, ${styleSettings.gradientColor || styleSettings.backgroundColor})`
-      : styleSettings.backgroundColor
+    styleSettings.backgroundType === 'gradient'
+      ? `linear-gradient(135deg, ${styleSettings.backgroundColor}, ${
+          styleSettings.gradientColor || styleSettings.backgroundColor
+        })`
+      : styleSettings.backgroundColor;
 
   // Variantes para la animación de la tarjeta
   const cardVariants = {
@@ -30,7 +32,8 @@ export default function FlipCard({ sponsor, settings, isAnimating = false, isExi
       opacity: 1,
       transition: {
         duration: 0.8,
-        ease: "easeOut",
+        ease: 'easeOut',
+        delay: isExiting ? 1 : 0,
       },
     },
     exit: {
@@ -38,10 +41,11 @@ export default function FlipCard({ sponsor, settings, isAnimating = false, isExi
       opacity: 0,
       transition: {
         duration: 0.5,
-        ease: "easeIn",
+        ease: 'easeIn',
+        delay: isExiting ? 1 : 0,
       },
     },
-  }
+  };
 
   // Variantes para los elementos internos
   const contentVariants = {
@@ -49,34 +53,46 @@ export default function FlipCard({ sponsor, settings, isAnimating = false, isExi
       opacity: 0,
       y: 20,
     },
-    animate: (i: number) => ({
+    animate: {
       opacity: 1,
       y: 0,
       transition: {
-        delay: 0.6 + i * 0.1,
+        delay: isExiting ? 0 : 0.6,
         duration: 0.4,
       },
-    }),
-    exit: (i: number) => ({
+    },
+    exit: {
       opacity: 0,
       y: -10,
       transition: {
-        delay: i * 0.05,
+        delay: isExiting ? 0 : 0.6,
         duration: 0.2,
       },
-    }),
-  }
+    },
+  };
 
   return (
     <div className="perspective-1000">
       <motion.div
+        key={settings._id}
         className="relative w-full"
-        variants={cardVariants}
-        initial="initial"
-        animate={isExiting ? "exit" : "animate"}
+        initial={{
+          rotateY: 90,
+          opacity: 0,
+          transformPerspective: 1000,
+        }}
+        animate={{
+          rotateY: 0,
+          opacity: 1,
+        }}
+        exit={{
+          rotateY: -90,
+          opacity: 0,
+        }}
+        transition={{ duration: 1, delay: isExiting ? 1 : 0 }}
         style={{
-          transformStyle: "preserve-3d",
-          transformOrigin: "center center",
+          transformStyle: 'preserve-3d',
+          transformOrigin: 'center center',
         }}
       >
         {/* Cara frontal */}
@@ -85,15 +101,15 @@ export default function FlipCard({ sponsor, settings, isAnimating = false, isExi
           style={{
             background: backgroundStyle,
             fontFamily: styleSettings.fontFamily,
-            backfaceVisibility: "hidden",
+            backfaceVisibility: 'hidden',
           }}
         >
           <div className="p-5">
             <div className="flex items-start">
-              {displayFields.includes("logo") && sponsor.logo && (
+              {displayFields.includes('logo') && sponsor.logo && (
                 <div className="mr-4 rounded-lg overflow-hidden shadow-lg transform -rotate-3">
                   <img
-                    src={sponsor.logo || "/placeholder.svg?height=64&width=64"}
+                    src={sponsor.logo || '/placeholder.svg?height=64&width=64'}
                     alt={sponsor.name}
                     className="w-16 h-16 object-cover"
                   />
@@ -101,20 +117,29 @@ export default function FlipCard({ sponsor, settings, isAnimating = false, isExi
               )}
 
               <div className="space-y-2">
-                {displayFields.map((field, index) => (
+                {displayFields.filter((field) => field !== 'logo').map((field, index) => (
                   <motion.div
-                    key={field}
-                    custom={index}
-                    variants={contentVariants}
-                    initial="initial"
-                    animate={isExiting ? "exit" : "animate"}
+                    key={settings._id}
+                    initial={{
+                      opacity: 0,
+                      y: 20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: -20,
+                    }}
+                    transition={{ duration: 0.4, delay: isExiting ? 0 : 0.6 }}
                   >
                     <p
-                      className={index === 0 ? "font-bold text-xl" : "font-medium"}
+                      className={index === 0 ? 'font-bold text-xl' : 'font-medium'}
                       style={{
                         color: styleSettings.textColor,
                         fontSize: index === 0 ? `calc(${styleSettings.fontSize} * 1.3)` : styleSettings.fontSize,
-                        textShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        textShadow: '0 2px 4px rgba(0,0,0,0.2)',
                       }}
                     >
                       {sponsor[field]}
@@ -130,8 +155,8 @@ export default function FlipCard({ sponsor, settings, isAnimating = false, isExi
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.1) 100%)",
-              mixBlendMode: "overlay",
+                'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.1) 100%)',
+              mixBlendMode: 'overlay',
             }}
           />
 
@@ -139,8 +164,8 @@ export default function FlipCard({ sponsor, settings, isAnimating = false, isExi
           <div
             className="absolute inset-0 rounded-xl pointer-events-none"
             style={{
-              border: "1px solid rgba(255,255,255,0.2)",
-              boxShadow: "inset 0 0 20px rgba(255,255,255,0.1)",
+              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: 'inset 0 0 20px rgba(255,255,255,0.1)',
             }}
           />
         </div>
@@ -148,10 +173,11 @@ export default function FlipCard({ sponsor, settings, isAnimating = false, isExi
 
       {/* Sombra 3D */}
       <motion.div
+        key={settings._id}
         className="w-full h-4 mx-auto mt-2 rounded-full"
         style={{
-          background: "rgba(0,0,0,0.2)",
-          filter: "blur(8px)",
+          background: 'rgba(0,0,0,0.2)',
+          filter: 'blur(8px)',
         }}
         initial={{ opacity: 0, scale: 0.6 }}
         animate={{
@@ -161,6 +187,5 @@ export default function FlipCard({ sponsor, settings, isAnimating = false, isExi
         }}
       />
     </div>
-  )
+  );
 }
-

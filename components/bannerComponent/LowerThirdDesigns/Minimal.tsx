@@ -21,7 +21,7 @@ export default function Minimal({ sponsor, settings, isAnimating = false, isExit
       }}
     >
       <div className="flex items-center">
-        {displayFields.map((field, index) => (
+        {displayFields.filter((field) => field !== 'logo').map((field, index) => (
           <p
             key={field}
             className={`mr-4 ${index === 0 ? "font-semibold" : "font-normal"}`}

@@ -21,6 +21,7 @@ export default function BannerPreview() {
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const bannerRef = useRef<HTMLDivElement>(null);
   const [bannerSize, setBannerSize] = useState<{ width: number; height: number } | null>(null);
+  const [isExiting, setIsExiting] = useState(false)
 
   // Efecto para mostrar brevemente un indicador de actualización cuando cambian los ajustes
   useEffect(() => {
@@ -32,7 +33,11 @@ export default function BannerPreview() {
   }, []);
 
   const handlePlayAnimation = () => {
-    toggleVisibility(false);
+    setIsExiting(isVisible);
+
+    setTimeout(() => {
+      toggleVisibility(false);
+    }, 1000);
   };
 
   // Efecto para capturar el tamaño del banner cuando se muestra
@@ -42,6 +47,8 @@ export default function BannerPreview() {
       setBannerSize({ width, height });
     }
   }, [isVisible]);
+
+
 
   const backgroundStyles = {
     dark: 'bg-gradient-to-br from-slate-800 to-slate-900',
@@ -172,8 +179,8 @@ export default function BannerPreview() {
               transform: 'translate(-50%, -50%)',
               touchAction: 'none',
               // Fijar el ancho y alto durante el arrastre si tenemos las dimensiones
-              width: isDragging && bannerSize ? `${bannerSize.width}px` : 'auto',
-              height: isDragging && bannerSize ? `${bannerSize.height}px` : 'auto',
+              width: "80%",
+              height: "auto",
               maxWidth: 'md',
             }}
             onMouseDown={handleMouseDown}
@@ -189,6 +196,7 @@ export default function BannerPreview() {
                 sponsor={sponsorId as ISponsor}
                 isVisible={isVisible}
                 settings={bannerSettingsId as IBannerSettings}
+                isExiting={isExiting}
               />
             </div>
           </div>
