@@ -2,7 +2,6 @@ import TransactionTable from "./TransactionTable"
 import DepositWithdrawForm from "./DepositWithdrawForm"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getUserTransactions } from "@/app/service/organization.service";
 import RecentActivity from "./RecentActivity";
 import { useEffect, useState } from "react";
 import { ITransaction } from "@/app/types/ITransaction";
@@ -13,7 +12,7 @@ export default function StaffDashboard({ userId, organizationId }: { userId: str
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      const transactions = await getUserTransactions(userId)
+      const transactions = [] as ITransaction[]
       setTransactions(transactions)
     }
 

@@ -7,16 +7,9 @@ import { IOrganization } from "@/app/types/organization"
 
 interface MainDashboardProps {
   transactions: ITransaction[]
-  finances: {
-    totalBalance: number
-    totalDeposits: number
-    totalWithdrawals: number
-    monthlyIncome: number
-    monthlyExpenses: number
-  }
 }
 
-export default function MainDashboard({ transactions, finances }: MainDashboardProps) {
+export default function MainDashboard({ transactions }: MainDashboardProps) {
   const { user } = useAuth()
   const totalBalance = (user?.organizationId as IOrganization)?.totalBalance
   const latestTransactions = transactions.slice(0, 5)
@@ -98,9 +91,9 @@ export default function MainDashboard({ transactions, finances }: MainDashboardP
         <AlertTriangleIcon className="h-4 w-4" />
         <AlertTitle>Financial Alert</AlertTitle>
         <AlertDescription>
-          {finances.totalBalance < 1000
+          {totalBalance.$numberDecimal < 1000
             ? "Low balance alert: Your total balance is below $1,000."
-            : finances.monthlyExpenses > finances.monthlyIncome
+            : rangeTotalExpenses > rangeTotalIncome
               ? "Expense alert: Your monthly expenses are higher than your monthly income."
               : "Your finances are in good standing."}
         </AlertDescription>

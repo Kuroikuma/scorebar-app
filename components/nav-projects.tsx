@@ -32,6 +32,11 @@ export function NavSports() {
     isMobile && toggleSidebar();
   };
 
+  const toBanners = () => {
+    router.push(`/banner`)
+    isMobile && toggleSidebar();
+  };
+
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Deportes</SidebarGroupLabel>
@@ -47,6 +52,13 @@ export function NavSports() {
           <SidebarMenuButton onClick={toMatch}>
             <Icon iconNode={soccerBall} />
             <span>Futbol</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem>
+          <SidebarMenuButton onClick={toBanners}>
+            <Icon iconNode={soccerBall} />
+            <span>Banner</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
 

@@ -1,11 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  getAllTransactions,
-  getOrganizationFinances,
-  getStaffMembers,
-  OrganizationFinances,
-} from '@/app/service/organization.service';
 import TransactionTable from './TransactionTable';
 import FinancialSummary from './FinancialSummary';
 import FinancialChart from './FinancialChart';
@@ -21,7 +15,6 @@ import { IOrganization } from '@/app/types/organization';
 import { format } from 'date-fns';
 
 export default function FinancialDashboard({ userId, organizationId }: { userId: string; organizationId: string }) {
-  const [finances, setFinances] = useState<OrganizationFinances | null>(null);
   const { user } = useAuth();
   const { transactions, getTransactionByOrganizationId } = useTransactionStore();
 
@@ -39,15 +32,6 @@ export default function FinancialDashboard({ userId, organizationId }: { userId:
     }
   };
 
-  // Ensure finances has the expected structure
-  const formattedFinances = {
-    totalBalance: finances?.totalBalance ?? 0,
-    totalDeposits: finances?.totalDeposits ?? 0,
-    totalWithdrawals: finances?.totalWithdrawals ?? 0,
-    monthlyIncome: finances?.monthlyIncome ?? 0,
-    monthlyExpenses: finances?.monthlyExpenses ?? 0,
-  };
-
   useEffect(() => {
     const fetchFinances = async () => {
       const now = new Date();
@@ -59,10 +43,6 @@ export default function FinancialDashboard({ userId, organizationId }: { userId:
         startDatesStr: formatearFecha(pastDate),
         endDateStr: formatearFecha(now),
       });
-
-      const finances = await getOrganizationFinances(organizationId);
-
-      setFinances(finances);
     };
 
     fetchFinances();
@@ -95,7 +75,7 @@ export default function FinancialDashboard({ userId, organizationId }: { userId:
         </div>
 
         <TabsContent value="overview">
-          <MainDashboard transactions={transactions} finances={formattedFinances} />
+          <MainDashboard transactions={transactions} />
           {/* <div className="mt-6">
             <Card>
               <CardHeader>

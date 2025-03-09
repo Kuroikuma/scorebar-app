@@ -14,6 +14,9 @@ export interface ISponsor {
   sponsorshipFee: { $numberDecimal: number };
   paymentDate: number
   organizationId: string | IOrganization;
-  transaction: string[] | ITransaction[]
+  transactions: string[] | ITransaction[]
   deleted_at: string | null;
 }
+
+
+export type SponsorBanner = Omit<ISponsor, "organizationId" | "transactions" | "deleted_at" | "sponsorshipFee" | "paymentDate" | "_id">

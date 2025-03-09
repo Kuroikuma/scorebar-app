@@ -30,7 +30,7 @@ export function AddSponsorForm({ onAddSponsor, isOpen, onClose }: AddSponsorForm
     email: '',
     organizationId: '',
     _id: '',
-    transaction: [],
+    transactions: [],
     paymentDate: 0,
     sponsorshipFee: { $numberDecimal: 0 },
     deleted_at: null,
