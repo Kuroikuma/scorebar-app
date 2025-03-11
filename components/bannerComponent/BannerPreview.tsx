@@ -10,18 +10,25 @@ import { Eye, EyeOff, Play, RefreshCw, Move } from 'lucide-react';
 import { useBannerStore } from '@/app/store/useBannerStore';
 import { ISponsor } from '@/app/types/sponsor';
 import { IBannerSettings } from '@/app/types/Banner';
+import { useBannerManagerStore } from '@/app/store/useBannerManagerStore';
 
-export default function BannerPreview() {
+interface IProps {
+  isManagerView: boolean;
+}
+
+export default function BannerPreview({ isManagerView }: IProps) {
   const { toggleVisibility, updatePosition, bannerSelected } = useBannerStore();
   const { sponsorId, bannerSettingsId, isVisible, position } = bannerSelected;
+  const { bannerManager, updateBannerManager } = useBannerManagerStore();
+
+  const isVisibleBanner = isManagerView ? (bannerManager?.isVisible as boolean) : isVisible;
+  const positionManager = isManagerView ? bannerManager?.position : position;
 
   const [background, setBackground] = useState<'dark' | 'light' | 'video'>('dark');
   const [showUpdateIndicator, setShowUpdateIndicator] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const previewContainerRef = useRef<HTMLDivElement>(null);
-  const bannerRef = useRef<HTMLDivElement>(null);
-  const [bannerSize, setBannerSize] = useState<{ width: number; height: number } | null>(null);
-  const [isExiting, setIsExiting] = useState(false)
+  const [isExiting, setIsExiting] = useState(false);
 
   // Efecto para mostrar brevemente un indicador de actualización cuando cambian los ajustes
   useEffect(() => {
@@ -32,23 +39,25 @@ export default function BannerPreview() {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleVisibility = () => {
+    setIsExiting(isVisibleBanner);
+
+    setTimeout(() => {
+      if (isManagerView && bannerManager) {
+        updateBannerManager(bannerManager._id, { isVisible: !bannerManager.isVisible });
+      } else {
+        toggleVisibility(true);
+      }
+    }, 1000);
+  };
+
   const handlePlayAnimation = () => {
-    setIsExiting(isVisible);
+    setIsExiting(isVisibleBanner);
 
     setTimeout(() => {
       toggleVisibility(false);
     }, 1000);
   };
-
-  // Efecto para capturar el tamaño del banner cuando se muestra
-  useEffect(() => {
-    if (isVisible && bannerRef.current) {
-      const { width, height } = bannerRef.current.getBoundingClientRect();
-      setBannerSize({ width, height });
-    }
-  }, [isVisible]);
-
-
 
   const backgroundStyles = {
     dark: 'bg-gradient-to-br from-slate-800 to-slate-900',
@@ -58,13 +67,9 @@ export default function BannerPreview() {
 
   // Función para iniciar el arrastre
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!isVisible) return;
+    if (!isVisibleBanner) return;
 
     // Capturar el tamaño actual del banner antes de iniciar el arrastre
-    if (bannerRef.current) {
-      const { width, height } = bannerRef.current.getBoundingClientRect();
-      setBannerSize({ width, height });
-    }
 
     setIsDragging(true);
     e.preventDefault(); // Prevenir comportamiento predeterminado
@@ -81,7 +86,11 @@ export default function BannerPreview() {
     const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
     const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
 
-    updatePosition({ x, y });
+    if (isManagerView && bannerManager) {
+      updateBannerManager(bannerManager._id, { position: { x, y } });
+    } else {
+      updatePosition({ x, y });
+    }
   };
 
   // Función para finalizar el arrastre
@@ -174,18 +183,18 @@ export default function BannerPreview() {
           <div
             className={`absolute ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
             style={{
-              left: `${position.x}%`,
-              top: `${position.y}%`,
+              left: `${positionManager?.x ?? 50}%`,
+              top: `${positionManager?.y ?? 50}%`,
               transform: 'translate(-50%, -50%)',
               touchAction: 'none',
               // Fijar el ancho y alto durante el arrastre si tenemos las dimensiones
-              width: "80%",
-              height: "auto",
+              width: '80%',
+              height: 'auto',
               maxWidth: 'md',
             }}
             onMouseDown={handleMouseDown}
           >
-            <div ref={bannerRef} className={`relative ${isDragging ? 'ring-2 ring-blue-500 ring-opacity-70' : ''}`}>
+            <div className={`relative ${isDragging ? 'ring-2 ring-blue-500 ring-opacity-70' : ''}`}>
               {isDragging && (
                 <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-2 py-1 rounded text-xs flex items-center">
                   <Move className="w-3 h-3 mr-1" />
@@ -194,7 +203,7 @@ export default function BannerPreview() {
               )}
               <LowerThirdBanner
                 sponsor={sponsorId as ISponsor}
-                isVisible={isVisible}
+                isVisible={isVisibleBanner}
                 settings={bannerSettingsId as IBannerSettings}
                 isExiting={isExiting}
               />
@@ -203,16 +212,16 @@ export default function BannerPreview() {
 
           <div className="absolute bottom-4 right-4 flex gap-2">
             <Button
-              onClick={() => toggleVisibility(true)}
+              onClick={handleVisibility}
               size="sm"
               variant="outline"
               className={`${
-                isVisible
+                isVisibleBanner
                   ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
                   : 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
               }`}
             >
-              {isVisible ? (
+              {isVisibleBanner ? (
                 <>
                   <Eye className="w-4 h-4 mr-1" />
                   Visible
@@ -225,17 +234,13 @@ export default function BannerPreview() {
               )}
             </Button>
 
-            <Button
-              onClick={handlePlayAnimation}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
+            <Button onClick={handlePlayAnimation} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
               <Play className="w-4 h-4 mr-1" />
               Reproducir
             </Button>
           </div>
 
-          {isVisible && (
+          {isVisibleBanner && (
             <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full">
               <div className="flex items-center">
                 <Move className="w-3 h-3 mr-1.5" />

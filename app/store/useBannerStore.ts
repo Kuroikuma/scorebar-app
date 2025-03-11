@@ -127,14 +127,21 @@ interface IBannerStore {
   createBanner: (banner: Partial<IBanner>) => Promise<void>;
   updateBanner: (banner: Partial<IBanner>) => Promise<void>;
   getById: (id: string) => Promise<void>;
-  findByOrganizationId: (organizationId: string) => Promise<void>;
+  findByOrganizationId: (organizationId: string) => Promise<IBanner[]>;
   findSettingTemplate: (organizationId: string) => Promise<void>;
+  setSelectedBanner: (banner: IBanner) => void;
 }
 
 export const useBannerStore = create<IBannerStore>((set, get) => ({
   bannerSelected: initialBanner,
   banners: [],
   bannerSettings: [],
+  setSelectedBanner: (banner) => {
+    set((state) => ({
+      ...state,
+      bannerSelected: banner,
+    }));
+  },
   updateSettings: async (settings) => {
     const { bannerSelected } = get();
 
@@ -224,6 +231,8 @@ export const useBannerStore = create<IBannerStore>((set, get) => ({
       ...state,
       banners: banners,
     }));
+    
+    return banners;
   },
 
   findSettingTemplate: async (organizationId) => {

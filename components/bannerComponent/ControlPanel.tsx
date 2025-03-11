@@ -120,6 +120,11 @@ export default function ControlPanel({
     })
   }
 
+  function mapSponsorToBanner(sponsor: ISponsor): SponsorBanner {
+    const { name, logo, link, ad, phone, address, owner, email } = sponsor;
+    return { name, logo, link, ad, phone, address, owner, email };
+  }
+
   const handleGradientChange = (updates: {
     stops?: GradientStop[];
     type?: GradientType;
@@ -673,8 +678,8 @@ export default function ControlPanel({
               </div>
 
               <div className="grid grid-cols-1 gap-3">
-                {(Object.keys(sponsor) as (keyof SponsorBanner)[])
-                  .filter((field) => field !== "logo")
+                {(Object.keys(mapSponsorToBanner(sponsor)) as (keyof SponsorBanner)[])
+                  .filter((field) => field !== "logo")   
                   .map((field) => (
                     <div
                       key={field}

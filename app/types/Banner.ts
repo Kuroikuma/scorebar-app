@@ -182,4 +182,15 @@ export interface IBanner {
   updatedAt: string;
 }
 
+export interface IBannerManager {
+  _id: string;
+  name: string;
+  bannerId: string;
+  organizationId: string;
+  userId: string;
+  isVisible: boolean;
+  sequential: number;
+  position: { x: number, y: number };
+}
+
 //para controlar el tema de los bannerSetting para compartir se va tenner bannerSetting como template, literalmente tienen un campos isTeamplate, y se va tener un boton en el panel de control para hacer de esa configuracion una template

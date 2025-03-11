@@ -43,7 +43,7 @@ export default function Banner() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               <div className="lg:col-span-5">
-                <BannerPreview />
+                <BannerPreview isManagerView={false} />
               </div>
               <div className="lg:col-span-7">
                 <BannerControlPanel />
