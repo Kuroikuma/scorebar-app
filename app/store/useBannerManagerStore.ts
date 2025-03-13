@@ -22,6 +22,7 @@ type BannerManagerStore = {
   setSelectedBannerInManager: (id: string) => Promise<void>;
   setSelectedBannerInManagerOverlay: (bannerId: string, bannerData: IBannerManager) => void;
   updateBannerManagerOverlay: (bannerId: string, bannerData: IBannerManager) => void;
+  updatePositionBanner:(newPosition: { x: number; y: number }) => Promise<void>;
 };
 
 export const useBannerManagerStore = create<BannerManagerStore>((set, get) => ({
@@ -29,6 +30,17 @@ export const useBannerManagerStore = create<BannerManagerStore>((set, get) => ({
   bannersManagers: [],
   isLoading: false,
   error: null,
+  updatePositionBanner: async (newPosition) => {
+    
+    const { bannerManager } = get();
+
+    const updateBanner = {
+      ...(bannerManager as IBannerManager),
+      position: newPosition
+    };
+
+    set({ bannerManager: updateBanner });
+  },
 
   setSelectedBannerInManager: async (id) => {
     const { updateBannerManager, bannerManager } = get();

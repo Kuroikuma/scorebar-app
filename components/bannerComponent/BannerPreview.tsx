@@ -19,7 +19,7 @@ interface IProps {
 export default function BannerPreview({ isManagerView }: IProps) {
   const { toggleVisibility, updatePosition, bannerSelected } = useBannerStore();
   const { sponsorId, bannerSettingsId, isVisible, position } = bannerSelected;
-  const { bannerManager, updateBannerManager } = useBannerManagerStore();
+  const { bannerManager, updateBannerManager, updatePositionBanner } = useBannerManagerStore();
 
   const isVisibleBanner = isManagerView ? (bannerManager?.isVisible as boolean) : isVisible;
   const positionManager = isManagerView ? bannerManager?.position : position;
@@ -87,15 +87,29 @@ export default function BannerPreview({ isManagerView }: IProps) {
     const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
 
     if (isManagerView && bannerManager) {
-      updateBannerManager(bannerManager._id, { position: { x, y } });
+      updatePositionBanner({ x, y });
     } else {
       updatePosition({ x, y });
     }
   };
 
   // Función para finalizar el arrastre
-  const handleMouseUp = () => {
+  const handleMouseUp = (e: React.MouseEvent) => {
     setIsDragging(false);
+
+    if (!previewContainerRef.current) return;
+
+    const container = previewContainerRef.current;
+    const rect = container.getBoundingClientRect();
+
+    // Calcular la posición relativa dentro del contenedor (0-100%)
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+
+    if (isManagerView && bannerManager) {
+      updateBannerManager(bannerManager._id, { position: { x, y } });
+    }
+
   };
 
   // Asegurarse de que el arrastre se detenga incluso si el mouse sale del contenedor
@@ -179,6 +193,7 @@ export default function BannerPreview({ isManagerView }: IProps) {
           className={`relative aspect-video overflow-hidden ${backgroundStyles[background]}`}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onMouseDown={handleMouseMove}
         >
           <div
             className={`absolute ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
