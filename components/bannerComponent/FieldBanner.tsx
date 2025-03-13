@@ -165,13 +165,13 @@ const FieldBanner = ({ field, index, settings, isAnimating, isExiting, children 
         easing: 'easeIn' as EasingType,
       };
 
-      const animation = fieldAnimations[fieldConfig.type];
+      const animation = fieldAnimations[fieldConfig.type] || fieldAnimations.none;
       return {
         ...animation,
         animate: animation.initial, // Invertir la animación para la salida
         transition: {
           duration: fieldConfig.duration * 0.8, // Hacer la salida un poco más rápida
-          delay: fieldConfig.delay,
+          // delay: fieldConfig.delay,
           ease: easingFunctions[fieldConfig.easing] || 'easeIn',
         },
       };

@@ -7,12 +7,13 @@ import { useBannerStore } from '@/app/store/useBannerStore';
 import LowerThirdBanner from '@/components/bannerComponent/LowerThirdBanner';
 import { ISponsor } from '@/app/types/sponsor';
 import { IBannerSettings } from '@/app/types/Banner';
+import { useBannerSocket } from '@/app/overlay/banner/[id]/useBannerSocket';
 
 export default function OverlayPage() {
   const paramas = useParams();
   const id = paramas?.id as string;
 
-  const { fetchBannerManagerById, bannerManager } = useBannerManagerStore();
+  const { fetchBannerManagerById, bannerManager, setSelectedBannerInManagerOverlay: updateBannerManagerOverlay } = useBannerManagerStore();
   const { getById, findByOrganizationId } = useBannerStore();
   const [isExiting, setIsExiting] = useState(false);
 
@@ -35,6 +36,7 @@ export default function OverlayPage() {
     }
   }, [paramas, id]);
 
+  useBannerSocket({ setIsExiting });
 
   useEffect(() => {
     setMounted(true);

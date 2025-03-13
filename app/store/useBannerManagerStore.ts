@@ -8,6 +8,7 @@ import {
 } from '../service/bannerManager.service';
 import { toast } from 'sonner';
 import { useBannerStore } from './useBannerStore';
+import { log } from 'console';
 
 type BannerManagerStore = {
   bannerManager: IBannerManager | null;
@@ -19,6 +20,7 @@ type BannerManagerStore = {
   fetchBannerManagerById: (bannerId: string) => Promise<IBannerManager>;
   fetchBannersByOrganization: (organizationId: string) => Promise<void>;
   setSelectedBannerInManager: (id: string) => Promise<void>;
+  setSelectedBannerInManagerOverlay: (bannerId: string, bannerData: IBannerManager) => void;
   updateBannerManagerOverlay: (bannerId: string, bannerData: IBannerManager) => void;
 };
 
@@ -100,9 +102,17 @@ export const useBannerManagerStore = create<BannerManagerStore>((set, get) => ({
       set({ error: error.message || 'Error obteniendo los bannersManagers por organización', isLoading: false });
     }
   },
-  updateBannerManagerOverlay: (bannerId, bannerData) => {
+  setSelectedBannerInManagerOverlay: (bannerId, bannerData) => {
     set({ isLoading: true, error: null });
     try {
+
+      const { banners, setSelectedBanner } = useBannerStore.getState();
+
+      const banner = banners.find((b) => b._id === bannerData.bannerId);
+      if (!banner) return;
+
+      setSelectedBanner(banner);
+
       set((state) => ({
         bannerManager: bannerData,
         bannersManagers: state.bannersManagers.map((b) => (b._id === bannerId ? bannerData : b)),
@@ -111,5 +121,12 @@ export const useBannerManagerStore = create<BannerManagerStore>((set, get) => ({
     } catch (error: any) {
       set({ error: error.message || 'Error actualizando el banner', isLoading: false });
     }
+  },
+  updateBannerManagerOverlay: (bannerId, bannerData) => {
+    set((state) => ({
+      bannerManager: bannerData,
+      bannersManagers: state.bannersManagers.map((b) => (b._id === bannerId ? bannerData : b)),
+      isLoading: false,
+    }));
   },
 }));
