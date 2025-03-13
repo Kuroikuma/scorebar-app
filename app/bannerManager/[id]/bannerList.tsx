@@ -1,5 +1,6 @@
 import { useBannerManagerStore } from '@/app/store/useBannerManagerStore';
 import { useBannerStore } from '@/app/store/useBannerStore';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MonitorPlay, PlayCircle, Search } from 'lucide-react';
 import { useState } from 'react';
@@ -7,11 +8,11 @@ import { useState } from 'react';
 const BannerList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const { banners } = useBannerStore();
+  const { banners, bannerSelected } = useBannerStore();
   const { setSelectedBannerInManager, isLoading } = useBannerManagerStore();
 
-  const filteredBannerManager = searchTerm
-    ? banners.filter((bannerManager) => bannerManager.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredBanners = searchTerm
+    ? banners.filter((banner) => banner.name.toLowerCase().includes(searchTerm.toLowerCase()))
     : banners;
 
   const onEnter = async (id: string) => {
@@ -34,20 +35,24 @@ const BannerList = () => {
       </div>
 
       <div className="max-h-[60vh] overflow-y-auto pr-1">
-        {filteredBannerManager.length > 0 ? (
+        {filteredBanners.length > 0 ? (
           <ul className="space-y-2">
-            {filteredBannerManager.map((bannerManager, index) => (
+            {filteredBanners.map((banner, index) => (
               <li
-                key={bannerManager._id}
-                onMouseEnter={() => setHoveredId(bannerManager._id)}
+                key={banner._id}
+                onMouseEnter={() => setHoveredId(banner._id)}
                 onMouseLeave={() => setHoveredId(null)}
-                className={`relative overflow-hidden rounded-lg border border-gray-200 transition-all duration-200 dark:border-gray-700 animate-fadeSlideUp ${
-                  hoveredId === bannerManager._id ? 'bg-blue-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'
+                className={`relative overflow-hidden rounded-lg border transition-all duration-200 dark:border-gray-700 animate-fadeSlideUp ${
+                  hoveredId === banner._id ? 'bg-blue-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'
+                } ${
+                  bannerSelected._id === banner._id
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700'
+                    : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                 }`}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 {/* Background animation on hover */}
-                {hoveredId === bannerManager._id && (
+                {hoveredId === banner._id && (
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-100/50 to-purple-100/50 dark:from-blue-900/20 dark:to-purple-900/20 animate-slideIn" />
                 )}
 
@@ -56,21 +61,32 @@ const BannerList = () => {
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
                       <MonitorPlay className="h-5 w-5" />
                     </div>
-                    <span className="font-medium text-gray-900 dark:text-white">{bannerManager.name}</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{banner.name}</span>
                   </div>
 
                   <div className="transition-transform duration-200 hover:scale-105 active:scale-95">
-                    <Button
-                      size="sm"
-                      onClick={() => onEnter(bannerManager._id)}
-                      className="relative overflow-hidden rounded-full bg-blue-600 px-4 py-2 text-white shadow-md transition-all duration-200 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
-                      disabled={isLoading}
-                    >
-                      <span className="relative z-10 flex items-center gap-1">
-                        Seleccionar
-                        <PlayCircle className="ml-1 h-4 w-4" />
-                      </span>
-                    </Button>
+                    {bannerSelected._id !== banner._id && (
+                      <Button
+                        size="sm"
+                        onClick={() => onEnter(banner._id)}
+                        className="relative overflow-hidden rounded-full bg-blue-600 px-4 py-2 text-white shadow-md transition-all duration-200 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                        disabled={isLoading}
+                      >
+                        <span className="relative z-10 flex items-center gap-1">
+                          Seleccionar
+                          <PlayCircle className="ml-1 h-4 w-4" />
+                        </span>
+                      </Button>
+                    )}
+
+                    {bannerSelected._id === banner._id && (
+                      <Badge
+                        variant="outline"
+                        className="ml-auto bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+                      >
+                        Seleccionado
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </li>

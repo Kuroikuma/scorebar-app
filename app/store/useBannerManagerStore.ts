@@ -19,6 +19,7 @@ type BannerManagerStore = {
   fetchBannerManagerById: (bannerId: string) => Promise<IBannerManager>;
   fetchBannersByOrganization: (organizationId: string) => Promise<void>;
   setSelectedBannerInManager: (id: string) => Promise<void>;
+  updateBannerManagerOverlay: (bannerId: string, bannerData: IBannerManager) => void;
 };
 
 export const useBannerManagerStore = create<BannerManagerStore>((set, get) => ({
@@ -97,6 +98,18 @@ export const useBannerManagerStore = create<BannerManagerStore>((set, get) => ({
       set({ bannersManagers: data, isLoading: false });
     } catch (error: any) {
       set({ error: error.message || 'Error obteniendo los bannersManagers por organización', isLoading: false });
+    }
+  },
+  updateBannerManagerOverlay: (bannerId, bannerData) => {
+    set({ isLoading: true, error: null });
+    try {
+      set((state) => ({
+        bannerManager: bannerData,
+        bannersManagers: state.bannersManagers.map((b) => (b._id === bannerId ? bannerData : b)),
+        isLoading: false,
+      }));
+    } catch (error: any) {
+      set({ error: error.message || 'Error actualizando el banner', isLoading: false });
     }
   },
 }));

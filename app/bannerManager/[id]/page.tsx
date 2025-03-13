@@ -10,7 +10,7 @@ import BannerList from './bannerList';
 
 export default function BannerManager() {
   const { user, loading } = useAuth();
-  const { fetchBannerManagerById, bannerManager, setSelectedBannerInManager } = useBannerManagerStore();
+  const { fetchBannerManagerById, bannerManager } = useBannerManagerStore();
   const { getById, findByOrganizationId } = useBannerStore();
 
   const paramas = useParams();
