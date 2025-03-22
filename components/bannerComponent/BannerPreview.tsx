@@ -107,6 +107,25 @@ export default function BannerPreview({ isManagerView }: IProps) {
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, [isDragging]);
 
+  useEffect(() => {
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDragging) {
+        e.preventDefault(); // Bloquea el scroll durante el arrastre
+      }
+    };
+  
+    if (isDragging) {
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    } else {
+      document.removeEventListener('touchmove', handleTouchMove);
+    }
+  
+    return () => {
+      document.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [isDragging]);
+  
+
   return (
     <Card className="shadow-lg border-0">
       <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 border-b">
