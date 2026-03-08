@@ -17,11 +17,13 @@ import { hatBaseball } from '@lucide/lab';
 import { useTeamsStore } from "@/app/store/teamsStore"
 
 interface RunnerAdvance {
-  fromBase: number
+  fromBase: number // -1 para bateador, 0-2 para bases
   toBase: number | null
   isOut?: boolean
+  isForced?: boolean // Indica si el avance es forzado (necesario para Regla 5.08(a))
   dependsOn?: number[] // Ahora es un array de bases de las que depende
   blockedBy?: number[] // Bases que bloquean el avance
+  playerId?: string
 }
 
 export function AdvanceRunners() {
@@ -233,11 +235,17 @@ export function AdvanceRunners() {
       return !depAdvance || depAdvance.toBase === null
     })
 
+    // Determinar si el avance es forzado
+    // Un corredor está forzado si hay un corredor detrás que debe avanzar
+    const isForced = fromBase === 0 ? false : bases[fromBase - 1].isOccupied
+
     const newAdvance: RunnerAdvance = {
       fromBase,
       toBase: null,
       dependsOn: dependencies,
       blockedBy,
+      isForced, // 🆕 Agregar información de forzado
+      playerId: bases[fromBase].playerId || undefined
     }
 
     setRunnerAdvances((prev) => [...prev, newAdvance])

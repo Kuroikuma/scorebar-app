@@ -12,6 +12,51 @@ const registerHistory = (type: 'inning' | 'out' | 'strike') => {
   useHistoryStore.getState().handleStrikeFlowHistory(type);
 };
 
+/**
+ * Valida si una carrera cuenta cuando ocurre el tercer out
+ * Implementa Regla 5.08(a) EXCEPCIÓN de MLB
+ * 
+ * Regla: No se anotará una carrera si el corredor avanza hasta home durante 
+ * una jugada en la cual se realiza el tercer out:
+ * 1. Sobre el bateador-corredor antes de que toque primera base
+ * 2. Sobre cualquier corredor que haya sido out forzado
+ * 3. Sobre un corredor precedente (que estaba en base anterior)
+ * 
+ * @param runnerAdvance - El avance del corredor que anotó
+ * @param thirdOutAdvance - El avance donde ocurrió el tercer out
+ * @param allAdvances - Todos los avances en la jugada
+ * @returns true si la carrera cuenta, false si no cuenta
+ */
+const validateRunOnThirdOut = (
+  runnerAdvance: RunnerAdvance,
+  thirdOutAdvance: RunnerAdvance,
+  allAdvances: RunnerAdvance[]
+): boolean => {
+  // CASO 1: Tercer out sobre bateador-corredor antes de tocar 1ra
+  // fromBase: -1 representa al bateador
+  if (thirdOutAdvance.fromBase === -1) {
+    console.log('❌ Carrera invalidada: Tercer out en bateador antes de tocar 1ra (Regla 5.08(a)-1)');
+    return false;
+  }
+
+  // CASO 2: Tercer out fue un out forzado
+  if (thirdOutAdvance.isForced) {
+    console.log('❌ Carrera invalidada: Tercer out fue forzado (Regla 5.08(a)-2)');
+    return false;
+  }
+
+  // CASO 3: Tercer out en corredor precedente
+  // Un corredor es precedente si estaba en una base anterior (número menor)
+  if (thirdOutAdvance.fromBase < runnerAdvance.fromBase) {
+    console.log('❌ Carrera invalidada: Tercer out en corredor precedente (Regla 5.08(a)-3)');
+    return false;
+  }
+
+  // Si ninguna condición se cumple, la carrera SÍ cuenta
+  console.log('✅ Carrera válida: Tercer out no invalida la carrera');
+  return true;
+};
+
 let __initOverlays = {
   x: 100,
   y: 100,
@@ -28,9 +73,11 @@ export type IOverlays = {
 }
 
 interface RunnerAdvance {
-  fromBase: number
-  toBase: number | null
+  fromBase: number // -1 para bateador, 0-2 para bases (0=1ra, 1=2da, 2=3ra)
+  toBase: number | null // 0-2 para bases, 3 para home, null si es out
   isOut?: boolean
+  isForced?: boolean // Indica si el out fue forzado (necesario para Regla 5.08(a))
+  playerId?: string
 }
 
 export interface Game {
@@ -183,7 +230,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     id: 'playerStats',
   },
   handleAdvanceRunners: async (advances: RunnerAdvance[]) => {
-    console.log(advances);
+    console.log('🔄 Procesando avances de corredores:', advances);
     
     const { isTopInning, updateGame, outs, changeInning } = get()
     const { teams, setTeams } = useTeamsStore.getState()
@@ -193,9 +240,52 @@ export const useGameStore = create<GameState>((set, get) => ({
     
     // Filtrar solo los avances safe
     const safeAdvances = advances.filter((advance) => advance.toBase !== null)
-    const runsScored = currentTeam.runs + advances.filter((advance) => !advance.isOut && advance.toBase === 3).length
-    const newOuts = outs + advances.filter((advance) => advance.isOut).length
+    
+    // Contar outs en la jugada
+    const outsInPlay = advances.filter((advance) => advance.isOut).length
+    const newOuts = outs + outsInPlay
+    const isThirdOut = newOuts >= 3
 
+    console.log(`📊 Outs antes: ${outs}, Outs en jugada: ${outsInPlay}, Outs después: ${newOuts}`);
+
+    // 🔴 VALIDACIÓN REGLA 5.08(a) EXCEPCIÓN
+    let validRuns = 0
+    
+    if (isThirdOut && outsInPlay > 0) {
+      console.log('⚠️ Tercer out detectado - Validando Regla 5.08(a)');
+      
+      // Encontrar el momento del tercer out (el último out en la jugada)
+      const outsAdvances = advances.filter(a => a.isOut);
+      const thirdOutAdvance = outsAdvances[outsAdvances.length - 1];
+      
+      console.log('🎯 Tercer out en:', {
+        fromBase: thirdOutAdvance.fromBase === -1 ? 'Bateador' : `Base ${thirdOutAdvance.fromBase + 1}`,
+        isForced: thirdOutAdvance.isForced
+      });
+      
+      // Verificar cada carrera potencial
+      for (const advance of advances) {
+        if (!advance.isOut && advance.toBase === 3) { // Corredor anotando
+          console.log(`🏃 Evaluando carrera desde base ${advance.fromBase + 1}`);
+          const shouldCount = validateRunOnThirdOut(
+            advance,
+            thirdOutAdvance,
+            advances
+          );
+          if (shouldCount) {
+            validRuns++;
+          }
+        }
+      }
+      
+      console.log(`✅ Carreras válidas: ${validRuns} de ${advances.filter(a => !a.isOut && a.toBase === 3).length} potenciales`);
+    } else {
+      // Si no es tercer out, contar todas las carreras normalmente
+      validRuns = advances.filter((advance) => !advance.isOut && advance.toBase === 3).length;
+      console.log(`✅ No hay tercer out - Todas las carreras cuentan: ${validRuns}`);
+    }
+
+    const runsScored = currentTeam.runs + validRuns
 
     // Crear nuevo estado de bases
     const newBases = [...get().bases]
