@@ -377,23 +377,25 @@ export const useGameStore = create<GameState>((set, get) => ({
       await advanceBatter()
       const newBases = [...bases]
 
-      const allBasesLoaded = newBases.every((base) => base);
-
-      if (allBasesLoaded) {
-        // Anotar carrera del corredor en tercera base
-        await useTeamsStore
-          .getState()
-          .incrementRuns(isTopInning ? 0 : 1, 1, false);
-      }
-
-      for (let i = 0; i >= 2; i++) {
+      // Avanzar corredores forzados de tercera a primera (en orden inverso)
+      for (let i = 2; i >= 0; i--) {
         if (newBases[i].isOccupied) {
-          newBases[i + 1] = { ...newBases[i], playerId: newBases[i].playerId }
+          if (i === 2) {
+            // Corredor en tercera anota
+            await useTeamsStore
+              .getState()
+              .incrementRuns(isTopInning ? 0 : 1, 1, false);
+            newBases[i] = { isOccupied: false, playerId: null }
+          } else {
+            // Avanzar corredor a la siguiente base
+            newBases[i + 1] = { ...newBases[i], playerId: newBases[i].playerId }
+            newBases[i] = { isOccupied: false, playerId: null }
+          }
         }
       }
 
+      // Colocar al bateador en primera base
       newBases[0] = {
-        ...newBases[0],
         isOccupied: true,
         playerId: player?._id as string
       }
