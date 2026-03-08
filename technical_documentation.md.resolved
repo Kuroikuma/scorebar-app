@@ -1,0 +1,781 @@
+# 📘 Documentación Técnica — ScoreBar App
+
+---
+
+## 1. VISIÓN GENERAL DEL SISTEMA
+
+### 1.1 Propósito del Producto
+
+**ScoreBar App** es una aplicación web progresiva (PWA) diseñada para la **gestión en tiempo real de marcadores deportivos** con soporte para **béisbol** y **fútbol (soccer)**. Permite a organizaciones deportivas controlar overlays de transmisión en vivo, administrar juegos/partidos, gestionar patrocinadores (sponsors), banners publicitarios y transacciones financieras.
+
+### 1.2 Problema que Resuelve
+
+Elimina la necesidad de gestionar marcadores manualmente durante transmisiones deportivas en vivo, proporcionando un panel de control web que:
+- Actualiza marcadores en tiempo real vía **WebSockets**
+- Controla overlays de transmisión integrados con la plataforma **overlays.uno**
+- Gestiona alineaciones, jugadas (hits, errores, outs), innings, y estadísticas de béisbol
+- Gestiona eventos de fútbol (goles, tarjetas, sustituciones, formaciones)
+- Provee historial de deshacer/rehacer (undo/redo) para todas las acciones
+
+### 1.3 Stack Tecnológico Completo
+
+| Categoría | Tecnología | Versión |
+|---|---|---|
+| **Framework** | Next.js (App Router) | 14.2.16 |
+| **Lenguaje** | TypeScript | ^5 |
+| **UI Library** | React | ^18 |
+| **Estilos** | TailwindCSS + `tailwindcss-animate` | ^3.4.1 |
+| **Componentes UI** | shadcn/ui (Radix UI) | Múltiples paquetes |
+| **Estado Global** | Zustand | ^5.0.2 |
+| **HTTP Client** | Axios | ^1.7.9 |
+| **WebSockets** | Socket.IO Client | ^4.8.1 |
+| **Almacenamiento** | Firebase Storage (Compat) | ^0.2.48 / ^0.3.15 |
+| **JWT** | jwt-decode | ^4.0.0 |
+| **Gráficos** | Chart.js + react-chartjs-2 | ^4.4.8 |
+| **Animaciones** | Framer Motion | ^11.15.0 |
+| **Tablas** | TanStack React Table | ^8.21.2 |
+| **Temas** | next-themes | ^0.4.4 |
+| **PDF** | jsPDF + jspdf-autotable | ^2.5.1 |
+| **Excel** | xlsx | ^0.18.5 |
+| **PWA** | next-pwa | ^5.6.0 |
+| **Notificaciones** | Sonner | ^1.7.2 |
+| **Utilidades** | Lodash, date-fns, clsx, tailwind-merge | Varias |
+| **Drag & Drop** | react-draggable | ^4.4.6 |
+| **Recorte Imágenes** | react-easy-crop | ^5.2.0 |
+
+### 1.4 Diagrama de Arquitectura General
+
+```mermaid
+graph TB
+    subgraph Frontend["Frontend (Next.js 14 PWA)"]
+        UI["Componentes UI (shadcn/ui)"]
+        Pages["Páginas (App Router)"]
+        Stores["Zustand Stores"]
+        Services["Capa de Servicios (Axios)"]
+        Overlays["API Overlays.uno"]
+    end
+
+    subgraph Backend["Backend (API REST Externa)"]
+        API["API REST (:5001)"]
+        WS["WebSocket Server"]
+    end
+
+    subgraph External["Servicios Externos"]
+        Firebase["Firebase Storage"]
+        OverlayAPI["overlays.uno API"]
+    end
+
+    UI --> Pages
+    Pages --> Stores
+    Stores --> Services
+    Services --> API
+    Services --> WS
+    Services --> Overlays
+    Overlays --> OverlayAPI
+    UI --> Firebase
+
+    WS -.->|Eventos en tiempo real| Stores
+```
+
+### 1.5 Modelo de Capas
+
+| Capa | Descripción |
+|---|---|
+| **Presentación** | Componentes React (páginas, paneles de control, overlays, formularios) |
+| **Estado** | Zustand stores (game, teams, overlay, config, history) |
+| **Servicios** | Funciones Axios que encapsulan las llamadas HTTP al backend |
+| **Comunicación** | Socket.IO para sincronización en tiempo real |
+| **Externa** | API de overlays.uno para overlays de transmisión + Firebase Storage para imágenes |
+
+---
+
+## 2. ARQUITECTURA FRONTEND
+
+### 2.1 Estructura de Carpetas y Propósito
+
+```
+scorebar-app/
+├── app/                          # App Router de Next.js
+│   ├── assets/                   # Imágenes estáticas (logos)
+│   ├── banner/                   # Páginas de gestión de banners
+│   ├── bannerManager/            # Páginas del gestor de banners
+│   ├── context/                  # React Context (AuthContext)
+│   ├── dashboard/                # Página de dashboard
+│   ├── games/                    # Páginas de juegos de béisbol
+│   │   └── [id]/                 # Detalle de juego (ruta dinámica)
+│   ├── hooks/                    # Custom hooks de la app
+│   ├── lib/                      # Utilidades (cn, etc.)
+│   ├── login/                    # Página de login
+│   ├── match/                    # Páginas de partidos de fútbol
+│   │   └── [id]/                 # Detalle de partido (ruta dinámica)
+│   ├── overlay/                  # Páginas de overlay para transmisión
+│   │   ├── banner/               # Overlay de banners
+│   │   ├── game/                 # Overlay de béisbol
+│   │   └── match/                # Overlay de fútbol
+│   ├── pages/                    # Páginas adicionales (API routes)
+│   ├── profile/                  # Perfil de usuario
+│   ├── service/                  # Capa de servicios HTTP
+│   ├── sponsor/                  # Gestión de patrocinadores
+│   ├── store/                    # Zustand stores (béisbol)
+│   ├── styles/                   # Estilos adicionales
+│   ├── transaction/              # Transacciones financieras
+│   ├── types/                    # Interfaces TypeScript
+│   └── utils/                    # Utilidades generales
+├── components/                   # Componentes reutilizables
+│   ├── MatchComponents/          # Componentes de fútbol (41 archivos)
+│   ├── bannerComponent/          # Componentes de banners (16 archivos)
+│   ├── gameComponent/            # Componentes de juego genéricos
+│   ├── imagesComponent/          # Componentes de imágenes
+│   ├── overlay/                  # Componentes de overlays (22 archivos)
+│   ├── scoreboard/               # Componentes de scoreboard
+│   ├── scorebug/                 # Componentes de scorebug (10 archivos)
+│   ├── transaction/              # Componentes de transacciones (11 archivos)
+│   ├── ui/                       # Componentes shadcn/ui (36 archivos)
+│   └── *.tsx                     # Componentes de nivel raíz
+├── hooks/                        # Hooks globales
+├── matchStore/                   # Zustand stores (fútbol)
+└── public/                       # Assets estáticos y PWA
+```
+
+### 2.2 Componentes Principales y Responsabilidad
+
+| Componente | Archivo | Responsabilidad |
+|---|---|---|
+| **ControlBase** | [components/ControlBase.tsx](file:///c:/Users/gatic/scorebar-app/components/ControlBase.tsx) | Panel de control de las bases (béisbol) |
+| **ControlPanel** | [components/control-panel.tsx](file:///c:/Users/gatic/scorebar-app/components/control-panel.tsx) | Panel principal de control del juego |
+| **CustomizeOverlays** | [components/CustomizeOverlays.tsx](file:///c:/Users/gatic/scorebar-app/components/CustomizeOverlays.tsx) | Personalización de overlays (posición, escala, visibilidad) |
+| **CustomizePanel** | [components/customize-panel.tsx](file:///c:/Users/gatic/scorebar-app/components/customize-panel.tsx) | Panel de personalización de equipos (colores, nombres) |
+| **LineupPanel** | [components/lineup-panel.tsx](file:///c:/Users/gatic/scorebar-app/components/lineup-panel.tsx) | Gestión de alineaciones de béisbol |
+| **HitPlay** | [components/hitPlay.tsx](file:///c:/Users/gatic/scorebar-app/components/hitPlay.tsx) | Registro de jugadas de bateo (sencillo, doble, triple, HR) |
+| **ErrorPlay** | [components/errorPlay.tsx](file:///c:/Users/gatic/scorebar-app/components/errorPlay.tsx) | Registro de errores de juego |
+| **StatusGame** | [components/statusGame.tsx](file:///c:/Users/gatic/scorebar-app/components/statusGame.tsx) | Estado del juego (próximo, en progreso, finalizado) |
+| **ToogleOverlays** | [components/toogleOverlays.tsx](file:///c:/Users/gatic/scorebar-app/components/toogleOverlays.tsx) | Toggle de visibilidad de overlays |
+| **Sidebar** | [components/sidebar.tsx](file:///c:/Users/gatic/scorebar-app/components/sidebar.tsx) | Barra lateral de navegación |
+| **AppSidebar** | [components/app-sidebar.tsx](file:///c:/Users/gatic/scorebar-app/components/app-sidebar.tsx) | Sidebar con shadcn/ui SidebarProvider |
+| **NavUser** | [components/nav-user.tsx](file:///c:/Users/gatic/scorebar-app/components/nav-user.tsx) | Menú de usuario en la navegación |
+
+### 2.3 Gestión del Estado
+
+La aplicación utiliza **Zustand** como gestor de estado global, dividido en dos dominios deportivos:
+
+#### Stores de Béisbol (`app/store/`)
+
+| Store | Archivo | Propósito |
+|---|---|---|
+| `useGameStore` | `gameStore.ts` (1217 líneas) | Estado completo del juego: innings, bolas, strikes, outs, bases, overlays. Contiene lógica de jugadas (single, double, triple, HR, BB, HBP, errores) |
+| `useTeamsStore` | `teamsStore.ts` | Equipos, alineaciones, carreras, hits, errores, avance de bateador |
+| `useOverlayStore` | `overlayStore.ts` | Sincronización del overlay recibido vía Socket.IO |
+| `useConfigStore` | `configStore.ts` | Configuraciones de overlays (IDs de scorebug, scoreboard, formaciones) |
+| `useHistoryStore` | `historiStore.ts` | Historial undo/redo con persistencia en backend |
+| `useUIStore` | `uiStore.ts` | Estado de la interfaz |
+| `useBannerStore` | `useBannerStore.ts` | Gestión de banners publicitarios |
+| `useBannerManagerStore` | `useBannerManagerStore.ts` | Gestión del banner manager |
+| `useSponsor` | `useSponsor.ts` | State de patrocinadores |
+| `useStaffStore` | `useStaffStore.ts` | State del staff/personal |
+| `useTransactionStore` | `useTransactionStore.ts` | State de transacciones |
+
+#### Stores de Fútbol (`matchStore/`)
+
+| Store | Archivo | Propósito |
+|---|---|---|
+| `useMatchStore` | `matchStore.ts` | Estado general del partido (liga, estadio, fecha) |
+| `useTeamStore` | `useTeam.ts` | Equipos de fútbol (formación, jugadores, staff) |
+| `useEventStore` | `useEvent.ts` | Eventos del partido (goles, tarjetas, sustituciones) |
+| `useTimeStore` | `useTime.ts` | Tiempo del partido (minutos, segundos, períodos) |
+| `useOverlaysStore` | `overlayStore.ts` | Overlays de fútbol (scoreboard, formaciones, preview) |
+
+### 2.4 Sistema de Rutas y Navegación
+
+Utiliza el **App Router** de Next.js 14 con la siguiente estructura de rutas:
+
+| Ruta | Página | Descripción |
+|---|---|---|
+| `/` | `app/page.tsx` | Redirige a la lista de juegos |
+| `/login` | `app/login/page.tsx` | Autenticación (sin sidebar) |
+| `/games` | `app/games/page.tsx` | Lista de juegos de béisbol |
+| `/games/[id]` | `app/games/[id]/page.tsx` | Panel de control de un juego |
+| `/match` | `app/match/page.tsx` | Lista de partidos de fútbol |
+| `/match/[id]` | `app/match/[id]/page.tsx` | Panel de control de un partido |
+| `/profile` | `app/profile/page.tsx` | Perfil de usuario |
+| `/sponsor` | `app/sponsor/page.tsx` | Gestión de patrocinadores |
+| `/sponsor/[id]` | `app/sponsor/[id]/page.tsx` | Detalle de patrocinador |
+| `/banner` | `app/banner/page.tsx` | Gestión de banners |
+| `/bannerManager` | `app/bannerManager/page.tsx` | Administrador de banners |
+| `/transaction` | `app/transaction/page.tsx` | Transacciones financieras |
+| `/dashboard` | `app/dashboard/page.tsx` | Dashboard general |
+| `/overlay/game` | `app/overlay/game/` | Vista de overlay béisbol (transmisión) |
+| `/overlay/match` | `app/overlay/match/` | Vista de overlay fútbol (transmisión) |
+| `/overlay/banner` | `app/overlay/banner/` | Vista de overlay banners (transmisión) |
+
+**Decisión de layout**: En `layout.tsx`, las rutas `/login` y `/overlay/*` renderizan sin sidebar (layout `AuthLayout`), mientras que el resto usa el layout principal con sidebar.
+
+### 2.5 Comunicación con el Backend
+
+#### Instancia Axios Base
+
+```typescript
+// app/service/api.ts
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api',
+});
+```
+
+#### Interceptor de Autenticación
+
+Cada servicio configura un interceptor idéntico que:
+1. Lee el token JWT de `localStorage`
+2. Agrega el header `Authorization: Bearer <token>`
+3. **Inyecta el `socketId`** en el body de cada request (para que el backend reenvíe eventos solo a otros clientes)
+
+```typescript
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+    if (!config.data) config.data = {};
+    config.data.socketId = socket.id || "";
+  }
+  return config;
+});
+```
+
+#### Conexión Socket.IO
+
+```typescript
+// app/service/socket.ts
+const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5001');
+```
+
+#### Integración con Overlays.uno
+
+```typescript
+// app/service/apiOverlays.ts
+export const axiosInstance = (id: string): AxiosInstance => {
+  return axios.create({
+    baseURL: `https://app.overlays.uno/apiv2/controlapps/${id}/api`,
+  });
+};
+```
+
+Esta API externa permite:
+- `SetOverlayContent`: Actualizar contenido del overlay
+- `SetCustomizationField`: Cambiar campos de personalización
+- `ShowOverlay` / `HideOverlay`: Controlar visibilidad
+- `SetData`: Enviar datos completos (lineup, batting order)
+- `SetActiveNumber`: Establecer bateador activo
+
+### 2.6 Convenciones de Código y Patrones
+
+| Patrón | Descripción |
+|---|---|
+| **Store-Service** | Los stores de Zustand llaman a funciones del directorio `service/` para operaciones HTTP |
+| **Optimistic Updates** | Los stores actualizan el estado local inmediatamente y luego sincronizan con el backend |
+| **Socket Overlay** | Un store `overlayStore` separado recibe actualizaciones vía Socket.IO y actualiza los stores principales |
+| **Undo/Redo** | `historiStore.ts` implementa un historial con patrón Command, persistido en la BD |
+| **Guard `isSaved`** | Muchas funciones aceptan un parámetro `isSaved?: boolean` para controlar si la acción se persiste (útil en undo/redo) |
+| **Alias de importación** | `@/*` mapea a la raíz del proyecto |
+
+---
+
+## 3. ARQUITECTURA BACKEND
+
+> [!IMPORTANT]
+> El backend **NO está incluido en este repositorio**. Es un servicio externo que se consume vía API REST y WebSockets. La documentación siguiente se deduce de las llamadas al backend observadas en el frontend.
+
+### 3.1 Endpoints Identificados
+
+#### Usuarios (`/api/users`)
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/users/login` | Login con email y password |
+| POST | `/users/register` | Registro de usuario |
+| PUT | `/users/update/:id` | Actualización de usuario |
+| GET | `/users/:id` | Obtener usuario por ID |
+| GET | `/users/staff/organization/:id` | Staff por organización |
+
+#### Juegos — Béisbol (`/api/games`)
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/games` | Crear juego |
+| GET | `/games/:id` | Obtener juego por ID |
+| GET | `/games/user/:userId` | Juegos por usuario |
+| PUT | `/games/:id` | Actualizar juego |
+| DELETE | `/games/:id` | Eliminar juego |
+| POST | `/games/:id/score/:teamIndex/:runs` | Anotar carrera |
+| PUT | `/games/:id/balls` | Cambiar conteo de bolas |
+| PUT | `/games/:id/strikes` | Cambiar conteo de strikes |
+| PUT | `/games/:id/outs` | Cambiar conteo de outs |
+| PUT | `/games/:id/inning` | Cambiar inning |
+| PUT | `/games/:id/base/:baseIndex` | Cambiar corredor en base |
+| PUT | `/games/runsByInning/:id` | Actualizar carreras por inning |
+| PUT | `/games/status/:id` | Cambiar estado del juego |
+| PUT | `/games/lineup/:id` | Actualizar lineup |
+| PUT | `/games/advanceBatter/:id` | Avanzar bateador |
+| PUT | `/games/player/:id` | Actualizar jugador |
+| PUT | `/games/dh/:id` | Toggle DH (bateador designado) |
+| PUT | `/games/hits/:id` | Actualizar hits |
+| PUT | `/games/errors/:id` | Actualizar errores |
+| PUT | `/games/pastAndFuture/game` | Guardar historial undo/redo |
+| PUT | `/games/:id/team/:teamIndex` | Cambiar nombre de equipo |
+| PUT | `/games/:id/team/:teamIndex/color` | Cambiar color |
+| PUT | `/games/:id/team/:teamIndex/textColor` | Cambiar color de texto |
+| PUT | `/games/:id/teamShortName/:teamIndex` | Cambiar abreviatura |
+| PUT | `/games/changeCurrentBatter/:id` | Cambiar bateador actual |
+
+#### Partidos — Fútbol (`/api/matches`)
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/matches` | Crear partido |
+| GET | `/matches/:id` | Obtener partido |
+| PUT | `/matches/:id` | Actualizar partido |
+| POST | `/matches/event/:matchId` | Agregar evento |
+| DELETE | `/matches/event/:matchId/:eventId` | Eliminar evento |
+| POST | `/matches/substitution/:matchId` | Agregar sustitución |
+| DELETE | `/matches/substitution/:matchId/:subId` | Eliminar sustitución |
+| PUT | `/matches/team/addPlayer/:matchId` | Agregar jugador |
+| PUT | `/matches/team/formation/:matchId` | Actualizar formación |
+| PUT | `/matches/team/name/:matchId` | Actualizar nombre equipo |
+| PUT | `/matches/team/staff/:matchId` | Actualizar staff |
+| PUT | `/matches/team/:matchId` | Actualizar equipo |
+| PUT | `/matches/time/:matchId` | Actualizar tiempo |
+| DELETE | `/matches/reset/:matchId` | Resetear partido |
+
+#### Overlays (`/api/overlay`)
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/overlay/:id` | Obtener overlay de béisbol |
+| PUT | `/overlay/position` | Actualizar posición |
+| PUT | `/overlay/scale` | Actualizar escala |
+| PUT | `/overlay/visible` | Actualizar visibilidad |
+| PUT | `/overlay/play` | Enviar jugada |
+| GET | `/overlay/matches/:id` | Obtener overlay de fútbol |
+| PUT | `/overlay/matches/position/:matchId` | Posición overlay fútbol |
+| PUT | `/overlay/matches/scale/:matchId` | Escala overlay fútbol |
+| PUT | `/overlay/matches/visible/:matchId` | Visibilidad overlay fútbol |
+
+#### Configuraciones (`/api/configs`)
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/configs` | Listar configuraciones |
+| GET | `/configs/:id` | Obtener configuración |
+| GET | `/configs/user/:userId` | Configuración por usuario |
+| POST | `/configs` | Crear configuración |
+| PUT | `/configs/:id` | Actualizar configuración |
+| DELETE | `/configs/:id` | Eliminar configuración |
+
+#### Banners (`/api/banners`)
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/banners` | Crear banner |
+| PUT | `/banners/:id` | Actualizar banner |
+| GET | `/banners/:id` | Obtener banner |
+| GET | `/banners/findSettingTemplate/:orgId` | Templates de settings |
+| GET | `/banners/findByOrganizationId/:orgId` | Banners por organización |
+| PUT | `/banners/settings/:settingId` | Actualizar settings |
+| PUT | `/banners/sponsor/:bannerId` | Asignar sponsor a banner |
+| PUT | `/banners/visibility/:bannerId` | Toggle visibilidad |
+| PUT | `/banners/position/:bannerId` | Actualizar posición |
+| PUT | `/banners/templateCopy/:settingId` | Copiar template |
+| PUT | `/banners/createTemplate/:settingId` | Crear template |
+
+#### Patrocinadores (`/api/sponsors`)
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/sponsors` | Crear sponsor |
+| PUT | `/sponsors/:id` | Actualizar sponsor |
+| GET | `/sponsors/:id` | Obtener sponsor |
+
+#### Transacciones (`/api/transactions`)
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/transactions` | Crear transacción |
+| GET | `/transactions/findByOrganization` | Buscar por organización |
+| GET | `/transactions/:id` | Obtener por ID |
+
+#### Organizaciones (`/api/organizations`)
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/organizations/gameAndMatch/:id` | Juegos y partidos |
+| GET | `/organizations/sponsors/:id` | Sponsors de la organización |
+| GET | `/organizations/staffs/:id` | Personal de la organización |
+
+### 3.2 Patrones de Diseño Identificados
+
+| Patrón | Ubicación | Descripción |
+|---|---|---|
+| **Interceptor** | Todos los archivos `service/*.ts` | Inyección automática de JWT y socketId |
+| **Optimistic Update** | `gameStore.ts`, `teamsStore.ts` | Estado actuali inmediatamente, backend en paralelo |
+| **Command (Undo/Redo)** | `historiStore.ts` | Captura estados parciales y permite deshacer/rehacer |
+| **Observer** | Socket.IO + `overlayStore.ts` | Sincronización en tiempo real |
+
+### 3.3 Autenticación / Autorización
+
+- **Autenticación**: JWT almacenado en `localStorage`
+- **Decodificación**: `jwt-decode` para verificar expiración del token
+- **Roles de usuario**: `CEO`, `STAFF`, `ROOT` (definidos en `UserRole` enum)
+- **Auto-logout**: Timer que cierra sesión al expirar el token
+- **Contexto**: `AuthProvider` usando React Context en `app/context/AuthContext.tsx`
+
+---
+
+## 4. BASE DE DATOS
+
+> [!NOTE]
+> El motor de base de datos no está determinado directamente desde el frontend. Por las convenciones observadas (`_id`, `$numberDecimal`, modelos sin esquema fijo), se infiere que el backend utiliza **MongoDB**.
+
+### 4.1 Modelo Entidad-Relación
+
+```mermaid
+erDiagram
+    Organization ||--o{ User : "tiene"
+    Organization ||--o{ Game : "tiene"
+    Organization ||--o{ FootballMatch : "tiene"
+    Organization ||--o{ Sponsor : "tiene"
+    Organization ||--o{ Transaction : "tiene"
+
+    User ||--o{ Game : "crea"
+    User ||--o{ FootballMatch : "crea"
+
+    Game ||--|| ConfigGame : "usa"
+    Game ||--o{ Team : "tiene 2"
+    Team ||--o{ Player : "tiene lineup"
+
+    FootballMatch ||--o{ TeamFootball : "tiene 2"
+    FootballMatch ||--o{ MatchEvent : "tiene"
+    FootballMatch ||--o{ Substitution : "tiene"
+    TeamFootball ||--o{ PlayerFootball : "tiene"
+
+    Sponsor ||--o{ Transaction : "tiene"
+    Sponsor ||--o{ Banner : "se muestra en"
+    Banner ||--|| BannerSettings : "usa"
+```
+
+### 4.2 Entidades Principales
+
+#### User
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `_id` | string | Identificador MongoDB |
+| `username` | string | Nombre de usuario |
+| `email` | string | Correo electrónico |
+| `password` | string | Contraseña (hash en backend) |
+| `avatar` | string | URL de avatar |
+| `role` | `CEO` \| `STAFF` \| `ROOT` | Rol del usuario |
+| `organizationId` | string / IOrganization | Organización asociada |
+| `deleted_at` | Date \| null | Soft delete |
+
+#### Game (Béisbol)
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | string | ID del juego |
+| `status` | `upcoming` \| `in_progress` \| `finished` | Estado |
+| `teams` | Team[] | Dos equipos |
+| `inning` | number | Inning actual |
+| `isTopInning` | boolean | Parte alta/baja |
+| `balls` \| `strikes` \| `outs` | number | Conteo actual |
+| `bases` | IBase[] | Estado de las 3 bases |
+| `runsByInning` | Record<string, number> | Carreras por inning (e.g. `"3T1": 2`) |
+| `isDHEnabled` | boolean | Bateador designado activo |
+| `organizationId` | string | Organización dueña |
+| `date` | string \| Date | Fecha del juego |
+| `*Overlay` | IOverlays | Posición/escala/visibilidad de cada overlay |
+
+#### FootballMatch (Fútbol)
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `homeTeam` / `awayTeam` | TeamFootball | Equipos |
+| `events` | MatchEventFootball[] | Goles, tarjetas |
+| `substitutions` | SubstitutionFootball[] | Sustituciones |
+| `time` | TimeFootball | Minutos, segundos, cronómetro |
+| `period` | PeriodFootball[] | 1st Half, 2nd Half, Extras |
+| `leagueName` / `leagueLogo` | string | Info de liga |
+| `stadiumName` / `matchDate` | string | Venue y fecha |
+| `*Overlay` | IOverlays | Overlays de fútbol |
+
+#### Sponsor
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `_id` | string | ID |
+| `name` | string | Nombre del patrocinador |
+| `logo` | string | URL del logo |
+| `link` / `ad` | string | Enlace y anuncio |
+| `phone` / `address` / `email` | string | Datos de contacto |
+| `owner` | string | Propietario |
+| `sponsorshipFee` | `{ $numberDecimal: number }` | Monto de patrocinio |
+| `transactions` | string[] \| ITransaction[] | Transacciones asociadas |
+
+#### BannerSettings
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `_id` | string | ID |
+| `name` | string | Nombre del template |
+| `displayFields` | (keyof SponsorBanner)[] | Campos a mostrar |
+| `animationSettings` | AnimationSettings | Configuración de animaciones |
+| `styleSettings` | StyleSettings | Colores, gradientes, tipografía |
+| `isTemplate` | boolean | Si es compartible como template |
+
+---
+
+## 5. MÓDULOS Y FUNCIONALIDADES CLAVE
+
+### 5.1 Módulo de Béisbol
+
+**Propósito**: Gestión completa de un juego de béisbol en tiempo real.
+
+**Archivos principales**:
+- `app/store/gameStore.ts` — Estado del juego y lógica de jugadas
+- `app/store/teamsStore.ts` — Equipos y alineaciones
+- `app/store/historiStore.ts` — Historial undo/redo
+- `app/service/api.ts` — Servicios REST para béisbol
+- `app/service/apiOverlays.ts` — Integración con overlays.uno
+- `components/control-panel.tsx` — Panel de control
+- `components/hitPlay.tsx` — Panel de jugadas de bateo
+- `components/lineup-panel.tsx` — Gestión de lineup
+
+**Flujo**: El usuario registra jugadas → `gameStore` actualiza el estado local → `api.ts` persiste en el backend → Socket.IO notifica a otros clientes → las vistas de overlay se actualizan automáticamente.
+
+### 5.2 Módulo de Fútbol
+
+**Propósito**: Gestión de partidos de fútbol con formaciones, eventos y sustituciones.
+
+**Archivos principales**:
+- `matchStore/matchStore.ts` — Estado del partido
+- `matchStore/useTeam.ts` — Equipos con formaciones (4-4-2, etc.)
+- `matchStore/useEvent.ts` — Eventos (goles, tarjetas, sustituciones)
+- `matchStore/useTime.ts` — Cronómetro del partido
+- `matchStore/overlayStore.ts` — Overlays de fútbol
+- `app/service/apiMatch.ts` — Servicios REST para fútbol
+- `components/MatchComponents/` — 41 componentes de UI para fútbol
+
+**Flujo**: Gol → `useEventStore.addEvent()` → actualiza score en `useTeamStore` → persiste vía `apiMatch.ts` → Socket.IO notifica → overlay muestra el gol.
+
+### 5.3 Módulo de Banners y Patrocinadores
+
+**Propósito**: Gestionar banners publicitarios con animaciones personalizables para transmisiones.
+
+**Archivos principales**:
+- `app/types/Banner.ts` — Tipos completos (animaciones, estilos, gradientes)
+- `app/store/useBannerStore.ts` — State de banners
+- `app/store/useBannerManagerStore.ts` — State del banner manager
+- `app/service/banner.service.ts` — API de banners
+- `components/bannerComponent/` — 16 componentes de UI
+- `app/overlay/banner/` — Vista overlay de banners
+
+Soporta múltiples diseños (`classic`, `modern`, `minimal`, `elegant`, `sports`, `flipCard`), animaciones (`fadeIn`, `slideIn`, `bounceIn`, etc.), y gradientes avanzados.
+
+### 5.4 Módulo de Transacciones
+
+**Propósito**: Registro financiero de ingresos/gastos de la organización.
+
+**Archivos principales**:
+- `app/types/ITransaction.ts` — Tipos (categorías: Salario, Compras, Inversión, etc.)
+- `app/store/useTransactionStore.ts` — State
+- `app/service/transaction.service.ts` — API
+- `components/transaction/` — 11 componentes UI
+
+### 5.5 Módulo de Overlays
+
+**Propósito**: Control de elementos visuales sobre la transmisión en vivo.
+
+**Archivos principales**:
+- `app/service/apiOverlays.ts` — Integración directa con overlays.uno
+- `app/store/overlayStore.ts` — Sincronización de overlay béisbol (receptor Socket.IO)
+- `matchStore/overlayStore.ts` — Overlays de fútbol
+- `components/overlay/` — 22 componentes de overlay
+- `components/scorebug/` — 10 componentes del score bug
+- `components/scoreboard/` — 3 componentes del scoreboard
+- `app/overlay/` — Vistas públicas de overlay (sin sidebar)
+
+**Tipos de Overlay por deporte**:
+
+| Overlay | Béisbol | Fútbol |
+|---|---|---|
+| Scorebug | ✅ | ✅ (scoreboardUp) |
+| Scoreboard | ✅ | ✅ (scoreboardDown) |
+| Scoreboard Minimal | ✅ | — |
+| Formación A/B | ✅ | ✅ |
+| Player Stats | ✅ | — |
+| Goals Down | — | ✅ |
+| Preview | — | ✅ |
+
+---
+
+## 6. CONFIGURACIÓN Y VARIABLES DE ENTORNO
+
+### 6.1 Variables de Entorno
+
+| Variable | Requerida | Valor por Defecto | Descripción |
+|---|---|---|---|
+| `NEXT_PUBLIC_API_URL` | Sí | `http://localhost:5001/api` | URL base de la API REST del backend |
+| `NEXT_PUBLIC_SOCKET_URL` | Sí | `http://localhost:5001` | URL del servidor WebSocket |
+
+### 6.2 Configuración Firebase
+
+Las credenciales Firebase están **hardcoded** en `app/firebaseIntance.ts`:
+
+| Propiedad | Valor |
+|---|---|
+| `projectId` | `medicall-3dced` |
+| `storageBucket` | `medicall-3dced.appspot.com` |
+| `apiKey` | `AIzaSyBJ1p9hEKtKjQ1kzGm5D130wkTSCHCL7tc` |
+
+> [!CAUTION]
+> Las credenciales de Firebase están expuestas en el código fuente. Se recomienda moverlas a variables de entorno.
+
+### 6.3 Otras Configuraciones
+
+| Archivo | Propósito |
+|---|---|
+| `tailwind.config.ts` | Tema personalizado con variables CSS HSL, darkMode vía clase, animaciones personalizadas |
+| `next.config.mjs` | PWA habilitada con next-pwa, ESLint ignorado en builds |
+| `tsconfig.json` | strict mode, strictNullChecks, alias `@/*` |
+| `components.json` | Configuración de shadcn/ui |
+| `firebase.json` | Configuración de Firebase hosting |
+| `.prettierrc` | Reglas de formato |
+| `public/manifest.json` | Manifiesto PWA |
+
+---
+
+## 7. FLUJOS CRÍTICOS DEL SISTEMA
+
+### 7.1 Flujo: Registro de un Hit (Sencillo) en Béisbol
+
+1. **UI**: El usuario hace clic en "Sencillo" en `components/hitPlay.tsx`
+2. **Store** `gameStore.handleSingle()`:
+   - Obtiene el bateador actual vía `getCurrentBatter()`
+   - Registra en historial: `useHistoryStore.handleStrikeFlowHistory('hit')`
+   - Calcula nuevas bases: bateador a 1ra, corredores avanzan
+   - Crea registro `ITurnAtBat` con `TypeHitting.Single`
+   - Actualiza `teamsStore` con nuevos runs, hits y lineup
+   - Resetea conteo: `strikes: 0, balls: 0`
+3. **API**: `handlePlayServices()` envía al backend: equipo, bases, jugada
+4. **Backend**: Persiste el estado → emite evento Socket.IO
+5. **Socket.IO**: Otros clientes conectados reciben → `overlayStore` actualiza
+6. **Overlay**: La vista `/overlay/game` refleja el nuevo marcador
+
+### 7.2 Flujo: Inicio de Sesión
+
+1. **UI**: El usuario ingresa email/password en `app/login/page.tsx`
+2. **Context**: `AuthContext.login()` llama a `apiLogin(email, password)`
+3. **API**: POST a `/users/login` → retorna `{ token, user }`
+4. **Storage**: Token y user se guardan en `localStorage`
+5. **JWT**: Se decodifica para obtener expiración → se programa auto-logout
+6. **Router**: Redirige a `/` (lista de juegos)
+7. **Interceptor**: Todas las siguientes peticiones incluyen `Authorization: Bearer <token>`
+
+### 7.3 Flujo: Gol en Fútbol
+
+1. **UI**: El usuario registra un gol en la interfaz del partido
+2. **Store** `useEventStore.addEvent()`:
+   - Genera ID temporal: `Date.now().toString()`
+   - Agrega evento optimistamente al state
+   - Si es `type: "goal"`: incrementa `score` del equipo vía `useTeamStore.updateTeam()`
+3. **API**: `addEventService(matchId, event)` → POST a `/matches/event/:matchId`
+4. **Backend**: Persiste → retorna evento con ID real del servidor
+5. **Store**: Reemplaza ID temporal con el ID real del servidor
+6. **Socket.IO**: Overlay de fútbol actualiza el marcador en tiempo real
+
+### 7.4 Flujo: Undo / Redo
+
+1. **UI**: El usuario presiona Undo en `components/undo.tsx`
+2. **Store** `useHistoryStore.undo()`:
+   - Toma el último estado de `past[]`
+   - Guarda el estado actual como snapshot en `future[]`
+   - Aplica el estado anterior vía `useGameStore.loadGameHistory(previousState)`
+   - Persiste el historial: `changePastAndFutureGame(id, newPast, newFuture)`
+3. **Resultado**: El juego regresa al estado previo (bases, conteo, equipo)
+
+### 7.5 Flujo: Actualización de Overlay en Tiempo Real
+
+1. **Control Panel**: El usuario cambia strikes/balls/outs
+2. **Store** `gameStore`: Actualiza estado local → llama API
+3. **Backend**: Persiste → emite evento Socket.IO con los nuevos datos
+4. **Vista Overlay** (`/overlay/game`): Conectada vía hooks de socket
+5. **Socket Hook** (e.g. `useSocketOverlayGame`): Recibe evento → llama `overlayStore`
+6. **Overlay Store**: Actualiza `useGameStore` y `useTeamsStore` directamente (sin guardar)
+7. **Renderizado**: Los componentes de overlay se re-renderizan con el nuevo estado
+
+---
+
+## 8. GUÍA DE INSTALACIÓN Y EJECUCIÓN LOCAL
+
+### 8.1 Pre-requisitos
+
+| Software | Versión Mínima |
+|---|---|
+| Node.js | 18.x o superior |
+| npm | 9.x o superior |
+| Backend API | Corriendo en `:5001` (o configurado) |
+
+### 8.2 Instalación
+
+```bash
+# 1. Clonar el repositorio
+git clone <url-del-repo>
+cd scorebar-app
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Configurar variables de entorno
+# Crear archivo .env.local con:
+NEXT_PUBLIC_API_URL=http://localhost:5001/api
+NEXT_PUBLIC_SOCKET_URL=http://localhost:5001
+```
+
+### 8.3 Comandos de Desarrollo
+
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo (Hot Reload) en `http://localhost:3000` |
+| `npm run build` | Build de producción |
+| `npm run start` | Servidor de producción |
+| `npm run lint` | Ejecutar ESLint |
+
+### 8.4 Despliegue
+
+El proyecto está configurado para Firebase Hosting (`.firebaserc`, `firebase.json`). También es compatible con Vercel (por ser Next.js).
+
+---
+
+## 9. DEUDA TÉCNICA Y OBSERVACIONES
+
+### 9.1 Problemas Críticos
+
+| # | Problema | Archivo(s) | Impacto |
+|---|---|---|---|
+| 1 | **Credenciales Firebase hardcoded** | `firebaseIntance.ts` | 🔴 Seguridad — API key expuesta en código fuente |
+| 2 | **Interceptor duplicado** en cada servicio | `api.ts`, `apiMatch.ts`, `banner.service.ts`, `sponsor.service.ts`, etc. | 🟡 Mantenibilidad — El mismo interceptor se repite en 7+ archivos |
+| 3 | **Instancias Axios duplicadas** | Cada servicio crea su propia instancia `axios.create()` | 🟡 Violación de DRY |
+
+### 9.2 Mejoras Arquitectónicas Recomendadas
+
+| # | Mejora | Detalle |
+|---|---|---|
+| 1 | **Centralizar instancia Axios** | Crear un módulo único `httpClient.ts` con interceptor y exportar una sola instancia |
+| 2 | **Mover credenciales a `.env`** | Firebase config debe leerse de variables de entorno |
+| 3 | **Separar lógica de `gameStore.ts`** | Con 1217 líneas, debería descomponerse en múltiples stores/slices (e.g., `basesStore`, `playStore`, `overlayGameStore`) |
+| 4 | **Tipar errores HTTP** | No hay manejo centralizado de errores HTTP; las funciones de servicio no capturan excepciones |
+| 5 | **Layout como Server Component** | `layout.tsx` es un Client Component (`'use client'`); las rutas estáticas no se benefician del SSR |
+| 6 | **Eliminar variables no usadas** | En `changeTeamNameService` y `changeTeamColorService` se obtienen variables (`newColor`, `newTextColor`, `newName`) que no se usan |
+| 7 | **Corregir bug en `handleBallChange`** | En la línea `for (let i = 0; i >= 2; i++)` la condición `i >= 2` nunca es true cuando `i` empieza en 0, el loop no ejecuta |
+
+### 9.3 Inconsistencias Detectadas
+
+| Inconsistencia | Detalle |
+|---|---|
+| Nombres mixtos (español/inglés) | `historiStore.ts` vs `historyStore`, `toogleOverlays` (typo: debería ser "toggle") |
+| `staff.service.ts` usa POST para updates | `updateStaffServices` y `deleteStaffServices` usan `api.post()` en lugar de `api.put()` y `api.delete()` |
+| Archivos sin usar | `firebaseIntance.ts` nombra el proyecto "medicall" (parece copiado de otro proyecto) |
+| Formación default contiene nombre hardcoded | `useTeam.ts` tiene `manager: 'Alexander Ampie'` como default del staff |
+| Typos múltiples | `firebaseIntance` → `firebaseInstance`, `toogleOverlays` → `toggleOverlays`, `ImageUploap` → `ImageUpload` |
+
+### 9.4 Riesgos Técnicos
+
+| Riesgo | Descripción |
+|---|---|
+| **Token en localStorage** | Vulnerable a ataques XSS. Considerar httpOnly cookies |
+| **Sin validación de input** | Las funciones de servicio no validan datos antes de enviarlos al backend |
+| **Dependencia de overlays.uno** | La funcionalidad core de overlays depende de un servicio externo de terceros |
+| **PWA con Service Worker genérico** | `public/sw.js` tiene una estrategia de caché básica que podría causar datos desactualizados |
+| **ESLint deshabilitado en builds** | `next.config.mjs` ignora errores de ESLint en builds de producción |
