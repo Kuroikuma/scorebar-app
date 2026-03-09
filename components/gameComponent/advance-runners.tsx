@@ -897,6 +897,9 @@ export function AdvanceRunners() {
                     {pitcher && (
                       <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded text-xs text-blue-200">
                         Pitcher responsable: {pitcher.name}
+                        {pitcher.balks !== undefined && (
+                          <span className="ml-2">(Balks actuales: {pitcher.balks})</span>
+                        )}
                       </div>
                     )}
                   </div>

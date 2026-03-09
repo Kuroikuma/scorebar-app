@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService, setDHService, handlePositionOverlayServices, handleScaleOverlayServices, handleVisibleOverlayServices, getOverlay, handlePlayServices } from '@/app/service/api'
+import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeOutCount, changeInningService, changeBaseRunner, changeRunsByInningService, changeStatusService, setDHService, handlePositionOverlayServices, handleScaleOverlayServices, handleVisibleOverlayServices, getOverlay, handlePlayServices, updatePlayerService } from '@/app/service/api'
 import { ITurnAtBat, Player, Team, TypeAbbreviatedBatting, TypeHitting, useTeamsStore } from './teamsStore'
 import { ConfigGame, useConfigStore } from './configStore';
 import { useHistoryStore } from './historiStore';
@@ -467,11 +467,14 @@ export const useGameStore = create<GameState>((set, get) => ({
    * Efecto: Todos los corredores avanzan una base automáticamente.
    * Si hay corredor en 3ra, anota carrera.
    * El bateador NO avanza (a menos que sea ball 4).
+   * 
+   * Registra estadística de balk en el pitcher.
    */
   handleBalk: async () => {
     console.log('⚠️ Balk - Todos los corredores avanzan una base')
     
     const { bases, isTopInning, updateGame } = get()
+    const { teams, setTeams } = useTeamsStore.getState()
     
     // Verificar si hay corredores en base
     const hasRunners = bases.some(base => base.isOccupied)
@@ -481,9 +484,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       return
     }
 
-    const teamIndex = isTopInning ? 0 : 1
+    const offensiveTeamIndex = isTopInning ? 0 : 1
+    const defensiveTeamIndex = isTopInning ? 1 : 0
+    const defensiveTeam = teams[defensiveTeamIndex]
+
     let runsScored = 0
-    const newBases = [...__initBases__]
+    const newBases: IBase[] = [
+      { isOccupied: false, playerId: null },
+      { isOccupied: false, playerId: null },
+      { isOccupied: false, playerId: null },
+    ]
 
     // Procesar corredores en orden inverso (3ra → 2da → 1ra)
     for (let i = 2; i >= 0; i--) {
@@ -494,17 +504,44 @@ export const useGameStore = create<GameState>((set, get) => ({
           console.log(`✅ Corredor de 3ra anota por balk`)
         } else {
           // Corredor avanza una base
-          newBases[i + 1] = { ...bases[i] }
+          newBases[i + 1] = { isOccupied: true, playerId: bases[i].playerId }
           console.log(`🏃 Corredor de ${i === 0 ? '1ra' : '2da'} avanza a ${i === 0 ? '2da' : '3ra'}`)
         }
       }
     }
 
+    // ── Registrar balk en estadísticas del pitcher ──────────────────────────
+    const updatedDefensiveLineup = defensiveTeam.lineup.map((player) => {
+      if (player.position === 'P') {
+        return {
+          ...player,
+          balks: (player.balks ?? 0) + 1,
+        }
+      }
+      return player
+    })
+
     // Actualizar bases y carreras
     set({ bases: newBases })
     
     if (runsScored > 0) {
-      await useTeamsStore.getState().incrementRuns(teamIndex, runsScored, false)
+      await useTeamsStore.getState().incrementRuns(offensiveTeamIndex, runsScored, false)
+    }
+
+    // Actualizar lineup defensivo con estadística de balk
+    setTeams(
+      teams.map((team, index) => {
+        if (index === defensiveTeamIndex) {
+          return { ...team, lineup: updatedDefensiveLineup }
+        }
+        return team
+      })
+    )
+
+    // Persistir cambios en el backend
+    const gameId = get().id!
+    if (gameId) {
+      await updatePlayerService(gameId, defensiveTeamIndex, updatedDefensiveLineup)
     }
 
     await updateGame()

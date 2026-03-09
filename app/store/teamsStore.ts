@@ -57,6 +57,8 @@ export type Player = {
   passedBalls?: number
   // Pitcher: ponches propinados (incluye K-WP y K-PB, el pitcher siempre recibe K)
   strikeoutsThrown?: number
+  // Pitcher: balks cometidos (Regla 6.02(a))
+  balks?: number
   // ── Estadísticas ofensivas por jugador ───────────────────────────────────
   // Corredor: bases robadas exitosas (Regla 9.07)
   stolenBases?: number
