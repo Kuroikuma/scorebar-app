@@ -180,6 +180,8 @@ export type GameState = {
     toBase: number,
     wasSuccessful: boolean
   ) => Promise<void>
+  // Maneja balk del pitcher (Regla 6.02(a))
+  handleBalk: () => Promise<void>
     // ── Dropped Third Strike ────────────────────────────────────────────────
   // true cuando strike 3 ocurre y la condición de dropped third strike aplica.
   // La UI lo observa para mostrar el modal de resolución.
@@ -453,6 +455,59 @@ export const useGameStore = create<GameState>((set, get) => ({
       
       await updateGame()
     }
+  },
+
+  /**
+   * Maneja balk del pitcher (Regla 6.02(a)).
+   * 
+   * Regla 6.02(a): Es un balk cuando el pitcher, mientras está tocando
+   * la goma, hace cualquier movimiento naturalmente asociado con su
+   * lanzamiento y no realiza tal lanzamiento.
+   * 
+   * Efecto: Todos los corredores avanzan una base automáticamente.
+   * Si hay corredor en 3ra, anota carrera.
+   * El bateador NO avanza (a menos que sea ball 4).
+   */
+  handleBalk: async () => {
+    console.log('⚠️ Balk - Todos los corredores avanzan una base')
+    
+    const { bases, isTopInning, updateGame } = get()
+    
+    // Verificar si hay corredores en base
+    const hasRunners = bases.some(base => base.isOccupied)
+    
+    if (!hasRunners) {
+      console.log('⚠️ No hay corredores en base - Balk sin efecto')
+      return
+    }
+
+    const teamIndex = isTopInning ? 0 : 1
+    let runsScored = 0
+    const newBases = [...__initBases__]
+
+    // Procesar corredores en orden inverso (3ra → 2da → 1ra)
+    for (let i = 2; i >= 0; i--) {
+      if (bases[i].isOccupied) {
+        if (i === 2) {
+          // Corredor en 3ra anota
+          runsScored++
+          console.log(`✅ Corredor de 3ra anota por balk`)
+        } else {
+          // Corredor avanza una base
+          newBases[i + 1] = { ...bases[i] }
+          console.log(`🏃 Corredor de ${i === 0 ? '1ra' : '2da'} avanza a ${i === 0 ? '2da' : '3ra'}`)
+        }
+      }
+    }
+
+    // Actualizar bases y carreras
+    set({ bases: newBases })
+    
+    if (runsScored > 0) {
+      await useTeamsStore.getState().incrementRuns(teamIndex, runsScored, false)
+    }
+
+    await updateGame()
   },
 
   setInning: (inning) => set({ inning }),

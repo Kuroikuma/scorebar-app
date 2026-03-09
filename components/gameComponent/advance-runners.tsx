@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useState, useEffect } from "react"
-import { ArrowRight, Check, ChevronRight, MonitorIcon as Running, X, AlertCircle, ArrowRightLeft, Wind, HandMetal, Zap } from "lucide-react"
+import { ArrowRight, Check, ChevronRight, MonitorIcon as Running, X, AlertCircle, ArrowRightLeft, Wind, HandMetal, Zap, AlertTriangle } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useGameStore } from "@/app/store/gameStore"
 import { cn } from "@/app/lib/utils"
@@ -27,13 +27,13 @@ interface RunnerAdvance {
 }
 
 export function AdvanceRunners() {
-  const { bases, outs, handleAdvanceRunners, isTopInning, handleWildPitch, handlePassedBall, handleStolenBase } = useGameStore()
+  const { bases, outs, handleAdvanceRunners, isTopInning, handleWildPitch, handlePassedBall, handleStolenBase, handleBalk } = useGameStore()
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [currentOuts, setCurrentOuts] = useState<number>(outs)
   const [runnerAdvances, setRunnerAdvances] = useState<RunnerAdvance[]>([])
-  const [step, setStep] = useState<"select-mode" | "select-runners" | "resolve-advances" | "wp-pb-select" | "stolen-base">("select-mode")
-  const [advanceMode, setAdvanceMode] = useState<"normal" | "wp-pb" | "stolen-base" | null>(null)
+  const [step, setStep] = useState<"select-mode" | "select-runners" | "resolve-advances" | "wp-pb-select" | "stolen-base" | "balk-confirm">("select-mode")
+  const [advanceMode, setAdvanceMode] = useState<"normal" | "wp-pb" | "stolen-base" | "balk" | null>(null)
   const [wpPbType, setWpPbType] = useState<'WP' | 'PB' | null>(null)
   const { teams } = useTeamsStore();
 
@@ -631,6 +631,35 @@ export function AdvanceRunners() {
                     </div>
                   </div>
                 </button>
+
+                {/* Balk */}
+                <button
+                  onClick={() => {
+                    setAdvanceMode("balk")
+                    setStep("balk-confirm")
+                  }}
+                  className="w-full group text-left px-4 py-4 rounded-lg transition-all duration-200 hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-red-500/50 bg-gray-700/20"
+                  disabled={!getOccupiedBases().length}
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Balk</span>
+                        <span className="text-xs font-mono text-red-400 bg-red-900/30 px-1.5 py-0.5 rounded">BALK</span>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Movimiento ilegal del pitcher. Todos los corredores avanzan
+                        una base automáticamente.
+                      </p>
+                      {!getOccupiedBases().length && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          (No hay corredores en base)
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </button>
               </div>
 
               <DialogFooter>
@@ -814,6 +843,89 @@ export function AdvanceRunners() {
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 )}
+              </DialogFooter>
+            </>
+          )}
+
+          {/* ── PASO BALK: Confirmar balk ──────────────────────────────────── */}
+          {step === "balk-confirm" && (
+            <>
+              <DialogHeader className="space-y-3">
+                <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                  <AlertTriangle className="w-6 h-6 text-red-500" />
+                  Balk del Pitcher
+                </DialogTitle>
+                <DialogDescription asChild>
+                  <div className="text-gray-300 space-y-3">
+                    <p className="text-sm">
+                      El pitcher realizó un movimiento ilegal. Todos los corredores
+                      avanzan una base automáticamente.
+                    </p>
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <h4 className="font-medium mb-2 text-red-300">Regla 6.02(a):</h4>
+                      <p className="text-sm text-red-200/70">
+                        Es un balk cuando el pitcher, mientras está tocando la goma,
+                        hace cualquier movimiento naturalmente asociado con su
+                        lanzamiento y no realiza tal lanzamiento.
+                      </p>
+                    </div>
+
+                    {/* Mostrar corredores que avanzarán */}
+                    <div className="p-3 bg-gray-700/30 rounded-lg">
+                      <h4 className="font-medium mb-2 text-gray-300">Corredores que avanzan:</h4>
+                      <div className="space-y-2">
+                        {getOccupiedBases().map(({ base }) => {
+                          const playerId = bases[base].playerId
+                          const runnerName = playerId 
+                            ? currentTeam.lineup.find((player) => player._id === playerId)?.name 
+                            : "Corredor"
+                          const fromBaseName = baseNames[base]
+                          const toBaseName = base === 2 ? "Home (anota)" : baseNames[base + 1]
+
+                          return (
+                            <div key={base} className="flex items-center gap-2 text-sm">
+                              <Icon iconNode={hatBaseball} className="w-4 h-4 text-gray-400" />
+                              <span>{runnerName}</span>
+                              <ArrowRight className="w-4 h-4 text-gray-400" />
+                              <span className="text-gray-400">{fromBaseName} → {toBaseName}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {pitcher && (
+                      <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded text-xs text-blue-200">
+                        Pitcher responsable: {pitcher.name}
+                      </div>
+                    )}
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="py-4 flex justify-center">
+                <Button
+                  size="lg"
+                  className="bg-red-600 hover:bg-red-700 shadow-lg shadow-red-900/20 px-8"
+                  onClick={async () => {
+                    await handleBalk()
+                    setIsModalOpen(false)
+                    resetState()
+                  }}
+                >
+                  <Check className="mr-2 h-5 w-5" />
+                  Confirmar Balk
+                </Button>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setStep("select-mode")}
+                  className="bg-gray-700 hover:bg-gray-600 text-white border-0"
+                >
+                  Cancelar
+                </Button>
               </DialogFooter>
             </>
           )}

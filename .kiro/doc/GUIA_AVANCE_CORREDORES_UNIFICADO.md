@@ -2,7 +2,7 @@
 
 ## 📋 Resumen
 
-Se ha centralizado todo el manejo de avances de bases en un solo componente: `advance-runners.tsx`. Este componente ahora maneja 3 tipos de avances diferentes con un flujo unificado.
+Se ha centralizado todo el manejo de avances de bases en un solo componente: `advance-runners.tsx`. Este componente ahora maneja 4 tipos de avances diferentes con un flujo unificado.
 
 ## 🎯 Tipos de Avance
 
@@ -86,10 +86,36 @@ Procesar con handleStolenBase()
 - Muestra estadísticas actuales (SB/CS del corredor)
 - Solo puede robar la siguiente base o home
 
+### 4. Balk
+**Uso**: Movimiento ilegal del pitcher
+
+**Características**:
+- Todos los corredores avanzan una base automáticamente
+- No requiere selección de corredores
+- No requiere resolución safe/out
+- Corredor en 3ra anota automáticamente
+- Procesa con `handleBalk()`
+
+**Flujo**:
+```
+Botón "Avanzar Corredores"
+  ↓
+Seleccionar modo: "Balk"
+  ↓
+Confirmar (muestra corredores que avanzan)
+  ↓
+Procesar con handleBalk()
+```
+
+**Regla 6.02(a)**:
+- Movimiento ilegal del pitcher
+- Todos los corredores avanzan una base
+- Deshabilitado si no hay corredores en base
+
 ## 🎨 Interfaz de Usuario
 
 ### Paso 0: Selección de Modo
-Modal inicial con 3 opciones:
+Modal inicial con 4 opciones:
 
 ```
 ┌─────────────────────────────────────┐
@@ -103,6 +129,9 @@ Modal inicial con 3 opciones:
 ├─────────────────────────────────────┤
 │  ⚡ Base Robada                     │
 │  Corredor avanza por iniciativa    │
+├─────────────────────────────────────┤
+│  ⚠️ Balk                            │
+│  Movimiento ilegal del pitcher     │
 └─────────────────────────────────────┘
 ```
 
@@ -148,6 +177,12 @@ Varía según el modo:
 - Botones: Safe (SB) o Out (CS)
 - Muestra catcher defensivo
 
+**Balk**:
+- Lista de corredores que avanzan
+- Explicación de la regla
+- Botón: Confirmar Balk
+- Muestra pitcher responsable
+
 ## 🔧 Implementación Técnica
 
 ### Estado del Componente
@@ -157,13 +192,15 @@ const [step, setStep] = useState<
   "select-runners" | 
   "resolve-advances" | 
   "wp-pb-select" | 
-  "stolen-base"
+  "stolen-base" |
+  "balk-confirm"
 >("select-mode")
 
 const [advanceMode, setAdvanceMode] = useState<
   "normal" | 
   "wp-pb" | 
-  "stolen-base" | 
+  "stolen-base" |
+  "balk" |
   null
 >(null)
 
@@ -204,6 +241,26 @@ if (wpPbType === 'WP') {
 }
 ```
 
+#### Balk
+```typescript
+// Avance automático de todos los corredores
+const hasRunners = bases.some(base => base.isOccupied)
+if (!hasRunners) return
+
+// Procesar en orden inverso
+for (let i = 2; i >= 0; i--) {
+  if (bases[i].isOccupied) {
+    if (i === 2) {
+      runsScored++ // Corredor en 3ra anota
+    } else {
+      newBases[i + 1] = { ...bases[i] } // Avanza una base
+    }
+  }
+}
+
+await handleBalk()
+```
+
 ## 📊 Estadísticas Registradas
 
 ### Por Tipo de Avance
@@ -215,6 +272,7 @@ if (wpPbType === 'WP') {
 | PB | Ninguna | `catcher.passedBalls++` |
 | SB (exitoso) | `runner.stolenBases++` | Ninguna |
 | CS (fallido) | `runner.caughtStealing++` | `catcher.caughtStealingBy++` |
+| Balk | Ninguna | Ninguna (futuro: `pitcher.balks++`) |
 
 ## 🎯 Ventajas del Sistema Unificado
 
@@ -285,6 +343,12 @@ import { AdvanceRunners } from '@/components/gameComponent/advance-runners'
 ✅ Avance sin ayuda de jugada ofensiva/defensiva
 ✅ Solo un corredor a la vez
 
+#### Balk
+✅ Pitcher hace movimiento ilegal
+✅ Hay corredores en base
+✅ Árbitro marca balk
+✅ Todos los corredores avanzan automáticamente
+
 ### Flujo de Trabajo Típico
 
 1. **Presionar "Avanzar Corredores"**
@@ -296,18 +360,20 @@ import { AdvanceRunners } from '@/components/gameComponent/advance-runners'
 
 ## 🔍 Diferencias Clave entre Modos
 
-| Característica | Normal | WP/PB | Base Robada |
-|----------------|--------|-------|-------------|
-| Corredores | Múltiples | Múltiples | Solo uno |
-| Dependencias | Sí | Sí | No |
-| Estadísticas | No | Sí (WP/PB) | Sí (SB/CS) |
-| Color UI | Morado | Azul/Naranja | Amarillo |
-| Resolución | Safe/Out | Safe/Out | SB/CS |
+| Característica | Normal | WP/PB | Base Robada | Balk |
+|----------------|--------|-------|-------------|------|
+| Corredores | Múltiples | Múltiples | Solo uno | Todos |
+| Dependencias | Sí | Sí | No | No |
+| Estadísticas | No | Sí (WP/PB) | Sí (SB/CS) | No |
+| Color UI | Morado | Azul/Naranja | Amarillo | Rojo |
+| Resolución | Safe/Out | Safe/Out | SB/CS | Automático |
+| Selección | Manual | Manual | Manual | Automático |
 
 ## ✅ Cumplimiento de Reglas MLB
 
 - ✅ **Regla 5.06(b)(3)**: Avances de corredores
 - ✅ **Regla 5.08(a)**: Validación de carreras en tercer out
+- ✅ **Regla 6.02(a)**: Balk y avance automático
 - ✅ **Regla 9.07**: Bases robadas sin ayuda externa
 - ✅ **Regla 9.13**: WP se carga al pitcher, PB al catcher
 - ✅ **Regla 10.07**: SB y CS acreditadas al corredor
@@ -317,10 +383,11 @@ import { AdvanceRunners } from '@/components/gameComponent/advance-runners'
 
 El sistema unificado proporciona:
 
-1. **Simplicidad**: Un solo botón, múltiples funcionalidades
+1. **Simplicidad**: Un solo botón, cuatro funcionalidades
 2. **Precisión**: Cada tipo de avance registra estadísticas correctas
 3. **Flexibilidad**: Fácil agregar nuevos tipos de avance
 4. **Usabilidad**: Flujo guiado paso a paso
 5. **Cumplimiento**: 100% alineado con reglas MLB
+6. **Automatización**: Balk procesa avances automáticamente
 
 **Estado**: ✅ LISTO PARA PRODUCCIÓN
