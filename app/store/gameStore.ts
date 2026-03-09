@@ -173,6 +173,13 @@ export type GameState = {
   handleWildPitch: (advances: RunnerAdvance[]) => Promise<void>
   // Maneja avance de corredores por Passed Ball (Regla 9.13)
   handlePassedBall: (advances: RunnerAdvance[]) => Promise<void>
+  // Maneja intento de base robada (Regla 9.07)
+  handleStolenBase: (
+    runnerId: string,
+    fromBase: number,
+    toBase: number,
+    wasSuccessful: boolean
+  ) => Promise<void>
     // ── Dropped Third Strike ────────────────────────────────────────────────
   // true cuando strike 3 ocurre y la condición de dropped third strike aplica.
   // La UI lo observa para mostrar el modal de resolución.
@@ -381,6 +388,71 @@ export const useGameStore = create<GameState>((set, get) => ({
     
     // Procesar avances de corredores
     await get().handleAdvanceRunners(advances)
+  },
+
+  /**
+   * Maneja intento de base robada (Regla 9.07).
+   * 
+   * Regla 9.07: Una base robada es acreditada cuando el corredor avanza
+   * sin ayuda de hit, out, error, fielder's choice, PB, WP o balk.
+   * 
+   * @param runnerId - ID del corredor
+   * @param fromBase - Base de origen (0=1ra, 1=2da, 2=3ra)
+   * @param toBase - Base destino (1=2da, 2=3ra, 3=home)
+   * @param wasSuccessful - true si SB, false si CS (caught stealing)
+   */
+  handleStolenBase: async (runnerId, fromBase, toBase, wasSuccessful) => {
+    console.log(`🏃 Intento de robo: Base ${fromBase + 1} → ${toBase === 3 ? 'Home' : `Base ${toBase + 1}`}`)
+    
+    const { bases, outs, updateGame, changeInning } = get()
+
+    // Registrar estadísticas del intento
+    await useTeamsStore.getState().recordStolenBaseAttempt(
+      runnerId,
+      fromBase,
+      toBase,
+      wasSuccessful
+    )
+
+    if (wasSuccessful) {
+      // ── Base robada exitosa ────────────────────────────────────────────
+      console.log('✅ Base robada exitosa')
+      
+      const newBases = [...bases]
+      
+      // Si roba home, anotar carrera
+      if (toBase === 3) {
+        const { isTopInning } = get()
+        const teamIndex = isTopInning ? 0 : 1
+        await useTeamsStore.getState().incrementRuns(teamIndex, 1, false)
+        newBases[fromBase] = { isOccupied: false, playerId: null }
+      } else {
+        // Mover corredor a la nueva base
+        newBases[toBase] = { ...newBases[fromBase] }
+        newBases[fromBase] = { isOccupied: false, playerId: null }
+      }
+
+      set({ bases: newBases })
+      await updateGame()
+      
+    } else {
+      // ── Caught stealing (out) ──────────────────────────────────────────
+      console.log('❌ Caught stealing - Out')
+      
+      const newBases = [...bases]
+      newBases[fromBase] = { isOccupied: false, playerId: null }
+      
+      const newOuts = outs + 1
+      
+      if (newOuts >= 3) {
+        set({ bases: __initBases__, outs: 0 })
+        await changeInning(true, false)
+      } else {
+        set({ bases: newBases, outs: newOuts })
+      }
+      
+      await updateGame()
+    }
   },
 
   setInning: (inning) => set({ inning }),

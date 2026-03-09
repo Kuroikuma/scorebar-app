@@ -57,6 +57,14 @@ export type Player = {
   passedBalls?: number
   // Pitcher: ponches propinados (incluye K-WP y K-PB, el pitcher siempre recibe K)
   strikeoutsThrown?: number
+  // ── Estadísticas ofensivas por jugador ───────────────────────────────────
+  // Corredor: bases robadas exitosas (Regla 9.07)
+  stolenBases?: number
+  // Corredor: intentos de robo fallidos (caught stealing)
+  caughtStealing?: number
+  // ── Estadísticas defensivas adicionales ──────────────────────────────────
+  // Catcher: corredores atrapados robando (caught stealing assists)
+  caughtStealingBy?: number
 }
 
 export type Team = {
@@ -103,6 +111,13 @@ export type TeamsState = {
   ) => Promise<void>
   // Registra WP o PB en estadísticas defensivas (uso general, no solo K)
   recordWildPitchOrPassedBall: (type: 'WP' | 'PB') => Promise<void>
+  // Registra intento de base robada (Regla 9.07)
+  recordStolenBaseAttempt: (
+    runnerId: string,
+    fromBase: number,
+    toBase: number,
+    wasSuccessful: boolean
+  ) => Promise<void>
 }
 
 export const useTeamsStore = create<TeamsState>((set, get) => ({
@@ -291,6 +306,84 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       await updatePlayerService(gameId, defensiveTeamIndex, updatedDefensiveLineup)
     }
   },
+  /**
+   * Registra un intento de base robada (Regla 9.07).
+   * 
+   * Regla 9.07:
+   * "Una base robada es una estadística acreditada a un corredor siempre que
+   * avance una base sin la ayuda de un hit, un out puesto, un error,
+   * un fielder's choice, un passed ball, un wild pitch o un balk"
+   * 
+   * @param runnerId - ID del corredor que intenta robar
+   * @param fromBase - Base de origen (0=1ra, 1=2da, 2=3ra)
+   * @param toBase - Base destino (1=2da, 2=3ra, 3=home)
+   * @param wasSuccessful - true si robó exitosamente, false si fue out (caught stealing)
+   */
+  recordStolenBaseAttempt: async (runnerId, fromBase, toBase, wasSuccessful) => {
+    const { isTopInning } = useGameStore.getState()
+    const { teams, setTeams } = get()
+
+    const offensiveTeamIndex = isTopInning ? 0 : 1
+    const defensiveTeamIndex = isTopInning ? 1 : 0
+
+    const offensiveTeam = teams[offensiveTeamIndex]
+    const defensiveTeam = teams[defensiveTeamIndex]
+
+    // ── 1. Actualizar estadísticas del corredor ─────────────────────────────
+    let updatedOffensiveLineup = offensiveTeam.lineup.map((player) => {
+      if (player._id === runnerId) {
+        if (wasSuccessful) {
+          // Base robada exitosa
+          return {
+            ...player,
+            stolenBases: (player.stolenBases ?? 0) + 1,
+          }
+        } else {
+          // Caught stealing
+          return {
+            ...player,
+            caughtStealing: (player.caughtStealing ?? 0) + 1,
+          }
+        }
+      }
+      return player
+    })
+
+    // ── 2. Si fue caught stealing, dar crédito al catcher ───────────────────
+    let updatedDefensiveLineup = [...defensiveTeam.lineup]
+    
+    if (!wasSuccessful) {
+      updatedDefensiveLineup = updatedDefensiveLineup.map((player) => {
+        if (player.position === 'C') {
+          return {
+            ...player,
+            caughtStealingBy: (player.caughtStealingBy ?? 0) + 1,
+          }
+        }
+        return player
+      })
+    }
+
+    setTeams(
+      teams.map((team, index) => {
+        if (index === offensiveTeamIndex)
+          return { ...team, lineup: updatedOffensiveLineup }
+        if (index === defensiveTeamIndex)
+          return { ...team, lineup: updatedDefensiveLineup }
+        return team
+      })
+    )
+
+    // Persistir ambos lineups en el backend
+    const gameId = useGameStore.getState().id!
+    if (gameId) {
+      await updatePlayerService(gameId, offensiveTeamIndex, updatedOffensiveLineup)
+      if (!wasSuccessful) {
+        await updatePlayerService(gameId, defensiveTeamIndex, updatedDefensiveLineup)
+      }
+    }
+  },
+
   changeCurrentBatter: async (newCurrentBatterIndex) => {
 
     const { isTopInning } = useGameStore.getState()
