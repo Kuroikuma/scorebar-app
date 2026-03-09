@@ -10,9 +10,13 @@ export enum TypeHitting {
   Triple = "Triple",//3B
   HomeRun = "Cuadrangular", //HR
   BaseByBall = "Base por bola",//BB
-  Out = "Out", // También puedes incluir "Out" como un tipo de bateo
+  Out = "Out",
   HitByPitch = "Golpe por lanzamiento", // HBP 
-  ErrorPlay = "Error de juego"
+  ErrorPlay = "Error de juego",
+  // Dropped Third Strike — el pitcher siempre recibe crédito de K
+  // El bateador puede o no haber llegado a 1ra
+  StruckOutWildPitch = "K - Lanzamiento Salvaje",  // WP: responsabilidad del pitcher
+  StruckOutPassedBall = "K - Passed Ball",          // PB: responsabilidad del catcher
 }
 
 export enum TypeAbbreviatedBatting {
@@ -23,7 +27,9 @@ export enum TypeAbbreviatedBatting {
   Out = "O",
   BaseBayBall = "BB",
   HitByPitch = "HBP",
-  ErrorPlay = "Err"
+  ErrorPlay = "Err",
+  StruckOutWildPitch = "K-WP",   // K + lanzamiento salvaje
+  StruckOutPassedBall = "K-PB",  // K + passed ball
 }
 
 export interface ITurnAtBat {
@@ -31,6 +37,9 @@ export interface ITurnAtBat {
   typeHitting: TypeHitting
   typeAbbreviatedBatting: TypeAbbreviatedBatting
   errorPlay: string
+  // Solo para K-WP y K-PB: indica si el bateador llegó safe a 1ra
+  // (afecta las bases pero el pitcher igual recibe crédito de K)
+  batterReachedBase?: boolean
 }
 
 export type Player = {
@@ -41,6 +50,13 @@ export type Player = {
   battingOrder: number
   turnsAtBat: ITurnAtBat[];
   defensiveOrder: number;
+  // ── Estadísticas defensivas por jugador ──────────────────────────────────
+  // Pitcher: lanzamientos que pasaron al backstop por responsabilidad propia
+  wildPitches?: number
+  // Catcher: lanzamientos catcheables que dejó pasar
+  passedBalls?: number
+  // Pitcher: ponches propinados (incluye K-WP y K-PB, el pitcher siempre recibe K)
+  strikeoutsThrown?: number
 }
 
 export type Team = {
@@ -79,6 +95,12 @@ export type TeamsState = {
   submitLineup: (teamIndex: number) => Promise<void>
   changeTeamShortName: (teamIndex: any, newShortName: any) => Promise<void>
   changeCurrentBatter: (newCurrentBatterIndex: number) => void
+  // Registra WP o PB en el jugador defensivo responsable (pitcher o catcher)
+  // y anota el turno al bat del bateador con el tipo correcto
+  recordDroppedThirdStrikeStats: (
+    type: 'WP' | 'PB',
+    batterReachedBase: boolean
+  ) => Promise<void>
 }
 
 export const useTeamsStore = create<TeamsState>((set, get) => ({
@@ -111,6 +133,105 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       shortName: 'AWAY',
     },
   ],
+  /**
+   * Registra las estadísticas de un Dropped Third Strike en los jugadores
+   * defensivos responsables y en el turno al bat del bateador.
+   *
+   * Reglas de asignación:
+   * - WP (Wild Pitch): se carga al PITCHER  — Regla 9.13(a)
+   *   "Se anotará lanzamiento salvaje cuando el pitcher lanza tan alto,
+   *   tan bajo o tan lejos del home que el catcher no puede detenerlo
+   *   con un esfuerzo ordinario"
+   * - PB (Passed Ball): se carga al CATCHER — Regla 9.13(b)
+   *   "Se anotará passed ball cuando el catcher no logra retener un
+   *   lanzamiento que, con un esfuerzo ordinario, debió haber retenido"
+   * - En ambos casos el PITCHER recibe crédito de ponche (strikeoutsThrown)
+   */
+  recordDroppedThirdStrikeStats: async (type, batterReachedBase) => {
+    const { isTopInning } = useGameStore.getState()
+    const { teams, setTeams } = get()
+
+    const offensiveTeamIndex = isTopInning ? 0 : 1
+    const defensiveTeamIndex = isTopInning ? 1 : 0
+
+    const offensiveTeam = teams[offensiveTeamIndex]
+    const defensiveTeam = teams[defensiveTeamIndex]
+
+    // ── 1. Turno al bat del bateador ─────────────────────────────────────
+    const currentBatterIndex = offensiveTeam.currentBatter
+    const currentBatter = offensiveTeam.lineup[currentBatterIndex]
+
+    if (!currentBatter) return
+
+    const turnAtBat: ITurnAtBat = {
+      inning: useGameStore.getState().inning,
+      typeHitting:
+        type === 'WP'
+          ? TypeHitting.StruckOutWildPitch
+          : TypeHitting.StruckOutPassedBall,
+      typeAbbreviatedBatting:
+        type === 'WP'
+          ? TypeAbbreviatedBatting.StruckOutWildPitch
+          : TypeAbbreviatedBatting.StruckOutPassedBall,
+      errorPlay: '',
+      batterReachedBase,
+    }
+
+    const updatedBatter: Player = {
+      ...currentBatter,
+      turnsAtBat: [...currentBatter.turnsAtBat, turnAtBat],
+    }
+
+    const updatedOffensiveLineup = offensiveTeam.lineup.map((p, i) =>
+      i === currentBatterIndex ? updatedBatter : p
+    )
+
+    // ── 2. Stats del jugador defensivo responsable ───────────────────────
+    let updatedDefensiveLineup = [...defensiveTeam.lineup]
+
+    if (type === 'WP') {
+      // WP → pitcher: +1 wildPitches, +1 strikeoutsThrown
+      updatedDefensiveLineup = updatedDefensiveLineup.map((p) => {
+        if (p.position === 'P') {
+          return {
+            ...p,
+            wildPitches: (p.wildPitches ?? 0) + 1,
+            strikeoutsThrown: (p.strikeoutsThrown ?? 0) + 1,
+          }
+        }
+        return p
+      })
+    } else {
+      // PB → catcher: +1 passedBalls
+      // Pitcher de todas formas recibe +1 strikeoutsThrown
+      updatedDefensiveLineup = updatedDefensiveLineup.map((p) => {
+        if (p.position === 'C') {
+          return { ...p, passedBalls: (p.passedBalls ?? 0) + 1 }
+        }
+        if (p.position === 'P') {
+          return { ...p, strikeoutsThrown: (p.strikeoutsThrown ?? 0) + 1 }
+        }
+        return p
+      })
+    }
+
+    setTeams(
+      teams.map((team, index) => {
+        if (index === offensiveTeamIndex)
+          return { ...team, lineup: updatedOffensiveLineup }
+        if (index === defensiveTeamIndex)
+          return { ...team, lineup: updatedDefensiveLineup }
+        return team
+      })
+    )
+
+    // Persistir ambos lineups en el backend
+    const gameId = useGameStore.getState().id!
+    if (gameId) {
+      await updatePlayerService(gameId, offensiveTeamIndex, updatedOffensiveLineup)
+      await updatePlayerService(gameId, defensiveTeamIndex, updatedDefensiveLineup)
+    }
+  },
   changeCurrentBatter: async (newCurrentBatterIndex) => {
 
     const { isTopInning } = useGameStore.getState()

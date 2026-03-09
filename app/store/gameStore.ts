@@ -169,6 +169,23 @@ export type GameState = {
   handleBBPlay: () => Promise<void>
   loadGameHistory: (game: Partial<Omit<Game, "userId">>) => Promise<void>
   handleAdvanceRunners: (advances: RunnerAdvance[]) => Promise<void>
+    // ── Dropped Third Strike ────────────────────────────────────────────────
+  // true cuando strike 3 ocurre y la condición de dropped third strike aplica.
+  // La UI lo observa para mostrar el modal de resolución.
+  pendingDroppedThirdStrike: boolean
+  setPendingDroppedThirdStrike: (value: boolean) => void
+  /**
+   * Resuelve un dropped third strike (K-WP o K-PB).
+   * 
+   * @param type        'WP' si el lanzamiento fue wild pitch, 'PB' si fue passed ball
+   * @param batterSafe  true si el bateador llegó safe a 1ra base
+   * 
+   * Regla 5.05(a)(2): el bateador puede correr a 1ra solo si:
+   *   - 1ra base está desocupada, O
+   *   - hay 2 outs (sin importar si 1ra está ocupada)
+   * En cualquier otro caso es out normal (pero WP/PB igual se registra).
+   */
+  handleDroppedThirdStrike: (type: 'WP' | 'PB', batterSafe: boolean) => Promise<void>
 }
 
 const __initBase__ = {
@@ -229,6 +246,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     ...__initOverlays,
     id: 'playerStats',
   },
+   pendingDroppedThirdStrike: false,
+  setPendingDroppedThirdStrike: (value) => set({ pendingDroppedThirdStrike: value }),
   handleAdvanceRunners: async (advances: RunnerAdvance[]) => {
     console.log('🔄 Procesando avances de corredores:', advances);
     
@@ -419,7 +438,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   handleStrikeChange: async (newStrikes, isSaved = true) => {
-    const { outs, id, handleOutsChange, updateGame } = get()
+    const { outs, id, bases, handleOutsChange, updateGame } = get()
 
     const nextOuts = outs + 1;
 
@@ -432,15 +451,26 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     if (newStrikes === 3) {
-      if (nextOuts === 3) {
-        await handleOutsChange(nextOuts, false)
-      } else {
-        await handleOutsChange(nextOuts, true)
+      // ── Regla 5.05(a)(2): Dropped Third Strike ─────────────────────────
+      // Antes de procesar el out, verificar si aplica la condición.
+      // El modal siempre aparece para que el operador indique WP o PB,
+      // incluso cuando el bateador no puede correr (1ra ocupada <2 outs).
+      const firstBaseEmpty = !bases[0].isOccupied
+      const twoOuts = outs === 2  // outs actual, el 3er strike aún no suma
+
+      if (firstBaseEmpty || twoOuts) {
+        // El bateador PUEDE intentar correr → el operador decide si llegó safe
+        set({ pendingDroppedThirdStrike: true })
+        // No procesamos el out aquí — el handler handleDroppedThirdStrike
+        // lo hará según la respuesta del operador en el modal
+        return
       }
 
-      if (isSaved && nextOuts === 3) {
-        await updateGame()
-      } 
+      // 1ra ocupada con <2 outs → bateador es out de todas formas,
+      // pero igual registramos WP/PB para estadísticas
+      // Mostramos el modal solo para WP/PB, sin opción de batterSafe
+      set({ pendingDroppedThirdStrike: true })
+      return
 
     } else {
       set({ strikes: newStrikes })
@@ -1377,5 +1407,78 @@ export const useGameStore = create<GameState>((set, get) => ({
       newTeam,
       bases
     )
+  },
+
+   /**
+   * Resuelve un Dropped Third Strike completo (Fase 3 — estadísticas por jugador).
+   *
+   * Responsabilidades:
+   * 1. Registra WP en pitcher O PB en catcher (vía teamsStore)
+   * 2. Siempre registra K en strikeoutsThrown del pitcher
+   * 3. Registra el turno al bat del bateador con tipo K-WP / K-PB
+   * 4. Si batterSafe Y la condición aplica (1ra vacía o 2 outs):
+   *    → bateador a 1ra, corredores forzados avanzan (igual que BB)
+   * 5. Si !batterSafe O condición no aplica:
+   *    → out normal
+   * 6. Cierra el modal limpiando el flag
+   */
+  handleDroppedThirdStrike: async (type, batterSafe) => {
+    const { outs, bases, isTopInning, handleOutsChange, updateGame } = get()
+
+    const firstBaseEmpty = !bases[0].isOccupied
+    const twoOuts = outs === 2
+    const batterCanRun = firstBaseEmpty || twoOuts
+
+    // 1. Estadísticas por jugador (bateador + pitcher o catcher)
+    await useTeamsStore
+      .getState()
+      .recordDroppedThirdStrikeStats(type, batterSafe && batterCanRun)
+
+    const nextOuts = outs + 1
+
+    if (batterSafe && batterCanRun) {
+      // ── Bateador llega safe a 1ra ──────────────────────────────────────
+      registerHistory('strike')
+
+      const { teams, advanceBatter } = useTeamsStore.getState()
+      const teamIndex = isTopInning ? 0 : 1
+      const currentBatter = get().getCurrentBatter()
+      const newBases = [...bases]
+
+      // Avanzar solo corredores forzados (cadena continua desde 1ra)
+      for (let i = 2; i >= 0; i--) {
+        if (newBases[i].isOccupied) {
+          let forced = true
+          for (let b = 0; b < i; b++) {
+            if (!newBases[b].isOccupied) { forced = false; break }
+          }
+          if (forced) {
+            if (i === 2) {
+              await useTeamsStore.getState().incrementRuns(teamIndex, 1, false)
+              newBases[i] = { isOccupied: false, playerId: null }
+            } else {
+              newBases[i + 1] = { ...newBases[i] }
+              newBases[i] = { isOccupied: false, playerId: null }
+            }
+          }
+        }
+      }
+
+      newBases[0] = { isOccupied: true, playerId: currentBatter?._id as string }
+
+      set({ bases: newBases, balls: 0, strikes: 0, pendingDroppedThirdStrike: false })
+      await advanceBatter(teamIndex)
+      await updateGame()
+
+    } else {
+      // ── Out normal ─────────────────────────────────────────────────────
+      set({ pendingDroppedThirdStrike: false })
+      if (nextOuts === 3) {
+        await handleOutsChange(nextOuts, false)
+        await updateGame()
+      } else {
+        await handleOutsChange(nextOuts, true)
+      }
+    }
   },
 }))
