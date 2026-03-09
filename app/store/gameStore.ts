@@ -864,6 +864,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
+    // ✅ Regla 9.05(a): Hit legítimo incrementa contador de hits
     setTeams(
       teams.map((team) =>
         team === currentTeam
@@ -913,7 +914,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     const tercera = isStay ? bases[1] : bases[0]
 
     const newBases = [__initBase__ , { isOccupied:true, playerId: currentBatter._id as string }, tercera]
-    // const runsScored = (bases[2].isOccupied ? 1 : 0) + (bases[1].isOccupied ? 1 : 0)
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -931,6 +931,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
+    // ✅ Regla 9.05(a): Hit legítimo incrementa contador de hits
     setTeams(
       teams.map((team) =>
         team === currentTeam
@@ -938,7 +939,7 @@ export const useGameStore = create<GameState>((set, get) => ({
               ...team,
               runs: team.runs + runsScored,
               hits: team.hits + 1,
-              newLineup,
+              lineup: newLineup,
             }
           : team
       )
@@ -979,9 +980,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
     const newBases = [__initBase__, __initBase__, { isOccupied:true, playerId: currentBatter._id as string }]
-    // const runsScored =
-    //   (bases[2].isOccupied ? 1 : 0) + (bases[1].isOccupied ? 1 : 0) + (bases[0].isOccupied ? 1 : 0)
-    
 
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
@@ -999,6 +997,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
+    // ✅ Regla 9.05(a): Hit legítimo incrementa contador de hits
     setTeams(
       teams.map((team) =>
         team === currentTeam
@@ -1006,7 +1005,7 @@ export const useGameStore = create<GameState>((set, get) => ({
               ...team,
               runs: team.runs + runsScored,
               hits: team.hits + 1,
-              newLineup,
+              lineup: newLineup,
             }
           : team
       )
@@ -1065,6 +1064,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       player.name === currentBatter?.name ? newCurrentBatter : player
     )
 
+    // ✅ Regla 9.05(a): Hit legítimo incrementa contador de hits
     setTeams(
       teams.map((team) =>
         team === currentTeam
@@ -1072,7 +1072,7 @@ export const useGameStore = create<GameState>((set, get) => ({
               ...team,
               runs: team.runs + runsScored,
               hits: team.hits + 1,
-              newLineup,
+              lineup: newLineup,
             }
           : team
       )
@@ -1151,58 +1151,130 @@ export const useGameStore = create<GameState>((set, get) => ({
     advanceBatter(teamIndex)
   },
   handleErrorPlay: async (defensiveOrder: number) => {
-    const { isTopInning, getCurrentBatter, bases } = get()
-    const { teams, advanceBatter, setTeams } = useTeamsStore.getState()
+  const { isTopInning, getCurrentBatter, bases } = get()
+  const { teams, advanceBatter, setTeams } = useTeamsStore.getState()
 
-    const currentBatter = getCurrentBatter()
+  const currentBatter = getCurrentBatter()
 
-    if(!currentBatter) {
-      toast.error("El lineup no tiene jugador actualmente")
-      return
-    }
+  if (!currentBatter) {
+    toast.error("El lineup no tiene jugador actualmente")
+    return
+  }
 
-    useHistoryStore.getState().handleStrikeFlowHistory('error')
+  useHistoryStore.getState().handleStrikeFlowHistory('error')
 
-    const teamIndex = isTopInning ? 0 : 1
-    const currentTeam = teams[teamIndex]
+  const teamIndex = isTopInning ? 0 : 1
+  const defensiveTeamIndex = isTopInning ? 1 : 0
+  const currentTeam = teams[teamIndex]
 
-    let turnsAtBat: ITurnAtBat = {
-      inning: useGameStore.getState().inning,
-      typeHitting: TypeHitting.ErrorPlay,
-      typeAbbreviatedBatting: TypeAbbreviatedBatting.ErrorPlay,
-      errorPlay: `E${defensiveOrder}`,
-    }
+  let turnsAtBat: ITurnAtBat = {
+    inning: useGameStore.getState().inning,
+    typeHitting: TypeHitting.ErrorPlay,
+    typeAbbreviatedBatting: TypeAbbreviatedBatting.ErrorPlay,
+    errorPlay: `E${defensiveOrder}`,
+  }
 
-    let newCurrentBatter = {
-      ...currentBatter,
-      turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
-    }
+  let newCurrentBatter = {
+    ...currentBatter,
+    turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
+  }
 
-    let newLineup = currentTeam.lineup.map((player) =>
-      player.name === currentBatter?.name ? newCurrentBatter : player
+  let newLineup = currentTeam.lineup.map((player) =>
+    player.name === currentBatter?.name ? newCurrentBatter : player
+  )
+
+  // ⚠️ Regla 9.05(a): Error NO incrementa hits del equipo ofensivo
+  // ✅ Regla 9.12(a): Error incrementa contador del equipo DEFENSIVO
+  setTeams(
+    teams.map((team, index) =>
+      index === teamIndex
+        ? { ...team, lineup: newLineup }
+        : index === defensiveTeamIndex
+        ? { ...team, errorsGame: team.errorsGame + 1 }
+        : team
     )
+  )
 
+  // ✅ CORRECCIÓN: Regla 5.06(b)(3) — Avance forzado en cascada
+  //
+  // Un error NO es un force play automático. El bateador llega a 1ra,
+  // y los corredores SOLO avanzan forzados si la secuencia de bases lo exige.
+  //
+  // Escenarios:
+  //   - Solo 2da ocupada:         bateador a 1ra, corredor en 2da QUEDA EN 2DA (no forzado)
+  //   - Solo 1ra ocupada:         bateador a 1ra, corredor de 1ra FORZADO a 2da
+  //   - 1ra y 2da ocupadas:       cascada: bateador→1ra, 1ra→2da, 2da→3ra
+  //   - Bases llenas:             cascada completa + corredor de 3ra ANOTA
+  //
+  // Los corredores NO forzados pueden avanzar bajo su propio riesgo
+  // usando el botón "Avanzar Corredores" después de esta jugada.
+
+  let newBases: IBase[] = [...bases] // Copiar bases actuales (runners no forzados quedan donde están)
+  let runsScored = 0
+
+  const first = bases[0]   // 1ra base
+  const second = bases[1]  // 2da base
+  const third = bases[2]   // 3ra base
+
+  if (!first.isOccupied) {
+    // 1ra vacía → el bateador simplemente ocupa 1ra. Nadie más es forzado.
+    newBases[0] = { isOccupied: true, playerId: currentBatter._id as string }
+    // newBases[1] y newBases[2] no cambian (quedan como estaban)
+    console.log('⚙️ Error: 1ra vacía. Bateador a 1ra. Corredores en 2da/3ra quedan en su lugar.')
+
+  } else if (!second.isOccupied) {
+    // 1ra ocupada, 2da vacía → forzado: bateador a 1ra, corredor de 1ra a 2da.
+    // El corredor en 3ra (si existe) NO es forzado.
+    newBases[0] = { isOccupied: true, playerId: currentBatter._id as string }
+    newBases[1] = first  // Corredor de 1ra forzado a 2da
+    // newBases[2] no cambia
+    console.log('⚙️ Error: 1ra ocupada, 2da vacía. Forzado: bateador→1ra, 1ra→2da.')
+
+  } else if (!third.isOccupied) {
+    // 1ra y 2da ocupadas, 3ra vacía → cascada: bateador→1ra, 1ra→2da, 2da→3ra
+    newBases[0] = { isOccupied: true, playerId: currentBatter._id as string }
+    newBases[1] = first   // 1ra forzado a 2da
+    newBases[2] = second  // 2da forzado a 3ra
+    console.log('⚙️ Error: 1ra y 2da ocupadas. Cascada: bateador→1ra, 1ra→2da, 2da→3ra.')
+
+  } else {
+    // Bases llenas → todos forzados, corredor de 3ra anota
+    runsScored = 1
+    newBases[0] = { isOccupied: true, playerId: currentBatter._id as string }
+    newBases[1] = first   // 1ra forzado a 2da
+    newBases[2] = second  // 2da forzado a 3ra
+    // El corredor de 3ra (third) anota — se elimina de las bases
+    console.log('⚙️ Error: Bases llenas. Cascada completa + 1 carrera anotada.')
+  }
+
+  set({ bases: newBases, strikes: 0, balls: 0 })
+
+  let newTeam = {
+    ...teams[teamIndex],
+    runs: teams[teamIndex].runs + runsScored,
+    lineup: newLineup,
+  }
+
+  // Actualizar carreras si aplica (bases llenas)
+  if (runsScored > 0) {
     setTeams(
-      teams.map((team) =>
-        team === currentTeam
-          ? { ...team, lineup: newLineup, errorsGame: team.errorsGame + 1 }
+      teams.map((team, index) =>
+        index === teamIndex
+          ? { ...team, runs: team.runs + runsScored }
           : team
       )
     )
+  }
 
-    let newTeam = {
-      ...teams[teamIndex],
-      lineup: newLineup,
-      errorsGame: teams[teamIndex].errorsGame + 1,
-    }
-    await handlePlayServices(
-      useGameStore.getState().id!,
-      teamIndex,
-      newTeam,
-      bases
-    )
-    advanceBatter(teamIndex)
-  },
+  await handlePlayServices(
+    useGameStore.getState().id!,
+    teamIndex,
+    newTeam,
+    newBases
+  )
+
+  advanceBatter(teamIndex)
+},
   handleOutPlay: async (isSaved = true) => {
     const { isTopInning, getCurrentBatter, bases } = get()
     const { teams, setTeams } = useTeamsStore.getState()
