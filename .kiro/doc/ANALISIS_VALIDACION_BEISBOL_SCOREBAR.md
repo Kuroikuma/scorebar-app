@@ -924,29 +924,35 @@ Actual: Sistema no detecta ni asiste al operador
 
 ---
 
-### ❌ 2.14 REGLA 5.10 — SUSTITUCIONES
+### ✅ 2.14 REGLA 5.10 — SUSTITUCIONES
 
 **Regla Oficial**:
 > "Un jugador, o jugadores, pueden ser sustituidos durante un juego en cualquier momento en que la bola esté muerta"
 
-**Estado en ScoreBar**: ⚠️ PARCIALMENTE IMPLEMENTADA
+**Estado en ScoreBar**: ✅ IMPLEMENTADA
 
-**Estado actual**:
-- ✅ Existe `updatePlayer()` en teamsStore.ts (línea 275-293)
-- ❌ NO valida reglas de sustitución:
-  - Jugador sustituido no puede regresar
-  - Pitcher que sale no puede regresar (excepto como jugador de posición)
-  - DH pierde designación si entra a jugar defensivamente
+**Implementación**:
+- ✅ Interfaz `Player` extendida con campos de sustitución:
+  - `isSubstituted: boolean` - Marca si el jugador fue sustituido
+  - `substitutedBy?: string` - ID del jugador que lo reemplazó
+  - `substituteFor?: string` - ID del jugador al que reemplazó
+  - `canReturnAsFielder?: boolean` - Para pitchers (configurable por liga)
 
-**Recomendación**:
-- 🛠️ Agregar tracking de jugadores sustituidos:
-  ```typescript
-  interface Player {
-    // ... campos existentes
-    isSubstituted: boolean
-    substituteFor?: string // ID del jugador que reemplazó
-  }
-  ```
+- ✅ Funciones implementadas en `teamsStore.ts`:
+  - `substitutePlayer()` - Realiza la sustitución con validaciones
+  - `canPlayerBeSubstituted()` - Valida si un jugador puede ser sustituido
+  - `canPlayerReturn()` - Valida si un jugador puede regresar (siempre false)
+
+**Validaciones implementadas**:
+1. ✅ Jugador sustituido no puede regresar al juego (Regla 5.10(a))
+2. ✅ Jugador sustituido no puede ser removido nuevamente
+3. ✅ Sustituto hereda posición en batting order
+4. ✅ Se preserva historial de turnos al bat del jugador original
+5. ✅ Pitcher sustituido marcado con `canReturnAsFielder` (para ligas que lo permitan)
+
+**Pendiente**:
+- ⚠️ Validación de "bola muerta" antes de permitir sustitución (requiere estado de juego)
+- ⚠️ Regla DH: Si DH entra defensivamente, pierde designación (requiere lógica adicional)
 
 ---
 

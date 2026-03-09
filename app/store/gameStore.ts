@@ -773,7 +773,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   loadGame: async (id) => {
     const game = await getGame(id)
     useTeamsStore.getState().setGameId(id)
-    useTeamsStore.getState().setTeams(game.teams)
+    useTeamsStore.getState().setTeams(game.teams.map((t:Team) => ({...t, bench: []})))
     useHistoryStore.getState().setPast(game.past)
     useHistoryStore.getState().setFuture(game.future)
     useConfigStore.getState().setCurrentConfig(game.configId)
