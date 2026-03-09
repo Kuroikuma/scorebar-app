@@ -101,6 +101,8 @@ export type TeamsState = {
     type: 'WP' | 'PB',
     batterReachedBase: boolean
   ) => Promise<void>
+  // Registra WP o PB en estadísticas defensivas (uso general, no solo K)
+  recordWildPitchOrPassedBall: (type: 'WP' | 'PB') => Promise<void>
 }
 
 export const useTeamsStore = create<TeamsState>((set, get) => ({
@@ -133,6 +135,63 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       shortName: 'AWAY',
     },
   ],
+  /**
+   * Registra WP o PB en estadísticas defensivas (uso general).
+   * 
+   * Regla 9.13:
+   * - WP: se carga al pitcher cuando el lanzamiento es tan desviado
+   *   que el catcher no puede detenerlo con esfuerzo ordinario
+   * - PB: se carga al catcher cuando no retiene un lanzamiento
+   *   que debió haber atrapado con esfuerzo ordinario
+   * 
+   * Esta función NO registra turno al bat del bateador.
+   * Úsala cuando corredores avanzan por WP/PB sin que el bateador batee.
+   */
+  recordWildPitchOrPassedBall: async (type) => {
+    const { isTopInning } = useGameStore.getState()
+    const { teams, setTeams } = get()
+
+    const defensiveTeamIndex = isTopInning ? 1 : 0
+    const defensiveTeam = teams[defensiveTeamIndex]
+
+    let updatedDefensiveLineup = [...defensiveTeam.lineup]
+
+    if (type === 'WP') {
+      // WP → pitcher: +1 wildPitches
+      updatedDefensiveLineup = updatedDefensiveLineup.map((p) => {
+        if (p.position === 'P') {
+          return {
+            ...p,
+            wildPitches: (p.wildPitches ?? 0) + 1,
+          }
+        }
+        return p
+      })
+    } else {
+      // PB → catcher: +1 passedBalls
+      updatedDefensiveLineup = updatedDefensiveLineup.map((p) => {
+        if (p.position === 'C') {
+          return { ...p, passedBalls: (p.passedBalls ?? 0) + 1 }
+        }
+        return p
+      })
+    }
+
+    setTeams(
+      teams.map((team, index) => {
+        if (index === defensiveTeamIndex)
+          return { ...team, lineup: updatedDefensiveLineup }
+        return team
+      })
+    )
+
+    // Persistir lineup defensivo en el backend
+    const gameId = useGameStore.getState().id!
+    if (gameId) {
+      await updatePlayerService(gameId, defensiveTeamIndex, updatedDefensiveLineup)
+    }
+  },
+
   /**
    * Registra las estadísticas de un Dropped Third Strike en los jugadores
    * defensivos responsables y en el turno al bat del bateador.

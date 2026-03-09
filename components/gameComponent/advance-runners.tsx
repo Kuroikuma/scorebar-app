@@ -8,13 +8,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useState, useEffect } from "react"
-import { ArrowRight, Check, ChevronRight, MonitorIcon as Running, X, AlertCircle, ArrowRightLeft } from "lucide-react"
+import { ArrowRight, Check, ChevronRight, MonitorIcon as Running, X, AlertCircle, ArrowRightLeft, Wind, HandMetal } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useGameStore } from "@/app/store/gameStore"
 import { cn } from "@/app/lib/utils"
 import { Icon } from 'lucide-react';
 import { hatBaseball } from '@lucide/lab';
 import { useTeamsStore } from "@/app/store/teamsStore"
+import { WildPitchPassedBallModal } from "./WildPitchPassedBall"
 
 interface RunnerAdvance {
   fromBase: number // -1 para bateador, 0-2 para bases
@@ -33,6 +34,8 @@ export function AdvanceRunners() {
   const [currentOuts, setCurrentOuts] = useState<number>(outs)
   const [runnerAdvances, setRunnerAdvances] = useState<RunnerAdvance[]>([])
   const [step, setStep] = useState<"select-runners" | "resolve-advances">("select-runners")
+  const [showWPPBModal, setShowWPPBModal] = useState(false)
+  const [pendingAdvances, setPendingAdvances] = useState<RunnerAdvance[]>([])
   const { teams } = useTeamsStore();
 
   const teamIndex = isTopInning ? 0 : 1;
@@ -440,8 +443,19 @@ export function AdvanceRunners() {
 
     // Si todos los avances han sido resueltos o hay 3 outs
     if (updatedAdvances.every((advance) => advance.isOut !== undefined) || currentOuts + 1 >= 3) {
-      handleAdvanceRunners(updatedAdvances)
-      setIsModalOpen(false)
+      // Verificar si algún corredor avanzó (no todos fueron out)
+      const anyRunnerAdvanced = updatedAdvances.some((advance) => !advance.isOut)
+      
+      if (anyRunnerAdvanced) {
+        // Guardar los avances y mostrar modal WP/PB
+        setPendingAdvances(updatedAdvances)
+        setShowWPPBModal(true)
+        setIsModalOpen(false)
+      } else {
+        // Todos fueron out, procesar directamente
+        handleAdvanceRunners(updatedAdvances)
+        setIsModalOpen(false)
+      }
     }
   }
 
@@ -466,6 +480,22 @@ export function AdvanceRunners() {
         <Icon iconNode={hatBaseball} className="w-5 h-5 mr-2" />
         Avanzar Corredores
       </Button>
+
+      {/* Modal WP/PB */}
+      <WildPitchPassedBallModal
+        open={showWPPBModal}
+        onOpenChange={(open) => {
+          setShowWPPBModal(open)
+          if (!open) {
+            // Si se cierra sin seleccionar, procesar como avance normal
+            if (pendingAdvances.length > 0) {
+              handleAdvanceRunners(pendingAdvances)
+              setPendingAdvances([])
+            }
+          }
+        }}
+        advances={pendingAdvances}
+      />
 
       <Dialog open={isModalOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="bg-gray-800/95 backdrop-blur-sm text-white border-[#2d2b3b] rounded-xl shadow-2xl max-w-md w-full mx-auto">
@@ -496,15 +526,39 @@ export function AdvanceRunners() {
                 >
                   Cancelar
                 </Button>
-                <Button
-                  variant="default"
-                  onClick={() => setStep("resolve-advances")}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                  disabled={!runnerAdvances.length || runnerAdvances.some((r) => r.toBase === null)}
-                >
-                  Resolver Avances
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
+                <div className="flex gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setPendingAdvances(runnerAdvances.map(r => ({ ...r, isOut: false })))
+                            setShowWPPBModal(true)
+                            setIsModalOpen(false)
+                          }}
+                          className="border-blue-500 text-blue-400 hover:bg-blue-500/20"
+                          disabled={!runnerAdvances.length || runnerAdvances.some((r) => r.toBase === null)}
+                        >
+                          <Wind className="w-4 h-4 mr-1" />
+                          WP/PB
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Avance por lanzamiento no atrapado (todos safe)</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <Button
+                    variant="default"
+                    onClick={() => setStep("resolve-advances")}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    disabled={!runnerAdvances.length || runnerAdvances.some((r) => r.toBase === null)}
+                  >
+                    Resolver Avances
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
               </DialogFooter>
             </>
           ) : (

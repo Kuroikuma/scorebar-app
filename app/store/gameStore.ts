@@ -169,6 +169,10 @@ export type GameState = {
   handleBBPlay: () => Promise<void>
   loadGameHistory: (game: Partial<Omit<Game, "userId">>) => Promise<void>
   handleAdvanceRunners: (advances: RunnerAdvance[]) => Promise<void>
+  // Maneja avance de corredores por Wild Pitch (Regla 9.13)
+  handleWildPitch: (advances: RunnerAdvance[]) => Promise<void>
+  // Maneja avance de corredores por Passed Ball (Regla 9.13)
+  handlePassedBall: (advances: RunnerAdvance[]) => Promise<void>
     // ── Dropped Third Strike ────────────────────────────────────────────────
   // true cuando strike 3 ocurre y la condición de dropped third strike aplica.
   // La UI lo observa para mostrar el modal de resolución.
@@ -344,6 +348,41 @@ export const useGameStore = create<GameState>((set, get) => ({
     newOuts === 3 && changeInning(true, false)
     await updateGame()
   },
+
+  /**
+   * Maneja avance de corredores por Wild Pitch (Regla 9.13).
+   * 
+   * Registra WP en estadísticas del pitcher y procesa los avances.
+   * Úsalo cuando el lanzamiento es tan desviado que el catcher
+   * no puede detenerlo con esfuerzo ordinario.
+   */
+  handleWildPitch: async (advances: RunnerAdvance[]) => {
+    console.log('🌪️ Wild Pitch - Registrando estadística del pitcher');
+    
+    // Registrar WP en estadísticas del pitcher
+    await useTeamsStore.getState().recordWildPitchOrPassedBall('WP')
+    
+    // Procesar avances de corredores
+    await get().handleAdvanceRunners(advances)
+  },
+
+  /**
+   * Maneja avance de corredores por Passed Ball (Regla 9.13).
+   * 
+   * Registra PB en estadísticas del catcher y procesa los avances.
+   * Úsalo cuando el catcher no retiene un lanzamiento catcheable
+   * con esfuerzo ordinario.
+   */
+  handlePassedBall: async (advances: RunnerAdvance[]) => {
+    console.log('🧤 Passed Ball - Registrando estadística del catcher');
+    
+    // Registrar PB en estadísticas del catcher
+    await useTeamsStore.getState().recordWildPitchOrPassedBall('PB')
+    
+    // Procesar avances de corredores
+    await get().handleAdvanceRunners(advances)
+  },
+
   setInning: (inning) => set({ inning }),
   setIsTopInning: (isTop) => set({ isTopInning: isTop }),
   setBalls: async (balls) => {
