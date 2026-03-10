@@ -1,0 +1,291 @@
+'use client';
+
+import { useState, useMemo } from 'react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Check, Sparkles, Palette, Zap } from 'lucide-react';
+import { LowerThirdDesign, IBannerSettings } from '@/app/types/Banner';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface DesignPreset {
+  design: LowerThirdDesign;
+  name: string;
+  description: string;
+  category: 'professional' | 'creative' | 'minimal';
+  preview: string;
+  colors: {
+    primary: string;
+    secondary: string;
+  };
+  tags: string[];
+}
+
+const DESIGN_PRESETS: DesignPreset[] = [
+  {
+    design: 'classic',
+    name: 'Clásico',
+    description: 'Diseño tradicional y profesional',
+    category: 'professional',
+    preview: '/placeholder.svg?height=120&width=200&text=Classic',
+    colors: { primary: '#3b82f6', secondary: '#1e40af' },
+    tags: ['Profesional', 'Limpio', 'Versátil'],
+  },
+  {
+    design: 'modern',
+    name: 'Moderno',
+    description: 'Estilo contemporáneo con efectos',
+    category: 'professional',
+    preview: '/placeholder.svg?height=120&width=200&text=Modern',
+    colors: { primary: '#8b5cf6', secondary: '#6d28d9' },
+    tags: ['Elegante', 'Actual', 'Dinámico'],
+  },
+  {
+    design: 'minimal',
+    name: 'Minimalista',
+    description: 'Simple y directo al punto',
+    category: 'minimal',
+    preview: '/placeholder.svg?height=120&width=200&text=Minimal',
+    colors: { primary: '#64748b', secondary: '#475569' },
+    tags: ['Simple', 'Limpio', 'Rápido'],
+  },
+  {
+    design: 'elegant',
+    name: 'Elegante',
+    description: 'Sofisticado con detalles refinados',
+    category: 'professional',
+    preview: '/placeholder.svg?height=120&width=200&text=Elegant',
+    colors: { primary: '#ec4899', secondary: '#be185d' },
+    tags: ['Sofisticado', 'Premium', 'Detallado'],
+  },
+  {
+    design: 'playful',
+    name: 'Divertido',
+    description: 'Colorido y llamativo',
+    category: 'creative',
+    preview: '/placeholder.svg?height=120&width=200&text=Playful',
+    colors: { primary: '#f59e0b', secondary: '#d97706' },
+    tags: ['Colorido', 'Alegre', 'Creativo'],
+  },
+  {
+    design: 'sports',
+    name: 'Deportivo',
+    description: 'Energético y dinámico',
+    category: 'creative',
+    preview: '/placeholder.svg?height=120&width=200&text=Sports',
+    colors: { primary: '#10b981', secondary: '#059669' },
+    tags: ['Energético', 'Deportivo', 'Impactante'],
+  },
+  {
+    design: 'contact',
+    name: 'Contacto',
+    description: 'Enfocado en información de contacto',
+    category: 'professional',
+    preview: '/placeholder.svg?height=120&width=200&text=Contact',
+    colors: { primary: '#0ea5e9', secondary: '#0284c7' },
+    tags: ['Informativo', 'Claro', 'Directo'],
+  },
+  {
+    design: 'flipCard',
+    name: 'Tarjeta 3D',
+    description: 'Efecto 3D impresionante',
+    category: 'creative',
+    preview: '/placeholder.svg?height=120&width=200&text=FlipCard',
+    colors: { primary: '#6366f1', secondary: '#4f46e5' },
+    tags: ['3D', 'Moderno', 'Impactante'],
+  },
+];
+
+const CATEGORIES = [
+  { value: 'all', label: 'Todos', icon: Sparkles },
+  { value: 'professional', label: 'Profesional', icon: Zap },
+  { value: 'creative', label: 'Creativo', icon: Palette },
+  { value: 'minimal', label: 'Minimalista', icon: Check },
+];
+
+interface DesignSelectorProps {
+  currentDesign: LowerThirdDesign;
+  onDesignChange: (design: LowerThirdDesign) => void;
+  onQuickCustomize?: (preset: DesignPreset) => void;
+}
+
+export default function DesignSelector({ 
+  currentDesign, 
+  onDesignChange,
+  onQuickCustomize 
+}: DesignSelectorProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [hoveredDesign, setHoveredDesign] = useState<LowerThirdDesign | null>(null);
+
+  const filteredDesigns = useMemo(() => {
+    if (selectedCategory === 'all') return DESIGN_PRESETS;
+    return DESIGN_PRESETS.filter(preset => preset.category === selectedCategory);
+  }, [selectedCategory]);
+
+  const currentPreset = DESIGN_PRESETS.find(p => p.design === currentDesign);
+
+  return (
+    <div className="space-y-6">
+      {/* Header con categorías */}
+      <div>
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">
+          Elige un Diseño
+        </h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+          Selecciona un estilo base y personalízalo a tu gusto
+        </p>
+
+        {/* Filtros de categoría */}
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map(({ value, label, icon: Icon }) => (
+            <Button
+              key={value}
+              variant={selectedCategory === value ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedCategory(value)}
+              className="transition-all"
+            >
+              <Icon className="w-4 h-4 mr-2" />
+              {label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Grid de diseños */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <AnimatePresence mode="popLayout">
+          {filteredDesigns.map((preset, index) => {
+            const isSelected = preset.design === currentDesign;
+            const isHovered = preset.design === hoveredDesign;
+
+            return (
+              <motion.div
+                key={preset.design}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2, delay: index * 0.03 }}
+              >
+                <Card
+                  className={`relative overflow-hidden cursor-pointer transition-all duration-200 ${
+                    isSelected
+                      ? 'ring-2 ring-blue-500 shadow-lg'
+                      : 'hover:shadow-md hover:scale-[1.02]'
+                  }`}
+                  onMouseEnter={() => setHoveredDesign(preset.design)}
+                  onMouseLeave={() => setHoveredDesign(null)}
+                  onClick={() => onDesignChange(preset.design)}
+                >
+                  {/* Preview */}
+                  <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 relative overflow-hidden">
+                    {/* Color indicators */}
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      <div
+                        className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                        style={{ backgroundColor: preset.colors.primary }}
+                      />
+                      <div
+                        className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                        style={{ backgroundColor: preset.colors.secondary }}
+                      />
+                    </div>
+
+                    {/* Selected badge */}
+                    {isSelected && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-2 left-2"
+                      >
+                        <Badge className="bg-blue-500 text-white">
+                          <Check className="w-3 h-3 mr-1" />
+                          Activo
+                        </Badge>
+                      </motion.div>
+                    )}
+
+                    {/* Preview image placeholder */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-4xl font-bold text-slate-300 dark:text-slate-700">
+                        {preset.name[0]}
+                      </span>
+                    </div>
+
+                    {/* Hover overlay */}
+                    <AnimatePresence>
+                      {isHovered && !isSelected && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="absolute inset-0 bg-blue-500/10 backdrop-blur-[1px] flex items-center justify-center"
+                        >
+                          <Button size="sm" variant="secondary">
+                            Seleccionar
+                          </Button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-3">
+                    <h4 className="font-semibold text-sm text-slate-800 dark:text-white mb-1">
+                      {preset.name}
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 line-clamp-2">
+                      {preset.description}
+                    </p>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1">
+                      {preset.tags.slice(0, 2).map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-xs px-2 py-0"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
+
+      {/* Quick customize section */}
+      {currentPreset && onQuickCustomize && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <h4 className="font-semibold text-sm text-blue-900 dark:text-blue-100 mb-1">
+                💡 Personalización Rápida
+              </h4>
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                Aplica los colores sugeridos de "{currentPreset.name}" automáticamente
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => onQuickCustomize(currentPreset)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Sparkles className="w-4 h-4 mr-1" />
+              Aplicar
+            </Button>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}

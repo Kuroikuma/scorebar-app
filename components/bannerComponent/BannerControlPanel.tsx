@@ -1,38 +1,67 @@
 'use client';
 
-import { useMemo } from "react"
-import ControlPanel from "./ControlPanel"
+import { useMemo, useState } from "react"
+import ImprovedControlPanel from "./ImprovedControlPanel"
 import PositionControl from "./PositionControl"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Palette, Type, Layers, Move, Sparkles, Users, AlertCircle, Edit3 } from "lucide-react"
 import { useBannerStore } from "@/app/store/useBannerStore"
-import { useSponsorStore } from "@/app/store/useSponsor"
-import { ISponsor } from "@/app/types/sponsor"
-import { IBannerSettings } from "@/app/types/Banner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 
-type TabValue = "sponsors" | "design" | "colors" | "fields" | "animation" | "position";
+type TabValue = "sponsors" | "design" | "colors" | "animation" | "fields" | "position";
 
 interface TabConfig {
   value: TabValue;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  description: string;
 }
 
 const TABS_CONFIG: TabConfig[] = [
-  { value: "sponsors", label: "Sponsors", icon: Users },
-  { value: "design", label: "Diseño", icon: Layers },
-  { value: "colors", label: "Colores", icon: Palette },
-  { value: "fields", label: "Campos", icon: Type },
-  { value: "animation", label: "Animación", icon: Sparkles },
-  { value: "position", label: "Posición", icon: Move },
+  { 
+    value: "sponsors", 
+    label: "Sponsor", 
+    icon: Users,
+    description: "Selecciona el sponsor a mostrar"
+  },
+  { 
+    value: "design", 
+    label: "Diseño", 
+    icon: Layers,
+    description: "Elige el estilo visual del banner"
+  },
+  { 
+    value: "colors", 
+    label: "Colores", 
+    icon: Palette,
+    description: "Personaliza la paleta de colores"
+  },
+  { 
+    value: "animation", 
+    label: "Animación", 
+    icon: Sparkles,
+    description: "Configura efectos de entrada"
+  },
+  { 
+    value: "fields", 
+    label: "Campos", 
+    icon: Type,
+    description: "Configura qué información mostrar"
+  },
+  { 
+    value: "position", 
+    label: "Posición", 
+    icon: Move,
+    description: "Ajusta la ubicación del banner"
+  },
 ];
 
 export default function BannerControlPanel() {
-  const { updateSponsor, updateSettings, bannerSelected } = useBannerStore()
-  const { sponsors } = useSponsorStore()
+  const { updateSettings, bannerSelected } = useBannerStore()
   const { sponsorId, bannerSettingsId } = bannerSelected
+  const [activeTab, setActiveTab] = useState<TabValue>("design");
 
   // Validación y extracción segura de datos
   const sponsor = useMemo(() => {
@@ -44,6 +73,8 @@ export default function BannerControlPanel() {
     if (!bannerSettingsId) return null;
     return typeof bannerSettingsId === 'string' ? null : bannerSettingsId;
   }, [bannerSettingsId]);
+
+  const currentTabConfig = TABS_CONFIG.find(t => t.value === activeTab);
 
   // Validación de datos requeridos
   if (!sponsor || !settings) {
@@ -77,35 +108,40 @@ export default function BannerControlPanel() {
   return (
     <Card className="shadow-lg border-0">
       <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 border-b">
-        <CardTitle className="text-xl font-semibold text-slate-800 dark:text-white flex items-center gap-2">
-          <Edit3 className="w-5 h-5 text-blue-500" />
-          Panel de Control
-        </CardTitle>
-        <CardDescription className="text-slate-500 dark:text-slate-400">
-          Personaliza todos los aspectos de tu banner publicitario
-        </CardDescription>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-xl font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+              <Edit3 className="w-5 h-5 text-blue-500" />
+              Panel de Control
+            </CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400 mt-1">
+              {currentTabConfig?.description || "Personaliza tu banner publicitario"}
+            </CardDescription>
+          </div>
+          <Badge variant="outline" className="text-xs">
+            Modo Simplificado
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
-        <Tabs defaultValue="sponsors" className="w-full">
-          <TabsList className="w-full rounded-none border-b grid grid-cols-6 h-auto">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)} className="w-full">
+          <TabsList className="w-full rounded-none border-b grid grid-cols-3 sm:grid-cols-6 h-auto">
             {TABS_CONFIG.map(({ value, label, icon: Icon }) => (
               <TabsTrigger
                 key={value}
                 value={value}
-                className="py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800"
+                className="py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 flex-col sm:flex-row gap-1"
               >
-                <Icon className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">{label}</span>
+                <Icon className="w-4 h-4 sm:mr-2" />
+                <span className="text-xs sm:text-sm">{label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
           
           {TABS_CONFIG.slice(0, -1).map(({ value }) => (
             <TabsContent key={value} value={value} className="p-6">
-              <ControlPanel
+              <ImprovedControlPanel
                 sponsor={sponsor}
-                sponsors={sponsors}
-                updateSponsor={updateSponsor}
                 settings={settings}
                 onUpdateSettings={updateSettings}
                 activeTab={value}
