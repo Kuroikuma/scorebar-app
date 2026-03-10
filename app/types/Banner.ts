@@ -55,7 +55,8 @@ export enum LowerThirdDesign {
   playful = "playful",
   sports = "sports",
   contact = "contact",
-  flipCard = "flipCard"
+  flipCard = "flipCard",
+  darkLuxury = "darkLuxury"
 }
 
 export enum GradientType {

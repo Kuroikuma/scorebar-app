@@ -23,7 +23,7 @@ interface DesignPreset {
 
 const DESIGN_PRESETS: DesignPreset[] = [
   {
-    design: 'classic',
+    design: LowerThirdDesign.classic,
     name: 'Clásico',
     description: 'Diseño tradicional y profesional',
     category: 'professional',
@@ -32,7 +32,7 @@ const DESIGN_PRESETS: DesignPreset[] = [
     tags: ['Profesional', 'Limpio', 'Versátil'],
   },
   {
-    design: 'modern',
+    design: LowerThirdDesign.modern,
     name: 'Moderno',
     description: 'Estilo contemporáneo con efectos',
     category: 'professional',
@@ -41,7 +41,7 @@ const DESIGN_PRESETS: DesignPreset[] = [
     tags: ['Elegante', 'Actual', 'Dinámico'],
   },
   {
-    design: 'minimal',
+    design: LowerThirdDesign.minimal,
     name: 'Minimalista',
     description: 'Simple y directo al punto',
     category: 'minimal',
@@ -50,7 +50,7 @@ const DESIGN_PRESETS: DesignPreset[] = [
     tags: ['Simple', 'Limpio', 'Rápido'],
   },
   {
-    design: 'elegant',
+    design: LowerThirdDesign.elegant,
     name: 'Elegante',
     description: 'Sofisticado con detalles refinados',
     category: 'professional',
@@ -59,7 +59,7 @@ const DESIGN_PRESETS: DesignPreset[] = [
     tags: ['Sofisticado', 'Premium', 'Detallado'],
   },
   {
-    design: 'playful',
+    design: LowerThirdDesign.playful,
     name: 'Divertido',
     description: 'Colorido y llamativo',
     category: 'creative',
@@ -68,7 +68,7 @@ const DESIGN_PRESETS: DesignPreset[] = [
     tags: ['Colorido', 'Alegre', 'Creativo'],
   },
   {
-    design: 'sports',
+    design: LowerThirdDesign.sports,
     name: 'Deportivo',
     description: 'Energético y dinámico',
     category: 'creative',
@@ -77,7 +77,7 @@ const DESIGN_PRESETS: DesignPreset[] = [
     tags: ['Energético', 'Deportivo', 'Impactante'],
   },
   {
-    design: 'contact',
+    design: LowerThirdDesign.contact,
     name: 'Contacto',
     description: 'Enfocado en información de contacto',
     category: 'professional',
@@ -86,13 +86,22 @@ const DESIGN_PRESETS: DesignPreset[] = [
     tags: ['Informativo', 'Claro', 'Directo'],
   },
   {
-    design: 'flipCard',
+    design: LowerThirdDesign.flipCard,
     name: 'Tarjeta 3D',
     description: 'Efecto 3D impresionante',
     category: 'creative',
     preview: '/placeholder.svg?height=120&width=200&text=FlipCard',
     colors: { primary: '#6366f1', secondary: '#4f46e5' },
     tags: ['3D', 'Moderno', 'Impactante'],
+  },
+  {
+    design: LowerThirdDesign.darkLuxury,
+    name: 'Dark Luxury',
+    description: 'Elegancia oscura con acentos dorados',
+    category: 'professional',
+    preview: '/placeholder.svg?height=120&width=200&text=DarkLuxury',
+    colors: { primary: '#0d0d0d', secondary: '#d4af37' },
+    tags: ['Lujo', 'Elegante', 'Premium'],
   },
 ];
 

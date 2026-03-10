@@ -11,6 +11,7 @@ import Playful from "./LowerThirdDesigns/Playful"
 import Sports from "./LowerThirdDesigns/Sports"
 import Contact from "./LowerThirdDesigns/Contact"
 import FlipCard from "./LowerThirdDesigns/FlipCard"
+import DarkLuxury from "./LowerThirdDesigns/DarkLuxury"
 import { ISponsor } from "@/app/types/sponsor"
 import { AnimationType, EasingType, IBannerSettings, LowerThirdDesign } from "@/app/types/Banner"
 
@@ -131,6 +132,7 @@ const designs: Record<
   sports: Sports,
   contact: Contact,
   flipCard: FlipCard,
+  darkLuxury: DarkLuxury,
 }
 
 export default function LowerThirdBanner({ sponsor, settings, isExiting, isVisible = true }: LowerThirdBannerProps) {
