@@ -290,31 +290,73 @@ export const useBannerStore = create<IBannerStore>((set, get) => ({
     }));
   },
   getById: async (id) => {
-    const banner = await getById(id);
+    if (!id) {
+      console.error('No banner ID provided');
+      return;
+    }
 
-    set((state) => ({
-      ...state,
-      bannerSelected: banner,
-    }));
+    try {
+      const banner = await getById(id);
+      
+      if (!banner) {
+        console.error('Banner not found:', id);
+        return;
+      }
+
+      set((state) => ({
+        ...state,
+        bannerSelected: banner,
+      }));
+    } catch (error) {
+      console.error('Error fetching banner:', error);
+      throw error;
+    }
   },
   findByOrganizationId: async (organizationId) => {
-    const banners = await findByOrganizationId(organizationId);
+    if (!organizationId) {
+      console.error('No organization ID provided');
+      return [];
+    }
 
-    set((state) => ({
-      ...state,
-      banners: banners,
-    }));
-    
-    return banners;
+    try {
+      const banners = await findByOrganizationId(organizationId);
+
+      set((state) => ({
+        ...state,
+        banners: banners || [],
+      }));
+      
+      return banners || [];
+    } catch (error) {
+      console.error('Error fetching banners by organization:', error);
+      set((state) => ({
+        ...state,
+        banners: [],
+      }));
+      return [];
+    }
   },
 
   findSettingTemplate: async (organizationId) => {
-    const bannerSettings = await findSettingTemplate(organizationId);
+    if (!organizationId) {
+      console.error('No organization ID provided');
+      return;
+    }
 
-    set((state) => ({
-      ...state,
-      bannerSettings: bannerSettings,
-    }));
+    try {
+      const bannerSettings = await findSettingTemplate(organizationId);
+
+      set((state) => ({
+        ...state,
+        bannerSettings: bannerSettings || [],
+      }));
+    } catch (error) {
+      console.error('Error fetching banner settings:', error);
+      set((state) => ({
+        ...state,
+        bannerSettings: [],
+      }));
+    }
   },
 
 }));
