@@ -8,7 +8,6 @@ import {
 } from '../service/bannerManager.service';
 import { toast } from 'sonner';
 import { useBannerStore } from './useBannerStore';
-import { log } from 'console';
 
 type BannerManagerStore = {
   bannerManager: IBannerManager | null;
@@ -31,15 +30,29 @@ export const useBannerManagerStore = create<BannerManagerStore>((set, get) => ({
   isLoading: false,
   error: null,
   updatePositionBanner: async (newPosition) => {
-    
     const { bannerManager } = get();
+    
+    if (!bannerManager) {
+      console.error('No banner manager available to update position');
+      return;
+    }
 
-    const updateBanner = {
-      ...(bannerManager as IBannerManager),
+    // Actualización optimista del estado local
+    const updatedBanner: IBannerManager = {
+      ...bannerManager,
       position: newPosition
     };
 
-    set({ bannerManager: updateBanner });
+    set({ bannerManager: updatedBanner });
+    
+    // Persistir en el backend (sin await para no bloquear la UI durante el drag)
+    try {
+      await updateBannerManagerService(bannerManager._id, { position: newPosition });
+    } catch (error) {
+      console.error('Error updating banner position:', error);
+      // Revertir en caso de error
+      set({ bannerManager });
+    }
   },
 
   setSelectedBannerInManager: async (id) => {
@@ -47,18 +60,32 @@ export const useBannerManagerStore = create<BannerManagerStore>((set, get) => ({
     const { banners, setSelectedBanner } = useBannerStore.getState();
 
     const banner = banners.find((b) => b._id === id);
-    if (!banner || !bannerManager) return;
+    if (!banner) {
+      console.error('Banner not found:', id);
+      return;
+    }
+    
+    if (!bannerManager) {
+      console.error('No banner manager available');
+      return;
+    }
 
     setSelectedBanner(banner);
     
     const updatedManager: IBannerManager = {
       ...bannerManager,
       bannerId: banner._id,
-      _id: bannerManager._id,
     };
 
     set({ bannerManager: updatedManager });
-    await updateBannerManager(bannerManager._id, { bannerId: banner._id });
+    
+    try {
+      await updateBannerManager(bannerManager._id, { bannerId: banner._id });
+    } catch (error) {
+      console.error('Error updating banner manager:', error);
+      // Revertir en caso de error
+      set({ bannerManager });
+    }
   },
 
   // Crea un nuevo banner y lo agrega a la lista
@@ -83,12 +110,16 @@ export const useBannerManagerStore = create<BannerManagerStore>((set, get) => ({
     try {
       const data = await updateBannerManagerService(bannerId, bannerData);
       set((state) => ({
-        bannerManager: data,
+        bannerManager: state.bannerManager?._id === bannerId ? data : state.bannerManager,
         bannersManagers: state.bannersManagers.map((b) => (b._id === bannerId ? data : b)),
         isLoading: false,
       }));
+      return data;
     } catch (error: any) {
-      set({ error: error.message || 'Error actualizando el banner', isLoading: false });
+      const errorMessage = error.message || 'Error actualizando el banner';
+      set({ error: errorMessage, isLoading: false });
+      console.error('Error in updateBannerManager:', error);
+      throw error; // Re-throw para que el componente pueda manejarlo
     }
   },
 
@@ -100,7 +131,10 @@ export const useBannerManagerStore = create<BannerManagerStore>((set, get) => ({
       set({ bannerManager: data, isLoading: false });
       return data;
     } catch (error: any) {
-      set({ error: error.message || 'Error obteniendo el banner', isLoading: false });
+      const errorMessage = error.message || 'Error obteniendo el banner';
+      set({ error: errorMessage, isLoading: false });
+      console.error('Error in fetchBannerManagerById:', error);
+      throw error;
     }
   },
 
