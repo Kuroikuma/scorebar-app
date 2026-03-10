@@ -167,6 +167,8 @@ export type GameState = {
   handleErrorPlay: (defensiveOrder: number) => Promise<void>
   handleOutPlay: ( isSaved:boolean) => Promise<void>
   handleBBPlay: () => Promise<void>
+  handleInfieldFly: () => Promise<void>
+  isInfieldFlySituation: () => boolean
   loadGameHistory: (game: Partial<Omit<Game, "userId">>) => Promise<void>
   handleAdvanceRunners: (advances: RunnerAdvance[]) => Promise<void>
   // Maneja avance de corredores por Wild Pitch (Regla 9.13)
@@ -1610,6 +1612,114 @@ export const useGameStore = create<GameState>((set, get) => ({
       newTeam,
       bases
     )
+  },
+
+  /**
+   * Detecta si aplica la situación de Infield Fly (Regla 5.09(b)(4)).
+   * 
+   * Condiciones:
+   * - Menos de 2 outs
+   * - Corredores en 1ra y 2da, O bases llenas
+   * 
+   * @returns true si aplica la regla de Infield Fly
+   */
+  isInfieldFlySituation: () => {
+    const { outs, bases } = get()
+    
+    // Debe haber menos de 2 outs
+    if (outs >= 2) return false
+    
+    // Debe haber corredores en 1ra Y 2da (con o sin 3ra)
+    const firstOccupied = bases[0].isOccupied
+    const secondOccupied = bases[1].isOccupied
+    
+    return firstOccupied && secondOccupied
+  },
+
+  /**
+   * Maneja un Infield Fly (Regla 5.09(b)(4)).
+   * 
+   * Regla 5.09(b)(4): Se declara un infield fly cuando hay corredores
+   * en primera y segunda (o bases llenas) con menos de dos outs.
+   * 
+   * Efecto:
+   * - El bateador es automáticamente out
+   * - Los corredores NO están forzados a avanzar
+   * - Los corredores pueden avanzar bajo su propio riesgo (tag up)
+   * - El umpire debe declarar "Infield Fly" para que la regla aplique
+   * 
+   * Nota: Los corredores pueden avanzar después usando "Avanzar Corredores"
+   */
+  handleInfieldFly: async () => {
+    const { outs, bases, isTopInning, getCurrentBatter, handleOutsChange } = get()
+    const { teams, setTeams } = useTeamsStore.getState()
+
+    const teamIndex = isTopInning ? 0 : 1
+    const currentTeam = teams[teamIndex]
+
+    const currentBatter = getCurrentBatter()
+
+    if (!currentBatter) {
+      toast.error("El lineup no tiene jugador actualmente")
+      return
+    }
+
+    // Validar que aplique la situación de Infield Fly
+    if (!get().isInfieldFlySituation()) {
+      toast.error("No aplica Infield Fly: debe haber menos de 2 outs y corredores en 1ra y 2da")
+      return
+    }
+
+    console.log('⚾ Infield Fly declarado - Bateador automáticamente out (Regla 5.09(b)(4))')
+    console.log('📍 Corredores NO forzados - pueden quedarse o avanzar bajo su riesgo')
+
+    useHistoryStore.getState().handleStrikeFlowHistory('out')
+
+    // Registrar el turno al bat como Infield Fly
+    let turnsAtBat: ITurnAtBat = {
+      inning: useGameStore.getState().inning,
+      typeHitting: TypeHitting.InfieldFly,
+      typeAbbreviatedBatting: TypeAbbreviatedBatting.InfieldFly,
+      errorPlay: "",
+    }
+
+    let newCurrentBatter = {
+      ...currentBatter,
+      turnsAtBat: [...currentBatter.turnsAtBat, turnsAtBat],
+    }
+
+    let newLineup = currentTeam.lineup.map((player) =>
+      player.name === currentBatter?.name ? newCurrentBatter : player
+    )
+
+    setTeams(
+      teams.map((team) =>
+        team === currentTeam
+          ? { ...team, lineup: newLineup }
+          : team
+      )
+    )
+
+    // Las bases NO cambian - los corredores permanecen en su lugar
+    // (pueden avanzar después con el botón "Avanzar Corredores")
+    set({ strikes: 0, balls: 0 })
+
+    let newTeam = {
+      ...teams[teamIndex],
+      lineup: newLineup,
+    }
+
+    await handlePlayServices(
+      useGameStore.getState().id!,
+      teamIndex,
+      newTeam,
+      bases // Las bases permanecen igual
+    )
+
+    // Procesar el out
+    await handleOutsChange(outs + 1, true)
+
+    toast.success("Infield Fly - Bateador out, corredores no forzados")
   },
 
    /**

@@ -17,6 +17,7 @@ export enum TypeHitting {
   // El bateador puede o no haber llegado a 1ra
   StruckOutWildPitch = "K - Lanzamiento Salvaje",  // WP: responsabilidad del pitcher
   StruckOutPassedBall = "K - Passed Ball",          // PB: responsabilidad del catcher
+  InfieldFly = "Infield Fly", // IF: Regla 5.09(b)(4) - Bateador automáticamente out
 }
 
 export enum TypeAbbreviatedBatting {
@@ -30,6 +31,7 @@ export enum TypeAbbreviatedBatting {
   ErrorPlay = "Err",
   StruckOutWildPitch = "K-WP",   // K + lanzamiento salvaje
   StruckOutPassedBall = "K-PB",  // K + passed ball
+  InfieldFly = "IF",  // Infield Fly
 }
 
 export interface ITurnAtBat {
