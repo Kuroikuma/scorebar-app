@@ -103,6 +103,15 @@ const DESIGN_PRESETS: DesignPreset[] = [
     colors: { primary: '#0d0d0d', secondary: '#d4af37' },
     tags: ['Lujo', 'Elegante', 'Premium'],
   },
+  {
+    design: LowerThirdDesign.brutalistBold,
+    name: 'Brutalist Bold',
+    description: 'Diseño audaz con colores contrastantes',
+    category: 'creative',
+    preview: '/placeholder.svg?height=120&width=200&text=BrutalistBold',
+    colors: { primary: '#f5f500', secondary: '#000000' },
+    tags: ['Audaz', 'Contrastante', 'Moderno'],
+  },
 ];
 
 const CATEGORIES = [
