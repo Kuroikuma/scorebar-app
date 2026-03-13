@@ -1,5 +1,5 @@
 import socket from './socket';
-import { SocketEventName, BaseSocketEvent } from '../types/SocketEvents';
+import { SocketEventName, SocketEventMap, BaseSocketEvent } from '../types/SocketEvents';
 
 export interface SocketMiddlewareOptions {
   enableLogging?: boolean;
@@ -18,20 +18,20 @@ export const createSocketMiddleware = (
 ) => {
   const { enableLogging = true, validateSocketId = true } = options;
 
-  return <T extends BaseSocketEvent>(
-    eventName: SocketEventName, 
-    data: T
+  return <T extends SocketEventName>(
+    eventName: T, 
+    data: SocketEventMap[T]
   ): boolean => {
     // Logging centralizado
     if (enableLogging) {
       console.log(`🔄 Socket Event [${gameId}]: ${eventName}`, {
         ...data,
-        socketId: data.socketId ? `${data.socketId.slice(0, 8)}...` : 'none'
+        socketId: (data as BaseSocketEvent).socketId ? `${(data as BaseSocketEvent).socketId.slice(0, 8)}...` : 'none'
       });
     }
 
     // Validación de socketId para evitar loops
-    if (validateSocketId && data.socketId === socket.id) {
+    if (validateSocketId && (data as BaseSocketEvent).socketId === socket.id) {
       if (enableLogging) {
         console.log(`⏭️ Skipping own event [${gameId}]: ${eventName}`);
       }
