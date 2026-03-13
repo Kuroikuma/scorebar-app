@@ -14,6 +14,7 @@ import Undo from './undo';
 import Redo from './redo';
 import ControlBase from './ControlBase';
 import { AdvanceRunners } from './gameComponent/advance-runners';
+import { DroppedThirdStrike } from './gameComponent/DroppedThirdStrike';
 
 export function ControlPanel() {
   const {
@@ -244,6 +245,7 @@ export function ControlPanel() {
           </div>
         </CardContent>
       </Card>
+      <DroppedThirdStrike />
     </>
   );
 }

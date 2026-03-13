@@ -1,139 +1,154 @@
-import ControlPanel from "./ControlPanel"
+'use client';
+
+import { useMemo, useState } from "react"
+import ImprovedControlPanel from "./ImprovedControlPanel"
 import PositionControl from "./PositionControl"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Palette, Type, Layers, Move, Sparkles, Users } from "lucide-react"
+import { Palette, Type, Layers, Move, Sparkles, Users, AlertCircle, Edit3 } from "lucide-react"
 import { useBannerStore } from "@/app/store/useBannerStore"
-import { useSponsorStore } from "@/app/store/useSponsor"
-import { ISponsor } from "@/app/types/sponsor"
-import { IBannerSettings } from "@/app/types/Banner"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+
+type TabValue = "sponsors" | "design" | "colors" | "animation" | "fields" | "position";
+
+interface TabConfig {
+  value: TabValue;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+}
+
+const TABS_CONFIG: TabConfig[] = [
+  { 
+    value: "sponsors", 
+    label: "Sponsor", 
+    icon: Users,
+    description: "Selecciona el sponsor a mostrar"
+  },
+  { 
+    value: "design", 
+    label: "Diseño", 
+    icon: Layers,
+    description: "Elige el estilo visual del banner"
+  },
+  { 
+    value: "colors", 
+    label: "Colores", 
+    icon: Palette,
+    description: "Personaliza la paleta de colores"
+  },
+  { 
+    value: "animation", 
+    label: "Animación", 
+    icon: Sparkles,
+    description: "Configura efectos de entrada"
+  },
+  { 
+    value: "fields", 
+    label: "Campos", 
+    icon: Type,
+    description: "Configura qué información mostrar"
+  },
+  { 
+    value: "position", 
+    label: "Posición", 
+    icon: Move,
+    description: "Ajusta la ubicación del banner"
+  },
+];
 
 export default function BannerControlPanel() {
-  const { updateSponsor, updateSettings, bannerSelected } = useBannerStore()
-  const { sponsors } = useSponsorStore()
-  const {sponsorId, bannerSettingsId } = bannerSelected
+  const { updateSettings, bannerSelected } = useBannerStore()
+  const { sponsorId, bannerSettingsId } = bannerSelected
+  const [activeTab, setActiveTab] = useState<TabValue>("design");
+
+  // Validación y extracción segura de datos
+  const sponsor = useMemo(() => {
+    if (!sponsorId) return null;
+    return typeof sponsorId === 'string' ? null : sponsorId;
+  }, [sponsorId]);
+
+  const settings = useMemo(() => {
+    if (!bannerSettingsId) return null;
+    return typeof bannerSettingsId === 'string' ? null : bannerSettingsId;
+  }, [bannerSettingsId]);
+
+  const currentTabConfig = TABS_CONFIG.find(t => t.value === activeTab);
+
+  // Validación de datos requeridos
+  if (!sponsor || !settings) {
+    return (
+      <Card className="shadow-lg border-0">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 border-b">
+          <CardTitle className="text-xl font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+            <Edit3 className="w-5 h-5 text-blue-500" />
+            Panel de Control
+          </CardTitle>
+          <CardDescription className="text-slate-500 dark:text-slate-400">
+            Personaliza todos los aspectos de tu banner publicitario
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {!sponsor && !settings 
+                ? "No hay datos de banner disponibles. Selecciona un sponsor y configura el banner."
+                : !sponsor 
+                ? "No hay sponsor seleccionado. Por favor, selecciona un sponsor."
+                : "No hay configuración de banner disponible. Por favor, configura el banner."}
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-lg border-0">
       <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 border-b">
-        <CardTitle className="text-xl font-semibold text-slate-800 dark:text-white flex items-center gap-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-blue-500"
-          >
-            <path d="M12 20h9"></path>
-            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-          </svg>
-          Panel de Control
-        </CardTitle>
-        <CardDescription className="text-slate-500 dark:text-slate-400">
-          Personaliza todos los aspectos de tu banner publicitario
-        </CardDescription>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-xl font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+              <Edit3 className="w-5 h-5 text-blue-500" />
+              Panel de Control
+            </CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400 mt-1">
+              {currentTabConfig?.description || "Personaliza tu banner publicitario"}
+            </CardDescription>
+          </div>
+          <Badge variant="outline" className="text-xs">
+            Modo Simplificado
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
-        <Tabs defaultValue="sponsors" className="w-full">
-          <TabsList className="w-full rounded-none border-b grid grid-cols-6 h-auto">
-            <TabsTrigger
-              value="sponsors"
-              className="py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800"
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Sponsors
-            </TabsTrigger>
-            <TabsTrigger
-              value="design"
-              className="py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800"
-            >
-              <Layers className="w-4 h-4 mr-2" />
-              Diseño
-            </TabsTrigger>
-            <TabsTrigger
-              value="colors"
-              className="py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800"
-            >
-              <Palette className="w-4 h-4 mr-2" />
-              Colores
-            </TabsTrigger>
-            <TabsTrigger
-              value="fields"
-              className="py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800"
-            >
-              <Type className="w-4 h-4 mr-2" />
-              Campos
-            </TabsTrigger>
-            <TabsTrigger
-              value="animation"
-              className="py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Animación
-            </TabsTrigger>
-            <TabsTrigger
-              value="position"
-              className="py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800"
-            >
-              <Move className="w-4 h-4 mr-2" />
-              Posición
-            </TabsTrigger>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)} className="w-full">
+          <TabsList className="w-full rounded-none border-b grid grid-cols-3 sm:grid-cols-6 h-auto">
+            {TABS_CONFIG.map(({ value, label, icon: Icon }) => (
+              <TabsTrigger
+                key={value}
+                value={value}
+                className="py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 flex-col sm:flex-row gap-1"
+              >
+                <Icon className="w-4 h-4 sm:mr-2" />
+                <span className="text-xs sm:text-sm">{label}</span>
+              </TabsTrigger>
+            ))}
           </TabsList>
-          <TabsContent value="sponsors" className="p-6">
-            <ControlPanel
-              sponsor={sponsorId as ISponsor}
-              sponsors={sponsors}
-              updateSponsor={updateSponsor}
-              settings={bannerSettingsId as IBannerSettings}
-              onUpdateSettings={updateSettings}
-              activeTab="sponsors"
-            />
-          </TabsContent>
-          <TabsContent value="design" className="p-6">
-            <ControlPanel
-              sponsor={sponsorId as ISponsor}
-              sponsors={sponsors}
-              updateSponsor={updateSponsor}
-              settings={bannerSettingsId as IBannerSettings}
-              onUpdateSettings={updateSettings}
-              activeTab="design"
-            />
-          </TabsContent>
-          <TabsContent value="colors" className="p-6">
-            <ControlPanel
-              sponsor={sponsorId as ISponsor}
-              sponsors={sponsors}
-              updateSponsor={updateSponsor}
-              settings={bannerSettingsId as IBannerSettings}
-              onUpdateSettings={updateSettings}
-              activeTab="colors"
-            />
-          </TabsContent>
-          <TabsContent value="fields" className="p-6">
-            <ControlPanel
-             sponsor={sponsorId as ISponsor}
-             sponsors={sponsors}
-             updateSponsor={updateSponsor}
-             settings={bannerSettingsId as IBannerSettings}
-             onUpdateSettings={updateSettings}
-              activeTab="fields"
-            />
-          </TabsContent>
-          <TabsContent value="animation" className="p-6">
-            <ControlPanel
-              sponsor={sponsorId as ISponsor}
-              sponsors={sponsors}
-              updateSponsor={updateSponsor}
-              settings={bannerSettingsId as IBannerSettings}
-              onUpdateSettings={updateSettings}
-              activeTab="animation"
-            />
-          </TabsContent>
+          
+          {TABS_CONFIG.slice(0, -1).map(({ value }) => (
+            <TabsContent key={value} value={value} className="p-6">
+              <ImprovedControlPanel
+                sponsor={sponsor}
+                settings={settings}
+                onUpdateSettings={updateSettings}
+                activeTab={value}
+              />
+            </TabsContent>
+          ))}
+          
           <TabsContent value="position" className="p-6">
             <PositionControl />
           </TabsContent>

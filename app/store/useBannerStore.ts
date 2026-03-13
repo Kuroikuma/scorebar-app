@@ -145,6 +145,13 @@ export const useBannerStore = create<IBannerStore>((set, get) => ({
   updateSettings: async (settings) => {
     const { bannerSelected } = get();
 
+    if (!bannerSelected._id) {
+      console.error('No banner selected to update settings');
+      return;
+    }
+
+    // Actualización optimista
+    const previousSettings = bannerSelected.bannerSettingsId;
     set((state) => ({
       ...state,
       bannerSelected: {
@@ -153,44 +160,110 @@ export const useBannerStore = create<IBannerStore>((set, get) => ({
       },
     }));
 
-    await updateSettings(settings._id, settings);
+    try {
+      await updateSettings(settings._id, settings);
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      // Revertir en caso de error
+      set((state) => ({
+        ...state,
+        bannerSelected: {
+          ...bannerSelected,
+          bannerSettingsId: previousSettings,
+        },
+      }));
+      throw error;
+    }
   },
   updateSponsor: async (sponsorId) => {
     const { bannerSelected } = get();
     const { sponsors } = useSponsorStore.getState();
 
-    const sponsor = sponsors.find((s) => s._id === sponsorId) as ISponsor
+    if (!bannerSelected._id) {
+      console.error('No banner selected to update sponsor');
+      return;
+    }
 
+    const sponsor = sponsors.find((s) => s._id === sponsorId);
+    
+    if (!sponsor) {
+      console.error('Sponsor not found:', sponsorId);
+      return;
+    }
+
+    // Actualización optimista
+    const previousSponsor = bannerSelected.sponsorId;
     set((state) => ({
       ...state,
-      bannerSelected: { ...bannerSelected, sponsorId:sponsor },
+      bannerSelected: { ...bannerSelected, sponsorId: sponsor },
     }));
 
-    await updateSponsor(bannerSelected._id, sponsorId);
+    try {
+      await updateSponsor(bannerSelected._id, sponsorId);
+    } catch (error) {
+      console.error('Error updating sponsor:', error);
+      // Revertir en caso de error
+      set((state) => ({
+        ...state,
+        bannerSelected: { ...bannerSelected, sponsorId: previousSponsor },
+      }));
+      throw error;
+    }
   },
   updatePosition: async (newPosition) => {
     const { bannerSelected } = get();
 
+    if (!bannerSelected._id) {
+      console.error('No banner selected to update position');
+      return;
+    }
+
+    // Actualización optimista
+    const previousPosition = bannerSelected.position;
     set((state) => ({
       ...state,
       bannerSelected: { ...bannerSelected, position: newPosition },
     }));
 
-    await updatePosition(bannerSelected._id, newPosition.x, newPosition.y);
+    try {
+      await updatePosition(bannerSelected._id, newPosition.x, newPosition.y);
+    } catch (error) {
+      console.error('Error updating position:', error);
+      // Revertir en caso de error
+      set((state) => ({
+        ...state,
+        bannerSelected: { ...bannerSelected, position: previousPosition },
+      }));
+      throw error;
+    }
   },
   toggleVisibility: async (isSaved) => {
     const { bannerSelected } = get();
-
     const { _id, isVisible } = bannerSelected;
 
+    if (!_id) {
+      console.error('No banner selected to toggle visibility');
+      return;
+    }
+
+    // Actualización optimista
     set((state) => ({
       ...state,
       bannerSelected: { ...bannerSelected, isVisible: !isVisible },
     }));
 
     if (isSaved) {
-      await toggleVisibility(_id, !isVisible);
-      
+      try {
+        await toggleVisibility(_id, !isVisible);
+      } catch (error) {
+        console.error('Error toggling visibility:', error);
+        // Revertir en caso de error
+        set((state) => ({
+          ...state,
+          bannerSelected: { ...bannerSelected, isVisible },
+        }));
+        throw error;
+      }
     }
   },
   createBanner: async (banner) => {
@@ -217,31 +290,73 @@ export const useBannerStore = create<IBannerStore>((set, get) => ({
     }));
   },
   getById: async (id) => {
-    const banner = await getById(id);
+    if (!id) {
+      console.error('No banner ID provided');
+      return;
+    }
 
-    set((state) => ({
-      ...state,
-      bannerSelected: banner,
-    }));
+    try {
+      const banner = await getById(id);
+      
+      if (!banner) {
+        console.error('Banner not found:', id);
+        return;
+      }
+
+      set((state) => ({
+        ...state,
+        bannerSelected: banner,
+      }));
+    } catch (error) {
+      console.error('Error fetching banner:', error);
+      throw error;
+    }
   },
   findByOrganizationId: async (organizationId) => {
-    const banners = await findByOrganizationId(organizationId);
+    if (!organizationId) {
+      console.error('No organization ID provided');
+      return [];
+    }
 
-    set((state) => ({
-      ...state,
-      banners: banners,
-    }));
-    
-    return banners;
+    try {
+      const banners = await findByOrganizationId(organizationId);
+
+      set((state) => ({
+        ...state,
+        banners: banners || [],
+      }));
+      
+      return banners || [];
+    } catch (error) {
+      console.error('Error fetching banners by organization:', error);
+      set((state) => ({
+        ...state,
+        banners: [],
+      }));
+      return [];
+    }
   },
 
   findSettingTemplate: async (organizationId) => {
-    const bannerSettings = await findSettingTemplate(organizationId);
+    if (!organizationId) {
+      console.error('No organization ID provided');
+      return;
+    }
 
-    set((state) => ({
-      ...state,
-      bannerSettings: bannerSettings,
-    }));
+    try {
+      const bannerSettings = await findSettingTemplate(organizationId);
+
+      set((state) => ({
+        ...state,
+        bannerSettings: bannerSettings || [],
+      }));
+    } catch (error) {
+      console.error('Error fetching banner settings:', error);
+      set((state) => ({
+        ...state,
+        bannerSettings: [],
+      }));
+    }
   },
 
 }));

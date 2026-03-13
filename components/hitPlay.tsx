@@ -14,7 +14,7 @@ import { TypeAbbreviatedBatting, TypeHitting } from "@/app/store/teamsStore"
 import { cn } from "@/app/lib/utils"
 
 export function HitPlay() {
-  const { handleSingle, handleDouble, handleTriple, handleHomeRun, handleHitByPitch, bases, outs } = useGameStore()
+  const { handleSingle, handleDouble, handleTriple, handleHomeRun, handleHitByPitch, handleInfieldFly, isInfieldFlySituation, bases, outs } = useGameStore()
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [hitType, setHitType] = useState<TypeHitting | null>(null)
@@ -94,6 +94,12 @@ export function HitPlay() {
 
     if (hitType === TypeHitting.HitByPitch) {
       handleHitByPitch()
+      setIsModalOpen(false)
+      return
+    }
+
+    if (hitType === TypeHitting.InfieldFly) {
+      await handleInfieldFly()
       setIsModalOpen(false)
       return
     }
@@ -252,7 +258,14 @@ export function HitPlay() {
       abbr: TypeAbbreviatedBatting.HitByPitch,
       description: "El bateador es golpeado por el lanzamiento",
     },
+    {
+      type: TypeHitting.InfieldFly,
+      abbr: TypeAbbreviatedBatting.InfieldFly,
+      description: "Elevado al cuadro - Bateador automáticamente out",
+    },
   ]
+
+  const infieldFlyApplies = isInfieldFlySituation()
 
   return (
     <>
@@ -273,27 +286,65 @@ export function HitPlay() {
                 <DialogDescription className="text-gray-300">
                   Elige el tipo de hit realizado por el bateador.
                 </DialogDescription>
+                {infieldFlyApplies && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/20 border border-amber-500/30">
+                    <Baseball className="w-5 h-5 text-amber-400" />
+                    <span className="text-sm text-amber-300 font-medium">
+                      Situación de Infield Fly: {outs} out{outs === 1 ? '' : 's'}, corredores en 1ra y 2da
+                    </span>
+                  </div>
+                )}
               </DialogHeader>
 
               <div className="py-4 space-y-2">
-                {hitTypes.map((hit) => (
-                  <button
-                    key={hit.type}
-                    onClick={() => handleHitAction(hit.type)}
-                    className="w-full group text-left px-4 py-3 rounded-lg transition-all duration-200 hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{hit.type}</span>
-                          <span className="text-xs text-gray-400 font-mono">{hit.abbr}</span>
+                {hitTypes.map((hit) => {
+                  const isInfieldFly = hit.type === TypeHitting.InfieldFly
+                  const shouldHighlight = isInfieldFly && infieldFlyApplies
+                  
+                  return (
+                    <button
+                      key={hit.type}
+                      onClick={() => handleHitAction(hit.type)}
+                      className={cn(
+                        "w-full group text-left px-4 py-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+                        shouldHighlight 
+                          ? "bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20" 
+                          : "hover:bg-gray-700/50"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className={cn("font-medium", shouldHighlight && "text-amber-300")}>
+                              {hit.type}
+                            </span>
+                            <span className={cn(
+                              "text-xs font-mono",
+                              shouldHighlight ? "text-amber-400" : "text-gray-400"
+                            )}>
+                              {hit.abbr}
+                            </span>
+                            {shouldHighlight && (
+                              <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">
+                                Regla 5.09(b)(4)
+                              </span>
+                            )}
+                          </div>
+                          <p className={cn(
+                            "text-sm",
+                            shouldHighlight ? "text-amber-200" : "text-gray-400"
+                          )}>
+                            {hit.description}
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-400">{hit.description}</p>
+                        <ChevronRight className={cn(
+                          "w-5 h-5 transition-colors",
+                          shouldHighlight ? "text-amber-400" : "text-gray-500 group-hover:text-white"
+                        )} />
                       </div>
-                      <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  )
+                })}
               </div>
 
               <DialogFooter>

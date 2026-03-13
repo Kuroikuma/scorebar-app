@@ -13,6 +13,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Pencil, Trash2 } from 'lucide-react'
 import ListPlayer from "./gameComponent/ListPlayer"
 import AddPlayer from "./gameComponent/addPlayer"
+import { BenchManager } from "./gameComponent/BenchManager"
+import { RosterManager } from "./gameComponent/RosterManager"
 
 export interface IEditingPlayer {
   teamIndex: number
@@ -218,11 +220,17 @@ export function LineupPanel() {
             </Select>
          </div>
           
-          <AddPlayer selectedTeam={selectedTeam} setEditingPlayer={setEditingPlayer} editingPlayer={editingPlayer} />
+          {/* <AddPlayer selectedTeam={selectedTeam} setEditingPlayer={setEditingPlayer} editingPlayer={editingPlayer} />
           <ListPlayer selectedTeam={selectedTeam} setEditingPlayer={setEditingPlayer} />
+          
+          {/* Gestión de Banca */}
+          {/* <div className="mt-6 pt-6 border-t border-[#2d2b3b]">
+            <BenchManager teamIndex={selectedTeam} />
+          </div>  */}
+
+          <RosterManager teamIndex={selectedTeam} />
         </CardContent>
       </Card>
     </div>
   )
 }
-
