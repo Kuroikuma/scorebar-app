@@ -123,13 +123,13 @@ export type GameState = {
   outs: number
   bases: IBase[]
   runsByInning: RunsByInning;
-  setInning: (inning: number) => void
+  setInning: (inning: number, isTopInning?: boolean, fromSocket?: boolean) => void
   setIsTopInning: (isTop: boolean) => void
-  setBalls: (balls: number) => void
-  setStrikes: (strikes: number) => void
-  setOuts: (outs: number) => void
+  setBalls: (balls: number, fromSocket?: boolean) => void
+  setStrikes: (strikes: number, fromSocket?: boolean) => void
+  setOuts: (outs: number, fromSocket?: boolean) => void
   setBases: (bases: IBase[]) => void
-  setBase: (base: IBase, index: number) => void
+  setBase: (base: IBase, index: number, fromSocket?: boolean) => void
   changeInning: (increment: boolean, isSaved?: boolean) => Promise<void>
   handleOutsChange: (newOuts: number, isSaved?: boolean, isAbvancedbatter?: boolean) => Promise<void>
   handleStrikeChange: (newStrikes: number, isSaved?: boolean) => Promise<void>
@@ -201,6 +201,14 @@ export type GameState = {
    * En cualquier otro caso es out normal (pero WP/PB igual se registra).
    */
   handleDroppedThirdStrike: (type: 'WP' | 'PB', batterSafe: boolean) => Promise<void>
+  
+  // ── Socket Event Handlers ──────────────────────────────────────────────
+  handleSocketInning: (data: { inning: number; isTopInning: boolean; balls: number; strikes: number; outs: number; bases: IBase[] }) => void
+  handleSocketBases: (baseIndex: number, isOccupied: boolean) => void
+  handleSocketCurrentBatter: (currentBatter: number) => void
+  handleSocketDHEnabled: (enabled: boolean) => void
+  handleSocketGameUpdate: (game: any) => void
+  handleSocketPastAndFutureGame: (past: any[], future: any[]) => void
 }
 
 const __initBase__ = {
@@ -549,32 +557,38 @@ export const useGameStore = create<GameState>((set, get) => ({
     await updateGame()
   },
 
-  setInning: (inning) => set({ inning }),
+  setInning: (inning: number, isTopInning?: boolean, fromSocket = false) => {
+    const updates: any = { inning };
+    if (isTopInning !== undefined) {
+      updates.isTopInning = isTopInning;
+    }
+    set(updates);
+  },
   setIsTopInning: (isTop) => set({ isTopInning: isTop }),
-  setBalls: async (balls) => {
+  setBalls: async (balls: number, fromSocket = false) => {
     set({ balls })
-    if (get().id) {
+    if (!fromSocket && get().id) {
       await changeBallCount(get().id!, balls)
     }
   },
-  setStrikes: async (strikes) => {
+  setStrikes: async (strikes: number, fromSocket = false) => {
     set({ strikes })
-    if (get().id) {
+    if (!fromSocket && get().id) {
       await changeStrikeCount(get().id!, strikes)
     }
   },
-  setOuts: async (outs) => {
+  setOuts: async (outs: number, fromSocket = false) => {
     set({ outs })
-    if (get().id) {
+    if (!fromSocket && get().id) {
       await changeOutCount(get().id!, outs)
     }
   },
-  setBase: async (base, index) => {
+  setBase: async (base: IBase, index: number, fromSocket = false) => {
     useHistoryStore.getState().handleBasesHistory()
     let bases = [...get().bases]
     bases[index] = base
     set({ bases })
-    if (get().id) {
+    if (!fromSocket && get().id) {
       await changeBaseRunner(get().id!, index, base.isOccupied)
     }
   },
@@ -1793,5 +1807,56 @@ export const useGameStore = create<GameState>((set, get) => ({
         await handleOutsChange(nextOuts, true)
       }
     }
+  },
+
+  // ── Socket Event Handlers ──────────────────────────────────────────────
+  handleSocketInning: (data) => {
+    set({
+      inning: data.inning,
+      isTopInning: data.isTopInning,
+      balls: data.balls,
+      strikes: data.strikes,
+      outs: data.outs,
+      bases: data.bases
+    });
+  },
+
+  handleSocketBases: (baseIndex, isOccupied) => {
+    set((state) => ({
+      bases: state.bases.map((base, index) => 
+        index === baseIndex ? { isOccupied, playerId: null } : base
+      )
+    }));
+  },
+
+  handleSocketCurrentBatter: (currentBatter) => {
+    const { isTopInning } = get();
+    const teamIndex = isTopInning ? 0 : 1;
+    
+    useTeamsStore.setState((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, currentBatter } : team
+      )
+    }));
+  },
+
+  handleSocketDHEnabled: (enabled) => {
+    set({ isDHEnabled: enabled });
+  },
+
+  handleSocketGameUpdate: (game) => {
+    set((state) => ({
+      ...state,
+      ...game
+    }));
+
+    useTeamsStore.setState((state) => ({
+      ...state,
+      ...game
+    }));
+  },
+
+  handleSocketPastAndFutureGame: (past, future) => {
+    useHistoryStore.setState({ past, future });
   },
 }))

@@ -5,6 +5,7 @@ import { ScoreBugBallySports } from '@/components/overlay/ScoreBugBally';
 import { InningScoreOverlay } from '@/components/overlay/inning-score-overlay';
 import { PlayerOverlay } from '@/components/overlay/player-stats-overlay';
 import { useSocketHandleOverlays } from '@/app/hooks/useSocketHandleOverlayGame';
+import { useGameSocket } from '@/app/hooks/useGameSocket';
 
 interface IOverlaysItemProps {
   item: IOverlays;
@@ -16,6 +17,10 @@ interface ScorebugProps {
 }
 
 export const OverlaysItem = ({ item, gameId }: IOverlaysItemProps) => {
+  // Usar el nuevo hook unificado para eventos de socket del juego
+  useGameSocket(gameId);
+  
+  // Mantener el hook específico para overlays (posición, escala, visibilidad)
   useSocketHandleOverlays(item, gameId);
 
   return item.id === 'scorebug' ? (

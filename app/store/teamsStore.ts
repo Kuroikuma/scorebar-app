@@ -133,6 +133,17 @@ export type TeamsState = {
     toBase: number,
     wasSuccessful: boolean
   ) => Promise<void>
+  
+  // ── Socket Event Handlers ──────────────────────────────────────────────
+  handleSocketLineup: (teamIndex: number, lineup: Player[], lineupSubmitted: boolean) => void
+  handleSocketPlayer: (teamIndex: number, team: Team) => void
+  handleSocketTeamColor: (teamIndex: number, color: string) => void
+  handleSocketTeamTextColor: (teamIndex: number, textColor: string) => void
+  handleSocketTeamName: (teamIndex: number, name: string) => void
+  handleSocketShortName: (teamIndex: number, shortName: string) => void
+  handleSocketRuns: (teamIndex: number, runs: number, runsInning: number) => void
+  handleSocketHits: (teamIndex: number, hits: number) => void
+  handleSocketErrors: (teamIndex: number, errors: number) => void
   // ── Regla 5.10: Sustituciones ────────────────────────────────────────────
   // Sustituye un jugador por otro, marcando al jugador original como sustituido
   substitutePlayer: (
@@ -1015,5 +1026,82 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     )
     
     return { success: true }
+  },
+
+  // ── Socket Event Handlers ──────────────────────────────────────────────
+  handleSocketLineup: (teamIndex, lineup, lineupSubmitted) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, lineup, lineupSubmitted } : team
+      )
+    }));
+  },
+
+  handleSocketPlayer: (teamIndex, team) => {
+    set((state) => ({
+      teams: state.teams.map((t, index) => 
+        index === teamIndex ? team : t
+      )
+    }));
+  },
+
+  handleSocketTeamColor: (teamIndex, color) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, color } : team
+      )
+    }));
+  },
+
+  handleSocketTeamTextColor: (teamIndex, textColor) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, textColor } : team
+      )
+    }));
+  },
+
+  handleSocketTeamName: (teamIndex, name) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, name } : team
+      )
+    }));
+  },
+
+  handleSocketShortName: (teamIndex, shortName) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, shortName } : team
+      )
+    }));
+  },
+
+  handleSocketRuns: (teamIndex, runs, runsInning) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, runs } : team
+      )
+    }));
+
+    // Actualizar carreras por inning en gameStore
+    const { changeRunsByInning } = useGameStore.getState();
+    changeRunsByInning(teamIndex, runsInning, false);
+  },
+
+  handleSocketHits: (teamIndex, hits) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, hits } : team
+      )
+    }));
+  },
+
+  handleSocketErrors: (teamIndex, errors) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, errorsGame: errors } : team
+      )
+    }));
   },
 }));
