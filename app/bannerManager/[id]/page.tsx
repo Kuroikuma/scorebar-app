@@ -7,6 +7,9 @@ import { useEffect } from 'react';
 import BannerPreview from '@/components/bannerComponent/BannerPreview';
 import { useBannerManagerStore } from '@/app/store/useBannerManagerStore';
 import BannerList from './bannerList';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Clipboard } from 'lucide-react'
 
 export default function BannerManager() {
   const { user, loading } = useAuth();
@@ -15,6 +18,17 @@ export default function BannerManager() {
 
   const paramas = useParams();
   const id = paramas?.id as string;
+
+   const copyToClipboard = async (): Promise<void> => {
+    try {
+      let overlaURL = `https://scoreboard-app-pi.vercel.app/overlay/banner/${id}`
+      await navigator.clipboard.writeText(overlaURL);
+      toast.info("Overlay URL copiado al portapapeles");
+    } catch (err) {
+      console.error("Error al copiar al portapapeles:", err);
+    }
+  };
+
 
   useEffect(() => {
     if (user && id) {
@@ -42,6 +56,11 @@ export default function BannerManager() {
             Gestiona tus banners publicitarios profesionales para tus transmisiones y presentaciones
           </p>
         </header>
+
+        <Button variant="ghost" onClick={() => copyToClipboard()}>
+            <Clipboard className="h-4 w-4" />
+            Copiar Overlay
+          </Button>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               <div className="lg:col-span-5">
