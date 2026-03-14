@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/dialog'
 import { useState } from 'react'
 import { Check, X, Wind, HandMetal } from 'lucide-react'
-import { cn } from '@/app/lib/utils'
 
 /**
  * Modal de Dropped Third Strike (K-WP / K-PB)
@@ -33,10 +32,9 @@ export function DroppedThirdStrike() {
     outs,
     isTopInning,
     getCurrentBatter,
-    getCurrentPitcher,
   } = useGameStore()
 
-  const { teams } = useTeamsStore()
+  const { teams, recordDroppedThirdStrikeStats } = useTeamsStore()
 
   // ── Paso del modal ───────────────────────────────────────────────────────
   const [step, setStep] = useState<'type' | 'result'>('type')
@@ -70,7 +68,12 @@ export function DroppedThirdStrike() {
   }
 
   const confirmAndClose = async (type: 'WP' | 'PB', batterSafe: boolean) => {
+    // Usar la nueva función del teamsStore para registrar estadísticas
+    await recordDroppedThirdStrikeStats(type, batterSafe)
+    
+    // Luego manejar el estado del juego (bases, outs, etc.)
     await handleDroppedThirdStrike(type, batterSafe)
+    
     resetModal()
   }
 

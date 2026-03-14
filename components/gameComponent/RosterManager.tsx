@@ -30,7 +30,7 @@ interface RosterManagerProps {
 }
 
 export function RosterManager({ teamIndex }: RosterManagerProps) {
-  const { teams, updatePlayer, addPlayerToBench, removePlayerFromBench, substituteWithBenchPlayer, canPlayerBeSubstituted, submitLineup } = useTeamsStore()
+  const { teams, updatePlayer, addPlayerToBench, addPlayerToLineup, removePlayerFromBench, substituteWithBenchPlayer, canPlayerBeSubstituted, submitLineup } = useTeamsStore()
   const { isDHEnabled } = useGameStore()
   const team = teams[teamIndex]
 
@@ -71,7 +71,6 @@ export function RosterManager({ teamIndex }: RosterManagerProps) {
     }
 
     const player: Player = {
-      _id: `player-${Date.now()}-${Math.random()}`,
       name: newPlayer.name,
       number: newPlayer.number,
       position: newPlayer.position,
@@ -94,7 +93,7 @@ export function RosterManager({ teamIndex }: RosterManagerProps) {
         ? 0 
         : battingOrderPlayers.length + 1
 
-      await updatePlayer(teamIndex, playerIndex, {
+      await addPlayerToLineup(teamIndex, {
         ...player,
         battingOrder,
         defensiveOrder,
@@ -274,7 +273,7 @@ export function RosterManager({ teamIndex }: RosterManagerProps) {
                               size="sm"
                               variant="ghost"
                               onClick={() => handleDeletePlayer(index, 'lineup')}
-                              disabled={player.isSubstituted || team.lineupSubmitted}
+                              // disabled={player.isSubstituted || team.lineupSubmitted}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

@@ -235,5 +235,263 @@ export const handlePlayServices = async (id: string, teamIndex: number, team: Te
   return response.data;
 };
 
+// ══════════════════════════════════════════════════════════════════════════
+// BASEBALL PLAYER ROUTES — Estadísticas y eventos de jugadores
+// ══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Actualiza las estadísticas de un jugador
+ */
+export const updatePlayerStats = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string,
+  stats: Partial<Player>
+) => {
+  const response = await api.put(
+    `/baseball-player/${gameId}/${teamIndex}/${playerId}/stats`,
+    stats
+  );
+  return response.data;
+};
+
+/**
+ * Incrementa una estadística específica de un jugador
+ */
+export const incrementPlayerStat = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string,
+  statField: keyof Player,
+  incrementBy: number = 1
+) => {
+  const response = await api.put(
+    `/baseball-player/${gameId}/${teamIndex}/${playerId}/stats/${String(statField)}/increment`,
+    { incrementBy }
+  );
+  return response.data;
+};
+
+/**
+ * Obtiene las estadísticas de un jugador
+ */
+export const getPlayerStats = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string
+) => {
+  const response = await api.get(
+    `/baseball-player/${gameId}/${teamIndex}/${playerId}/stats`
+  );
+  return response.data;
+};
+
+/**
+ * Sustituye un jugador (Regla 5.10)
+ */
+export const substitutePlayerService = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string,
+  newPlayer: Player
+) => {
+  const response = await api.post(
+    `/baseball-player/${gameId}/${teamIndex}/substitute`,
+    { playerToRemoveId: playerId, benchPlayerId: newPlayer._id }
+  );
+
+  return response.data;
+};
+
+/**
+ * Registra un evento de bateo avanzado
+ */
+export const recordAdvancedBattingEvent = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string,
+  eventData: {
+    typeHitting: string;
+    typeAbbreviatedBatting: string;
+    errorPlay?: string;
+    batterReachedBase?: boolean;
+  }
+) => {
+  const response = await api.post(
+    `/baseball-player/${gameId}/${teamIndex}/${playerId}/batting-event`,
+    eventData
+  );
+  return response.data;
+};
+
+/**
+ * Obtiene el historial de bateo de un jugador
+ */
+export const getPlayerBattingHistory = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string
+) => {
+  const response = await api.get(
+    `/baseball-player/${gameId}/${teamIndex}/${playerId}/batting-history`
+  );
+  return response.data;
+};
+
+/**
+ * Registra una base robada (Regla 9.07)
+ */
+export const recordStolenBaseService = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string,
+  stolenBaseData: {
+    fromBase: number;
+    toBase: number;
+    wasSuccessful: boolean;
+  }
+) => {
+  const response = await api.post(
+    `/baseball-player/${gameId}/${teamIndex}/${playerId}/stolen-base`,
+    stolenBaseData
+  );
+  return response.data;
+};
+
+/**
+ * Registra un evento de pitcher (WP, K, Balk)
+ */
+export const recordPitcherEvent = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string,
+  eventData: {
+    eventType: 'wildPitch' | 'strikeout' | 'balk';
+    additionalData?: any;
+  }
+) => {
+  const response = await api.post(
+    `/baseball-player/${gameId}/${teamIndex}/${playerId}/pitcher-event`,
+    eventData
+  );
+  return response.data;
+};
+
+/**
+ * Registra un evento de catcher (PB, CS)
+ */
+export const recordCatcherEvent = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string,
+  eventData: {
+    eventType: 'passedBall' | 'caughtStealing';
+    additionalData?: any;
+  }
+) => {
+  const response = await api.post(
+    `/baseball-player/${gameId}/${teamIndex}/${playerId}/catcher-event`,
+    eventData
+  );
+  return response.data;
+};
+
+// ══════════════════════════════════════════════════════════════════════════
+// BASEBALL TEAM ROUTES — Gestión de banca y lineup
+// ══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Agrega un jugador a la banca
+ */
+export const addPlayerToBenchService = async (
+  gameId: string,
+  teamIndex: number,
+  player: Player
+) => {
+  const response = await api.post(
+    `/baseball-team/${gameId}/${teamIndex}/bench/add`,
+    { player }
+  );
+  return response.data;
+};
+
+// Agrega un jugador al lineup
+export const addPlayerToLineupService = async (
+  gameId: string,
+  teamIndex: number,
+  player: Player
+) => {
+  const response = await api.post(
+    `/baseball-team/${gameId}/${teamIndex}/lineup/add`,
+    { player }
+  );
+  return response.data;
+};
+
+/**
+ * Remueve un jugador de la banca
+ */
+export const removePlayerFromBenchService = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string
+) => {
+  const response = await api.delete(
+    `/baseball-team/${gameId}/${teamIndex}/bench/${playerId}`
+  );
+  return response.data;
+};
+
+/**
+ * Obtiene la banca de un equipo
+ */
+export const getTeamBench = async (gameId: string, teamIndex: number) => {
+  const response = await api.get(
+    `/baseball-team/${gameId}/${teamIndex}/bench`
+  );
+  return response.data;
+};
+
+/**
+ * Mueve un jugador del lineup a la banca
+ */
+export const movePlayerToBenchService = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string
+) => {
+  const response = await api.put(
+    `/baseball-team/${gameId}/${teamIndex}/players/${playerId}/move-to-bench`
+  );
+  return response.data;
+};
+
+/**
+ * Mueve un jugador de la banca al lineup
+ */
+export const movePlayerFromBenchService = async (
+  gameId: string,
+  teamIndex: number,
+  playerId: string,
+  position?: string,
+  battingOrder?: number
+) => {
+  const response = await api.put(
+    `/baseball-team/${gameId}/${teamIndex}/players/${playerId}/move-from-bench`,
+    { position, battingOrder }
+  );
+  return response.data;
+};
+
+/**
+ * Obtiene el lineup de un equipo
+ */
+export const getTeamLineup = async (gameId: string, teamIndex: number) => {
+  const response = await api.get(
+    `/baseball-team/${gameId}/${teamIndex}/lineup`
+  );
+  return response.data;
+};
+
 export default api;
 

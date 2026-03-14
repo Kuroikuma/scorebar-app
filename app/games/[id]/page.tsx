@@ -91,7 +91,7 @@ const BaseballScoreboardDestok = () => {
       </div>
 
       {/* Side Panel */}
-      <div className="w-[350px] ml-4">
+      <div className="w-[450px] ml-4">
         <TabsLayout />
         {activeTab === 'controls' && <ControlPanel />}
         {activeTab === 'controlsBase' && <ControlBase />}
