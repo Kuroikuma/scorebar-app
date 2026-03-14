@@ -4,6 +4,7 @@ import { useSocketEvents } from './useSocketEventFactory';
 import { useGameStore } from '../store/gameStore';
 import { useTeamsStore } from '../store/teamsStore';
 import { useBaseballSocketEvents } from './useSocketEventFactory';
+import { toast } from 'sonner';
 
 /**
  * Hook unificado para manejar todos los eventos de socket del juego
@@ -211,19 +212,85 @@ export const useBaseballGameSocket = (gameId: string) => {
         player: any;
         timestamp: string;
       }) => {
-        // Mapear a tu store según corresponda
+        const { teams, setTeams } = useTeamsStore.getState();
+        const team = teams[data.teamIndex];
+        
+        // Actualizar el jugador en el lineup
+        const updatedLineup = team.lineup.map((p) => 
+          p._id === data.playerId ? { ...p, ...data.player } : p
+        );
+        
+        setTeams(
+          teams.map((t, index) => 
+            index === data.teamIndex ? { ...t, lineup: updatedLineup } : t
+          )
+        );
       }
     },
     {
       eventName: 'playerSubstitution',
-      handler: (data: {
+      handler: async (data: {
         gameId: string;
         teamIndex: number;
         originalPlayer: any;
         substitutePlayer: any;
         timestamp: string;
       }) => {
-        // Mapear a tu store
+        // Usar el método substitutePlayer del store pero sin persistir al backend
+        // ya que este evento viene del socket (actualización local para overlays)
+        const { teams, setTeams } = useTeamsStore.getState();
+        const team = teams[data.teamIndex];
+        
+        const playerToRemoveIndex = team.lineup.findIndex((p) => p._id === data.originalPlayer._id);
+        
+        if (playerToRemoveIndex === -1) {
+          console.warn('Jugador a sustituir no encontrado en el lineup');
+          return;
+        }
+        
+        const playerToRemove = team.lineup[playerToRemoveIndex];
+        
+        // Marcar jugador original como sustituido
+        const updatedPlayerToRemove = {
+          ...playerToRemove,
+          isSubstituted: true,
+          substitutedBy: data.substitutePlayer._id,
+          canReturnAsFielder: playerToRemove.position === 'P',
+        };
+        
+        // Configurar nuevo jugador heredando posición en el batting order
+        const configuredNewPlayer = {
+          ...data.substitutePlayer,
+          battingOrder: playerToRemove.battingOrder,
+          defensiveOrder: playerToRemove.defensiveOrder,
+          substituteFor: data.originalPlayer._id,
+        };
+        
+        // Actualizar lineup
+        const updatedLineup = team.lineup.map((p, index) =>
+          index === playerToRemoveIndex ? configuredNewPlayer : p
+        );
+        
+        // Actualizar banca (agregar jugador sustituido si no está)
+        const updatedBench = team.bench.some((p) => p._id === data.originalPlayer._id)
+          ? team.bench
+          : [...team.bench, updatedPlayerToRemove];
+        
+        // Actualizar currentBatter si es necesario
+        let updatedCurrentBatter = team.currentBatter;
+        if (team.currentBatter === playerToRemoveIndex) {
+          updatedCurrentBatter = playerToRemoveIndex;
+        }
+        
+        setTeams(
+          teams.map((t, index) =>
+            index === data.teamIndex
+              ? { ...t, lineup: updatedLineup, bench: updatedBench, currentBatter: updatedCurrentBatter }
+              : t
+          )
+        );
+        
+        console.log(`🔄 Sustitución (overlay): ${data.originalPlayer.name} → ${data.substitutePlayer.name}`);
       }
     },
     {
@@ -236,7 +303,22 @@ export const useBaseballGameSocket = (gameId: string) => {
         playerId: string;
         timestamp: string;
       }) => {
-        // Mapear a tu store
+        const { teams, setTeams } = useTeamsStore.getState();
+        
+        setTeams(
+          teams.map((team, index) => 
+            index === data.teamIndex ? { ...team, bench: data.bench } : team
+          )
+        );
+        
+        const player = data.bench.find((p) => p._id === data.playerId);
+        const playerName = player?.name || 'Jugador';
+        
+        if (data.action === 'added') {
+          console.log(`➕ ${playerName} agregado a la banca`);
+        } else {
+          console.log(`➖ ${playerName} removido de la banca`);
+        }
       }
     },
     {
@@ -247,7 +329,23 @@ export const useBaseballGameSocket = (gameId: string) => {
         timestamp: string;
       }) => {
         console.log(`📢 [${data.type}] ${data.message}`);
-        // Conectar a tu sistema de toasts/notificaciones
+        
+        // Mostrar notificación usando sonner
+        switch (data.type) {
+          case 'success':
+            toast.success(data.message);
+            break;
+          case 'error':
+            toast.error(data.message);
+            break;
+          case 'warning':
+            toast.warning(data.message);
+            break;
+          case 'info':
+          default:
+            toast.info(data.message);
+            break;
+        }
       }
     },
     {

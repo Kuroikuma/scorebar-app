@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import socket from '../service/socket';
+import socket, { joinGameRoom, leaveGameRoom } from '../service/socket';
 import { createSocketMiddleware, createEventName, handleSocketError, createBaseballEventName } from '../service/socketMiddleware';
 import { SocketEventName, SocketEventMap } from '../types/SocketEvents';
 
@@ -97,6 +97,7 @@ export const useBaseballSocketEvents = (
     if (!gameId || !events.length) return;
 
     const cleanupFunctions: Array<() => void> = [];
+    joinGameRoom(gameId);
 
     events.forEach(({ eventName, handler }) => {
       const fullEventName = createBaseballEventName(eventName);
@@ -118,6 +119,7 @@ export const useBaseballSocketEvents = (
 
     return () => {
       cleanupFunctions.forEach(cleanup => cleanup());
+      leaveGameRoom(gameId);
     };
   }, [gameId, events]);
 };
