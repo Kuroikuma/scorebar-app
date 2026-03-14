@@ -56,6 +56,11 @@ export const createEventName = (eventName: SocketEventName, gameId: string, suff
   return suffix ? `${base}/${suffix}` : base;
 };
 
+// Agregar junto a createEventName
+export const createBaseballEventName = (eventName: string): string => {
+  return `@server:${eventName}`;
+};
+
 /**
  * Utilidad para manejar errores de socket de forma consistente
  */

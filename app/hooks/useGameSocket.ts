@@ -3,6 +3,7 @@
 import { useSocketEvents } from './useSocketEventFactory';
 import { useGameStore } from '../store/gameStore';
 import { useTeamsStore } from '../store/teamsStore';
+import { useBaseballSocketEvents } from './useSocketEventFactory';
 
 /**
  * Hook unificado para manejar todos los eventos de socket del juego
@@ -172,4 +173,90 @@ export const useAdvanceBatterSocket = (gameId: string) => {
       suffix: teamIndex.toString()
     }
   ]);
+};
+
+
+export const useBaseballGameSocket = (gameId: string) => {
+  const baseballEvents = [
+    {
+      eventName: 'baseballGameStateUpdate',
+      handler: (data: { gameId: string; game: any; timestamp: string }) => {
+        useGameStore.getState().handleSocketGameUpdate(data.game);
+      }
+    },
+    {
+      eventName: 'teamLineupUpdate',
+      handler: (data: {
+        gameId: string;
+        teamIndex: number;
+        lineup: any[];
+        bench: any[];
+        currentBatter: number;
+        lineupSubmitted: boolean;
+        timestamp: string;
+      }) => {
+        useTeamsStore.getState().handleSocketLineup(
+          data.teamIndex,
+          data.lineup,
+          data.lineupSubmitted
+        );
+      }
+    },
+    {
+      eventName: 'playerStatsUpdate',
+      handler: (data: {
+        gameId: string;
+        teamIndex: number;
+        playerId: string;
+        player: any;
+        timestamp: string;
+      }) => {
+        // Mapear a tu store según corresponda
+      }
+    },
+    {
+      eventName: 'playerSubstitution',
+      handler: (data: {
+        gameId: string;
+        teamIndex: number;
+        originalPlayer: any;
+        substitutePlayer: any;
+        timestamp: string;
+      }) => {
+        // Mapear a tu store
+      }
+    },
+    {
+      eventName: 'benchUpdate',
+      handler: (data: {
+        gameId: string;
+        teamIndex: number;
+        bench: any[];
+        action: 'added' | 'removed';
+        playerId: string;
+        timestamp: string;
+      }) => {
+        // Mapear a tu store
+      }
+    },
+    {
+      eventName: 'notification',
+      handler: (data: {
+        message: string;
+        type: 'info' | 'warning' | 'error' | 'success';
+        timestamp: string;
+      }) => {
+        console.log(`📢 [${data.type}] ${data.message}`);
+        // Conectar a tu sistema de toasts/notificaciones
+      }
+    },
+    {
+      eventName: 'error',
+      handler: (data: { message: string; details?: any; timestamp: string }) => {
+        console.error(`❌ Socket error: ${data.message}`, data.details);
+      }
+    }
+  ];
+
+  useBaseballSocketEvents(gameId, baseballEvents);
 };

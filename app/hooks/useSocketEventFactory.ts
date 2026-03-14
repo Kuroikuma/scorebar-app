@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import socket from '../service/socket';
-import { createSocketMiddleware, createEventName, handleSocketError } from '../service/socketMiddleware';
+import { createSocketMiddleware, createEventName, handleSocketError, createBaseballEventName } from '../service/socketMiddleware';
 import { SocketEventName, SocketEventMap } from '../types/SocketEvents';
 
 export interface SocketEventConfig<T extends SocketEventName> {
@@ -66,6 +66,47 @@ export const useSocketEvents = (gameId: string, events: Array<{
           if (middleware(eventName, data)) {
             handler(data);
           }
+        } catch (error) {
+          handleSocketError(fullEventName, error);
+        }
+      };
+
+      socket.on(fullEventName, wrappedHandler);
+      cleanupFunctions.push(() => socket.off(fullEventName, wrappedHandler));
+    });
+
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
+  }, [gameId, events]);
+};
+
+/**
+ * Hook para los nuevos eventos de BaseballSocketService
+ * - Evento: "@server:{eventName}" (sin gameId en el nombre)
+ * - Validación: gameId viene en el payload
+ */
+export const useBaseballSocketEvents = (
+  gameId: string,
+  events: Array<{
+    eventName: string;
+    handler: (data: any) => void;
+  }>
+): void => {
+  useEffect(() => {
+    if (!gameId || !events.length) return;
+
+    const cleanupFunctions: Array<() => void> = [];
+
+    events.forEach(({ eventName, handler }) => {
+      const fullEventName = createBaseballEventName(eventName);
+
+      const wrappedHandler = (data: any) => {
+        try {
+          // Validar que el evento pertenece a este juego
+          if (data?.gameId && data.gameId !== gameId) return;
+
+          handler(data);
         } catch (error) {
           handleSocketError(fullEventName, error);
         }

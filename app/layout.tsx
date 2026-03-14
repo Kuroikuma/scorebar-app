@@ -12,7 +12,7 @@ import { usePathname } from 'next/navigation';
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <html lang="en">
+    <html lang="es" translate="no">
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.ico" />
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang="en">
+    <html lang="es" translate="no">
       <head>
         <link rel="manifest" href="/manifest.json" />
 

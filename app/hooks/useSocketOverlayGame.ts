@@ -1,6 +1,6 @@
 'use client';
 
-import { useGameSocket, useAdvanceBatterSocket } from './useGameSocket';
+import { useGameSocket, useAdvanceBatterSocket, useBaseballGameSocket } from './useGameSocket';
 
 /**
  * Hook refactorizado que usa la nueva implementación unificada
@@ -11,6 +11,7 @@ import { useGameSocket, useAdvanceBatterSocket } from './useGameSocket';
 export const useSocketOverlayGame = (id: string) => {
   // Usar los nuevos hooks unificados
   useGameSocket(id);
+  useBaseballGameSocket(id);
   useAdvanceBatterSocket(id);
 };
 
