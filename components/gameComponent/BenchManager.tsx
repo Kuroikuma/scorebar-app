@@ -8,16 +8,17 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
-import { ArrowRightLeft, Trash2, Users } from 'lucide-react'
+import { ArrowRightLeft, Trash2, Users, Pencil, AlertCircle } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface BenchManagerProps {
   teamIndex: number
+  onEditPlayer: (player: Player, index: number) => void
 }
 
-export function BenchManager({ teamIndex }: BenchManagerProps) {
+export function BenchManager({ teamIndex, onEditPlayer }: BenchManagerProps) {
   const { teams, removePlayerFromBench, substituteWithBenchPlayer, canPlayerBeSubstituted } = useTeamsStore()
   const team = teams[teamIndex]
 
@@ -49,53 +50,63 @@ export function BenchManager({ teamIndex }: BenchManagerProps) {
 
   return (
     <div className="space-y-4">
-      {/* Lista de jugadores en la banca */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Jugadores en Banca ({availableBenchPlayers.length})
-          </h4>
-          {availableBenchPlayers.length > 0 && availableLineupPlayers.length > 0 && (
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => setSubstituteDialogOpen(true)}
-            >
-              <ArrowRightLeft className="h-4 w-4 mr-1" />
-              Sustituir
-            </Button>
-          )}
-        </div>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-400">
+          Jugadores sustitutos disponibles para entrar al juego
+        </p>
+        {availableBenchPlayers.length > 0 && availableLineupPlayers.length > 0 && (
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => setSubstituteDialogOpen(true)}
+            className="border-[#4c3f82] text-[#4c3f82] hover:bg-[#4c3f82] hover:text-white"
+          >
+            <ArrowRightLeft className="h-4 w-4 mr-1" />
+            Realizar Sustitución
+          </Button>
+        )}
+      </div>
 
-        {team.bench.length === 0 ? (
-          <Alert>
-            <AlertDescription className="text-sm">
-              No hay jugadores en la banca. Usa el botón "Agregar a Banca" para agregar jugadores sustitutos.
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <ScrollArea className="h-[200px] border rounded-md bg-[#2d2b3b]">
-            <div className="p-2 space-y-2">
-              {team.bench.map((player) => (
-                <Card key={player._id} className="p-3 bg-[#1a1625] border-[#2d2b3b]">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="font-mono text-xs">
-                        #{player.number}
-                      </Badge>
-                      <div className="text-sm">
-                        <p className="font-medium">{player.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {player.position}
-                          {player.isSubstituted && (
-                            <Badge variant="secondary" className="ml-2 text-xs">
-                              Sustituido
-                            </Badge>
-                          )}
-                        </p>
-                      </div>
+      {team.bench.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          <Users className="h-16 w-16 mx-auto mb-4 opacity-50" />
+          <p className="text-lg">No hay jugadores en la banca</p>
+          <p className="text-sm">Agrega jugadores sustitutos para realizar cambios durante el juego</p>
+        </div>
+      ) : (
+        <ScrollArea className="h-[400px]">
+          <div className="space-y-2">
+            {team.bench.map((player, index) => (
+              <Card key={player._id || index} className="p-4 bg-[#2d2b3b] border-[#3d3b4b]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="font-mono">
+                      #{player.number}
+                    </Badge>
+                    <div>
+                      <p className="font-medium flex items-center gap-2">
+                        {player.name}
+                        {player.isSubstituted && (
+                          <Badge variant="secondary" className="text-xs">
+                            Sustituido
+                          </Badge>
+                        )}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {player.position}
+                        {player.substituteFor && ' • Entró por sustitución'}
+                      </p>
                     </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onEditPlayer(player, index)}
+                      disabled={player.isSubstituted}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -105,12 +116,12 @@ export function BenchManager({ teamIndex }: BenchManagerProps) {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                </Card>
-              ))}
-            </div>
-          </ScrollArea>
-        )}
-      </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
+      )}
 
       {/* Dialog: Realizar sustitución */}
       <Dialog open={substituteDialogOpen} onOpenChange={setSubstituteDialogOpen}>
@@ -158,8 +169,9 @@ export function BenchManager({ teamIndex }: BenchManagerProps) {
             </div>
 
             <Alert className="bg-[#2d2b3b] border-yellow-500/50">
+              <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-xs">
-                ⚠️ <strong>Regla 5.10:</strong> Un jugador sustituido no puede regresar al juego. 
+                <strong>Regla 5.10:</strong> Un jugador sustituido no puede regresar al juego. 
                 Asegúrate de que la bola esté muerta antes de realizar la sustitución.
               </AlertDescription>
             </Alert>

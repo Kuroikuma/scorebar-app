@@ -11,9 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Pencil, Trash2 } from 'lucide-react'
-import ListPlayer from "./gameComponent/ListPlayer"
-import AddPlayer from "./gameComponent/addPlayer"
-import { BenchManager } from "./gameComponent/BenchManager"
 import { RosterManager } from "./gameComponent/RosterManager"
 
 export interface IEditingPlayer {

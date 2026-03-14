@@ -88,7 +88,8 @@ export default function NewGame({ open }: NewGameProps) {
           lineupSubmitted: false, 
           lineup: [], 
           shortName: team1ShortName,
-          logo: team1Logo ? team1Logo : null
+          logo: team1Logo ? team1Logo : null,
+          bench: []
         },
         { 
           name: team2Name, 
@@ -101,7 +102,8 @@ export default function NewGame({ open }: NewGameProps) {
           lineupSubmitted: false, 
           lineup: [], 
           shortName: team2ShortName,
-          logo: team2Logo ? team2Logo : null
+          logo: team2Logo ? team2Logo : null,
+          bench: []
         },],
         inning: 1,
         isTopInning: true,

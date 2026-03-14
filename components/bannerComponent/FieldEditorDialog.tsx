@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { RotateCcw, Palette, Sparkles } from 'lucide-react';
 import { FieldStyleEditor } from '../ui/field-style-editor';
 import { SponsorBanner } from '@/app/types/sponsor';
-import { IBannerSettings, FieldAnimationType, EasingType, FieldAnimationConfig } from '@/app/types/Banner';
+import { IBannerSettings, FieldAnimationType, EasingType, FieldAnimationConfig, FieldStyleConfig } from '@/app/types/Banner';
 
 interface FieldEditorDialogProps {
   open: boolean;
@@ -69,7 +69,7 @@ export default function FieldEditorDialog({
 }: FieldEditorDialogProps) {
   const [activeTab, setActiveTab] = useState<'style' | 'animation'>('style');
 
-  const handleFieldStyleChange = (fieldStyleUpdates: any) => {
+  const handleFieldStyleChange = (fieldStyleUpdates: Partial<FieldStyleConfig>) => {
     const currentFieldStyles = settings.styleSettings.fieldStyles || {};
 
     onUpdateSettings({

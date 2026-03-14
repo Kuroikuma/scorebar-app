@@ -128,7 +128,7 @@ export interface DefaultConfingFields {
 export interface FieldAnimation {
   enabled: boolean
   // Nuevo: mapa de configuraciones por campo
-  perFieldConfig: Record<keyof SponsorBanner, FieldAnimationConfig>
+  perFieldConfig: Partial<Record<keyof SponsorBanner, FieldAnimationConfig>>
   // Configuración global (se usa cuando no hay configuración específica)
   defaultConfig: DefaultConfingFields
 }
@@ -157,7 +157,7 @@ export interface StyleSettings {
   // Enhanced typography settings
   typography: FontSettings
   // New: field-specific styles
-  fieldStyles?: Record<keyof SponsorBanner, FieldStyleConfig>
+  fieldStyles?: Partial<Record<keyof SponsorBanner, FieldStyleConfig>>
 }
 
 export interface IBannerSettings {

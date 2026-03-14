@@ -213,6 +213,8 @@ export default function ControlPanel({
     sports: "/placeholder.svg?height=120&width=200&text=Sports",
     contact: "/placeholder.svg?height=120&width=200&text=Contact",
     flipCard: "/placeholder.svg?height=120&width=200&text=FlipCard",
+    brutalistBold: "/placeholder.svg?height=120&width=200&text=Brutalist+Bold",
+    darkLuxury: "/placeholder.svg?height=120&width=200&text=Dark+Luxury",
   }
 
   // Nombres de diseños en español
@@ -225,6 +227,8 @@ export default function ControlPanel({
     sports: "Deportes",
     contact: "Contacto",
     flipCard: "Tarjeta 3D",
+    brutalistBold: "Brutalista Bold",
+    darkLuxury: "Lujo Oscuro",
   }
 
   // Nombres de animaciones en español

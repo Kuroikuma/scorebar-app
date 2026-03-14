@@ -2,7 +2,13 @@ import { create } from 'zustand'
 import { Game, useGameStore } from './gameStore';
 import { Player, useTeamsStore } from './teamsStore';
 import { useHistoryStore } from './historiStore';
-import { ISocketDataInning, ISocketDataPlayer } from '../hooks/useSocketOverlayGame';
+import { ISocketDataInning, ISocketDataPlayer } from '../types/SocketEvents';
+
+/**
+ * @deprecated Este store será eliminado en futuras versiones.
+ * La lógica de overlays se ha movido a gameStore y teamsStore.
+ * Usar directamente gameStore.handleSocket* y teamsStore.handleSocket* methods.
+ */
 
 
 

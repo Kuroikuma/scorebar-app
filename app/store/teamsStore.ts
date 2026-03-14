@@ -1,5 +1,20 @@
 import { create } from 'zustand'
-import { advanceBatterService, changeCurrentBatterService, changeErrors, changeHits, scoreRun, updateLineupTeamService, updatePlayerService } from '@/app/service/api'
+import { 
+  advanceBatterService, 
+  changeCurrentBatterService, 
+  changeErrors, 
+  changeHits, 
+  scoreRun, 
+  updateLineupTeamService, 
+  updatePlayerService,
+  addPlayerToBenchService,
+  removePlayerFromBenchService,
+  substitutePlayerService,
+  recordStolenBaseService,
+  recordPitcherEvent,
+  recordCatcherEvent,
+  addPlayerToLineupService
+} from '@/app/service/api'
 import { useGameStore } from './gameStore'
 import { useHistoryStore } from './historiStore';
 import { toast } from 'sonner';
@@ -114,7 +129,7 @@ export type TeamsState = {
   decrementErrors: (newErrors:number) => Promise<void>
   updateLineup: (teamIndex: number, lineup: Player[]) => void
   advanceBatter: (teamIndex: number, isSaved?: boolean) => Promise<void>
-  updatePlayer: (teamIndex: number, playerIndex: number, player: Player | null) => void
+  updatePlayer: (teamIndex: number, playerIndex: number, player: Player | null) => Promise<void>
   submitLineup: (teamIndex: number) => Promise<void>
   changeTeamShortName: (teamIndex: any, newShortName: any) => Promise<void>
   changeCurrentBatter: (newCurrentBatterIndex: number) => void
@@ -133,6 +148,17 @@ export type TeamsState = {
     toBase: number,
     wasSuccessful: boolean
   ) => Promise<void>
+  
+  // ── Socket Event Handlers ──────────────────────────────────────────────
+  handleSocketLineup: (teamIndex: number, lineup: Player[], lineupSubmitted: boolean) => void
+  handleSocketPlayer: (teamIndex: number, team: Team) => void
+  handleSocketTeamColor: (teamIndex: number, color: string) => void
+  handleSocketTeamTextColor: (teamIndex: number, textColor: string) => void
+  handleSocketTeamName: (teamIndex: number, name: string) => void
+  handleSocketShortName: (teamIndex: number, shortName: string) => void
+  handleSocketRuns: (teamIndex: number, runs: number, runsInning: number) => void
+  handleSocketHits: (teamIndex: number, hits: number) => void
+  handleSocketErrors: (teamIndex: number, errors: number) => void
   // ── Regla 5.10: Sustituciones ────────────────────────────────────────────
   // Sustituye un jugador por otro, marcando al jugador original como sustituido
   substitutePlayer: (
@@ -146,6 +172,8 @@ export type TeamsState = {
   // ── Gestión de Banca ─────────────────────────────────────────────────────
   // Agrega un jugador a la banca (disponible para sustitución)
   addPlayerToBench: (teamIndex: number, player: Player) => Promise<void>
+
+  addPlayerToLineup: (teamIndex: number, player: Player) => Promise<void>
   // Remueve un jugador de la banca
   removePlayerFromBench: (teamIndex: number, playerId: string) => Promise<void>
   // Actualiza un jugador en la banca
@@ -210,11 +238,13 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     const defensiveTeam = teams[defensiveTeamIndex]
 
     let updatedDefensiveLineup = [...defensiveTeam.lineup]
+    let affectedPlayerId: string | undefined
 
     if (type === 'WP') {
       // WP → pitcher: +1 wildPitches
       updatedDefensiveLineup = updatedDefensiveLineup.map((p) => {
         if (p.position === 'P') {
+          affectedPlayerId = p._id
           return {
             ...p,
             wildPitches: (p.wildPitches ?? 0) + 1,
@@ -226,6 +256,7 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       // PB → catcher: +1 passedBalls
       updatedDefensiveLineup = updatedDefensiveLineup.map((p) => {
         if (p.position === 'C') {
+          affectedPlayerId = p._id
           return { ...p, passedBalls: (p.passedBalls ?? 0) + 1 }
         }
         return p
@@ -240,10 +271,12 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       })
     )
 
-    // Persistir lineup defensivo en el backend
+    // Persistir en el backend usando el nuevo endpoint
     const gameId = useGameStore.getState().id!
-    if (gameId) {
-      await updatePlayerService(gameId, defensiveTeamIndex, updatedDefensiveLineup)
+    if (gameId && affectedPlayerId) {
+      await recordPitcherEvent(gameId, defensiveTeamIndex, affectedPlayerId, {
+        eventType: type === 'WP' ? 'wildPitch' : 'strikeout',
+      })
     }
   },
 
@@ -391,10 +424,12 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
 
     // ── 2. Si fue caught stealing, dar crédito al catcher ───────────────────
     let updatedDefensiveLineup = [...defensiveTeam.lineup]
+    let catcherId: string | undefined
     
     if (!wasSuccessful) {
       updatedDefensiveLineup = updatedDefensiveLineup.map((player) => {
         if (player.position === 'C') {
+          catcherId = player._id
           return {
             ...player,
             caughtStealingBy: (player.caughtStealingBy ?? 0) + 1,
@@ -414,12 +449,20 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       })
     )
 
-    // Persistir ambos lineups en el backend
+    // Persistir usando el nuevo endpoint
     const gameId = useGameStore.getState().id!
     if (gameId) {
-      await updatePlayerService(gameId, offensiveTeamIndex, updatedOffensiveLineup)
-      if (!wasSuccessful) {
-        await updatePlayerService(gameId, defensiveTeamIndex, updatedDefensiveLineup)
+      await recordStolenBaseService(gameId, offensiveTeamIndex, runnerId, {
+        fromBase,
+        toBase,
+        wasSuccessful,
+      })
+      
+      // Si fue caught stealing, registrar evento del catcher
+      if (!wasSuccessful && catcherId) {
+        await recordCatcherEvent(gameId, defensiveTeamIndex, catcherId, {
+          eventType: 'caughtStealing',
+        })
       }
     }
   },
@@ -712,28 +755,20 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     
     const playerToRemove = team.lineup[playerToRemoveIndex]
     
-    // ── Validación 2: Verificar que la bola está muerta ─────────────────────
-    // (En una implementación completa, verificarías el estado del juego aquí)
-    // Por ahora asumimos que las sustituciones solo se hacen cuando es válido
-    
     // ── Paso 1: Marcar jugador original como sustituido ─────────────────────
     const updatedPlayerToRemove: Player = {
       ...playerToRemove,
       isSubstituted: true,
       substitutedBy: newPlayer._id,
-      // Si es pitcher, permitir potencial regreso como fielder (configurable)
       canReturnAsFielder: playerToRemove.position === 'P',
     }
     
     // ── Paso 2: Configurar nuevo jugador ────────────────────────────────────
     const configuredNewPlayer: Player = {
       ...newPlayer,
-      // Heredar posición en el batting order
       battingOrder: playerToRemove.battingOrder,
       defensiveOrder: playerToRemove.defensiveOrder,
-      // Marcar que es sustituto
       substituteFor: playerToRemoveId,
-      // Inicializar estadísticas si no existen
       turnsAtBat: newPlayer.turnsAtBat || [],
       wildPitches: newPlayer.wildPitches || 0,
       passedBalls: newPlayer.passedBalls || 0,
@@ -745,9 +780,6 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     }
     
     // ── Paso 3: Actualizar lineup ───────────────────────────────────────────
-    // Mantener al jugador original en el lineup pero marcado como sustituido
-    // (para preservar historial de turnos al bat)
-    // El nuevo jugador toma su lugar en el orden de bateo
     const updatedLineup = team.lineup.map((p, index) => {
       if (index === playerToRemoveIndex) {
         return configuredNewPlayer
@@ -761,11 +793,10 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     // ── Paso 4: Actualizar currentBatter si es necesario ────────────────────
     let updatedCurrentBatter = team.currentBatter
     if (team.currentBatter === playerToRemoveIndex) {
-      // Si el jugador sustituido era el bateador actual, el sustituto toma su lugar
       updatedCurrentBatter = playerToRemoveIndex
     }
     
-    // ── Paso 5: Persistir cambios ───────────────────────────────────────────
+    // ── Paso 5: Persistir cambios usando el nuevo endpoint ──────────────────
     set({
       teams: teams.map((t, index) =>
         index === teamIndex
@@ -776,7 +807,7 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     
     const gameId = useGameStore.getState().id
     if (gameId) {
-      await updatePlayerService(gameId, teamIndex, updatedLineup)
+      await substitutePlayerService(gameId, teamIndex, playerToRemoveId, configuredNewPlayer)
     }
     
     toast.success(
@@ -784,6 +815,55 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     )
     
     return { success: true }
+  },
+  addPlayerToLineup: async (teamIndex, player) => {
+
+    const { teams } = get()
+    const team = teams[teamIndex]
+    
+    // Validar que el jugador no esté ya en el lineup
+    const isInLineup = team.lineup.some((p) => p._id === player._id)
+    if (isInLineup) {
+      toast.error('El jugador ya está en el lineup activo')
+      return
+    }
+    
+    // Validar que el jugador no esté ya en la banca
+    const isInBench = team.bench.some((p) => p._id === player._id)
+    if (isInBench) {
+      toast.error('El jugador ya está en la banca')
+      return
+    }
+    
+    // Inicializar campos del jugador
+    const lineupPlayer: Player = {
+      ...player,
+      turnsAtBat: player.turnsAtBat || [],
+      wildPitches: player.wildPitches || 0,
+      passedBalls: player.passedBalls || 0,
+      strikeoutsThrown: player.strikeoutsThrown || 0,
+      balks: player.balks || 0,
+      stolenBases: player.stolenBases || 0,
+      caughtStealing: player.caughtStealing || 0,
+      caughtStealingBy: player.caughtStealingBy || 0,
+      isSubstituted: false,
+    }
+    
+    const updatedLineup = [...team.lineup, lineupPlayer]
+    
+    set({
+      teams: teams.map((t, index) =>
+        index === teamIndex ? { ...t, lineup: updatedLineup } : t
+      ),
+    })
+    
+    // Persistir usando el nuevo endpoint
+    const gameId = useGameStore.getState().id
+    if (gameId) {
+      await addPlayerToLineupService(gameId, teamIndex, lineupPlayer)
+    }
+    
+    toast.success(`${player.name} (#${player.number}) agregado a la banca`)
   },
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -839,12 +919,10 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
       ),
     })
     
-    // Persistir en el backend
+    // Persistir usando el nuevo endpoint
     const gameId = useGameStore.getState().id
     if (gameId) {
-      // Nota: Necesitarás crear un endpoint en el backend para guardar la banca
-      // Por ahora, guardamos como parte del equipo
-      await updatePlayerService(gameId, teamIndex, team.lineup)
+      await addPlayerToBenchService(gameId, teamIndex, benchPlayer)
     }
     
     toast.success(`${player.name} (#${player.number}) agregado a la banca`)
@@ -873,6 +951,12 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
         index === teamIndex ? { ...t, bench: updatedBench } : t
       ),
     })
+    
+    // Persistir usando el nuevo endpoint
+    const gameId = useGameStore.getState().id
+    if (gameId) {
+      await removePlayerFromBenchService(gameId, teamIndex, playerId)
+    }
     
     toast.success(`${playerToRemove.name} removido de la banca`)
   },
@@ -965,10 +1049,8 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     // ── Paso 2: Configurar jugador de la banca para entrar al lineup ────────
     const configuredBenchPlayer: Player = {
       ...benchPlayer,
-      // Heredar posición en el batting order
       battingOrder: playerToRemove.battingOrder,
       defensiveOrder: playerToRemove.defensiveOrder,
-      // Marcar que es sustituto
       substituteFor: playerToRemoveId,
     }
     
@@ -981,17 +1063,15 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     const updatedBench = team.bench.filter((p) => p._id !== benchPlayerId)
     
     // ── Paso 5: Agregar jugador sustituido a la banca (para tracking) ───────
-    // Esto permite mantener el historial y potencialmente revertir si es necesario
     const finalBench = [...updatedBench, updatedPlayerToRemove]
     
     // ── Paso 6: Actualizar currentBatter si es necesario ────────────────────
     let updatedCurrentBatter = team.currentBatter
     if (team.currentBatter === playerToRemoveIndex) {
-      // Si el jugador sustituido era el bateador actual, el sustituto toma su lugar
       updatedCurrentBatter = playerToRemoveIndex
     }
     
-    // ── Paso 7: Persistir cambios ───────────────────────────────────────────
+    // ── Paso 7: Persistir cambios usando los nuevos endpoints ───────────────
     set({
       teams: teams.map((t, index) =>
         index === teamIndex
@@ -1007,7 +1087,8 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     
     const gameId = useGameStore.getState().id
     if (gameId) {
-      await updatePlayerService(gameId, teamIndex, updatedLineup)
+      // Usar el endpoint específico para sustitución con jugador de banca
+      await substitutePlayerService(gameId, teamIndex, playerToRemoveId, configuredBenchPlayer)
     }
     
     toast.success(
@@ -1015,5 +1096,82 @@ export const useTeamsStore = create<TeamsState>((set, get) => ({
     )
     
     return { success: true }
+  },
+
+  // ── Socket Event Handlers ──────────────────────────────────────────────
+  handleSocketLineup: (teamIndex, lineup, lineupSubmitted) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, lineup, lineupSubmitted } : team
+      )
+    }));
+  },
+
+  handleSocketPlayer: (teamIndex, team) => {
+    set((state) => ({
+      teams: state.teams.map((t, index) => 
+        index === teamIndex ? team : t
+      )
+    }));
+  },
+
+  handleSocketTeamColor: (teamIndex, color) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, color } : team
+      )
+    }));
+  },
+
+  handleSocketTeamTextColor: (teamIndex, textColor) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, textColor } : team
+      )
+    }));
+  },
+
+  handleSocketTeamName: (teamIndex, name) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, name } : team
+      )
+    }));
+  },
+
+  handleSocketShortName: (teamIndex, shortName) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, shortName } : team
+      )
+    }));
+  },
+
+  handleSocketRuns: (teamIndex, runs, runsInning) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, runs } : team
+      )
+    }));
+
+    // Actualizar carreras por inning en gameStore
+    const { changeRunsByInning } = useGameStore.getState();
+    changeRunsByInning(teamIndex, runsInning, false);
+  },
+
+  handleSocketHits: (teamIndex, hits) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, hits } : team
+      )
+    }));
+  },
+
+  handleSocketErrors: (teamIndex, errors) => {
+    set((state) => ({
+      teams: state.teams.map((team, index) => 
+        index === teamIndex ? { ...team, errorsGame: errors } : team
+      )
+    }));
   },
 }));
