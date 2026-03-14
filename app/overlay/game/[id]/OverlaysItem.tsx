@@ -3,7 +3,7 @@ import { BaseballFormationOverlay } from '@/components/overlay/improved-field-li
 import { EnhancedRunsTable } from '@/components/overlay/enhanced-runs-table';
 import { ScoreBugBallySports } from '@/components/overlay/ScoreBugBally';
 import { InningScoreOverlay } from '@/components/overlay/inning-score-overlay';
-import { PlayerOverlay } from '@/components/overlay/player-stats-overlay';
+import { PlayerOverlay } from '@/components/overlay/At-BatGraphic/player-stats-overlay';
 import { useSocketHandleOverlays } from '@/app/hooks/useSocketHandleOverlayGame';
 import { useGameSocket } from '@/app/hooks/useGameSocket';
 
