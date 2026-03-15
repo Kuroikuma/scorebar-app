@@ -1,27 +1,23 @@
-import { useEffect, useRef } from "react";
+"use client";
 
-const advertisements = [
-  "WESTER DISCO: El lugar de los mejores momentos.",
-  "LIBRERÍA SUEÑOS DE PAPEL: Santo Domingo, frente a Nick Pollos. 📞 8221-0655",
-  "COMERCIAL MARIELOS: Tenemos todo lo que buscas y mucho más.",
-  "AGRO VETERINARIA MIRANDA: Barrio Chester Obando, contiguo a Farmacia Santa Isabel, Santo Domingo.",
-  "CLUB DE BILLARES PICA PICA: El lugar perfecto para relajarte y disfrutar.",
-  "VARIEDADES SUYEN: Nuestra misión es ofrecerte lo mejor en productos, precios y atención.",
-  "FARMACIA Y LABORATORIO CLÍNICO SANTA ISABEL: Donde tu salud es nuestra prioridad, Barrio Chester Obando, contiguo a Veterinaria Miranda.",
-  "CARNICERÍA FEFI: Del Parque Municipal, 1 cuadra al noroeste, Santo Domingo. 📞 8656-0635, 8632-3207",
-  "FLORISTERÍA TOLEDO: Barrio Chester Obando, del Parque Municipal, 80 m al noroeste, Santo Domingo. 📞 8961-7940",
-  "VARIEDADES MEY: CALLE CENTRAL SANTO DOMINGO FRENTE A VARIEDADAES SUYEN, TELEFONO: 86542085",
-  "AGRADECEMOS EL PATROCINIO DE: FELIX PEDRO SEQUEIRA PICA PIEDRA, MARIA SEQUEIRA Y ELVIN SEQUEIRA.",
-  "CREACIONES EL CARMEN: Te ofrece todo en sublimaciones, Santo Domingo, Barrio Chester Obando, Detras de la cancha municipa telf: 8855-0462 8621-8126",
-];
+import { useEffect, useRef } from "react";
+import { useSponsorStore } from "@/app/store/useSponsor";
+import { useGameStore } from "@/app/store/gameStore";
 
 const Ticker = () => {
   const tickerRef = useRef<HTMLDivElement>(null);
+  const { sponsors, getSponsorsByOrganizationId } = useSponsorStore();
+  const { organizationId } = useGameStore();
+
+  // Filtrar sponsors activos que tengan texto de anuncio
+  const advertisements = sponsors
+    .filter((sponsor) => !sponsor.deleted_at && sponsor.ad)
+    .map((sponsor) => sponsor.ad);
 
   useEffect(() => {
     const ticker = tickerRef.current;
 
-    if (ticker) {
+    if (ticker && advertisements.length > 0) {
       const totalWidth = ticker.scrollWidth; // Ancho total de todos los anuncios
       const speed = 50; // Velocidad en píxeles por segundo
 
@@ -29,6 +25,27 @@ const Ticker = () => {
       ticker.style.animationDuration = `${duration}s`; // Ajustamos la duración dinámicamente
     }
   }, [advertisements]);
+
+    // Cargar sponsors cuando se monta el componente
+    useEffect(() => {
+      const loadSponsors = async () => {
+        if (organizationId) {
+          await getSponsorsByOrganizationId(organizationId)
+        }
+      }
+      loadSponsors()
+    }, [])
+
+  // Si no hay anuncios, mostrar mensaje por defecto
+  if (advertisements.length === 0) {
+    return (
+      <div className="w-[200px] flex flex-1 items-center justify-center overflow-hidden border-r border-white/20">
+        <div className="text-yellow-400 text-sm px-4">
+          No hay anuncios disponibles
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
