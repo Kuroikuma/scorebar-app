@@ -1,129 +1,144 @@
-'use client'
+'use client';
 
-import { useCallback, useState, useEffect, useRef } from 'react'
-import dynamic from 'next/dynamic'
-import { useParams } from 'next/navigation'
-import { useGameStore } from '@/app/store/gameStore'
-import { OverlaysItem } from './OverlaysItem'
-import { useSocketOverlayGame } from '@/app/hooks/useSocketOverlayGame'
+import React, { useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { OverlayManager } from '@/components/overlay/OverlayManager';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Settings, Eye, EyeOff } from 'lucide-react';
+import { useGameOverlays, useOverlayInitialization } from '@/app/hooks/useGameOverlays';
+import { SportCategory } from '@/app/types/overlay';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useOverlayStore } from '@/app/store/useOverlayStore';
 
-const DraggableComponent = dynamic(
-  () =>
-    import('react-draggable').then((mod) => {
-      const Draggable = mod.default
-      return ({ children, ...props }: any) => {
-        const nodeRef = useRef(null)
-        return (
-          <Draggable {...props} nodeRef={nodeRef}>
-            <div ref={nodeRef}>{children}</div>
-          </Draggable>
-        )
-      }
-    }),
-  { ssr: false }
-)
-
-interface Position {
-  x: number
-  y: number
-}
-
-export interface OverlayItem {
-  id: string
-  position: Position
-  component: React.ReactNode
-  width: string
-  height: string
-  scale: number
-  visible: boolean
-}
-
-export default function OverlayPage() {
-  const paramas = useParams()
-  const id = paramas?.id as string
-
-  const [gameId, setGameId] = useState<string | null>(id)
+export default function GameOverlayPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const gameId = params.id as string;
 
   const {
-    loadOverlay,
-    scoreboardOverlay,
-    scorebugOverlay,
-    formationAOverlay,
-    formationBOverlay,
-    scoreboardMinimalOverlay,
-    playerStatsOverlay,
-    handlePositionOverlay,
-  } = useGameStore()
+      loadGameOverlays,
+    } = useOverlayStore();
+  
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [showControls, setShowControls] = useState(true);
 
-  const overlays = [
-    formationAOverlay,
-    scorebugOverlay,
-    scoreboardOverlay,
-    formationBOverlay,
-    scoreboardMinimalOverlay,
-    playerStatsOverlay,
-  ]
+  const { overlays, loading, error } = useGameOverlays(gameId);
+  const { initializeOverlays, loading: initializing } = useOverlayInitialization();
 
-
+    // Load overlays when gameId changes
   useEffect(() => {
-    if (id) {
-      loadOverlay(id)
-      setGameId(id)
+    if (gameId) {
+      loadGameOverlays(gameId);
     }
-  }, [gameId, loadOverlay, setGameId, paramas, id])
+  }, []);
 
-  const [mounted, setMounted] = useState(false)
+  // Check if overlays need initialization
+  const needsInitialization = !loading && overlays.length === 0;
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const handleInitializeOverlays = async () => {
+    try {
+      await initializeOverlays(gameId, SportCategory.Baseball);
+    } catch (error) {
+      console.error('Error initializing overlays:', error);
+    }
+  };
 
-  useSocketOverlayGame(id);
-
-  const handleDragStop = useCallback(
-    (id: string, data: { x: number; y: number }) => {
-      data.y = parseFloat(((data.y / window.innerHeight) * 100).toFixed(2));
-      handlePositionOverlay(id, data)
-    },
-    []
-  )
-
-  if (!mounted) {
-    return null
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p>Cargando overlays...</p>
+        </div>
+      </div>
+    );
   }
 
-
-
   return (
-    <div className="relative w-screen h-[calc(100vh)] bg-[#1a472a00] overflow-hidden">
-      {overlays.map((item) => {
-        let y = (item.y / 100) * window.innerHeight
-        return (
-          <DraggableComponent
-            key={item.id}
-            position={{ x: item.x, y: y }}
-            // defaultPosition={{ x: item.x, y: item.y }} // Usa `defaultPosition` en lugar de `position`.
-            onStop={(_: any, data: any) =>
-              handleDragStop(item.id, { x: data.x, y: data.y })
-            }
-            // bounds="parent"
-            handle={item.id.includes('formation') ? undefined : '.drag-handle'}
-            disabled={item.id.includes('formation')} // Evita mover el campo.
-          >
-            <div className="absolute" style={{ width: '100%', height: '100%' }}>
-              <div
-                style={{ transform: `scale(${item.scale / 100})` }}
-                className={`relative transform scale-[${item.scale / 100}]`}
-              >
-                {!item.id.includes('formation') && (
-                  <div className="drag-handle absolute -top-2 left-0 right-0 h-6 bg-white/10 rounded-t cursor-move opacity-0 hover:opacity-100 transition-opacity" />
-                )}
-                <OverlaysItem item={item} gameId={gameId || ''} />
-              </div>
+    <div className="relative w-full h-screen bg-gray-900 overflow-hidden">
+      {/* Controls Panel */}
+      {showControls && (
+        <Card className="absolute top-4 left-4 z-40 w-80">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Settings className="h-4 w-4" />
+              Control de Overlays
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Edit Mode Toggle */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor="edit-mode" className="text-sm">
+                Modo Edición
+              </Label>
+              <Switch
+                id="edit-mode"
+                checked={isEditMode}
+                onCheckedChange={setIsEditMode}
+              />
             </div>
-          </DraggableComponent>
-        )
-      })}
+
+            {/* Initialize Overlays */}
+            {needsInitialization && (
+              <div className="space-y-2">
+                <Alert>
+                  <AlertDescription>
+                    No se encontraron overlays para este juego.
+                  </AlertDescription>
+                </Alert>
+                <Button 
+                  onClick={handleInitializeOverlays}
+                  disabled={initializing}
+                  className="w-full"
+                  size="sm"
+                >
+                  {initializing ? 'Inicializando...' : 'Inicializar Overlays'}
+                </Button>
+              </div>
+            )}
+
+            {/* Overlay Count */}
+            {overlays.length > 0 && (
+              <div className="text-sm text-muted-foreground">
+                {overlays.length} overlays disponibles
+                <br />
+                {overlays.filter(o => o.visible).length} visibles
+              </div>
+            )}
+
+            {/* Error Display */}
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription className="text-xs">
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Controls Toggle */}
+      <Button
+        variant="outline"
+        size="sm"
+        className="absolute top-4 right-4 z-40"
+        onClick={() => setShowControls(!showControls)}
+      >
+        {showControls ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </Button>
+
+      {/* Overlay Manager */}
+      <OverlayManager
+        gameId={gameId}
+        isEditMode={isEditMode}
+      />
+
+      {/* Background for better visibility */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20 pointer-events-none" />
     </div>
-  )
+  );
 }
