@@ -7,6 +7,12 @@ import { BaseballScoreBug } from './overlays/BaseballScoreBug';
 import { BaseballLineup } from './overlays/BaseballLineup';
 import { PlayerStats } from './overlays/PlayerStats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useGameSocket } from '@/app/hooks/useGameSocket';
+import { useSocketHandleOverlays } from '@/app/hooks/useSocketHandleOverlayGame';
+import { ScoreBugBallySports } from './ScoreBugBally';
+import { EnhancedRunsTable } from './enhanced-runs-table';
+import { BaseballFormationOverlay } from './improved-field-lineup';
+import { PlayerOverlay } from './At-BatGraphic/player-stats-overlay';
 
 interface OverlayContentProps {
   overlay: IOverlay;
@@ -14,22 +20,56 @@ interface OverlayContentProps {
 
 export const OverlayContent: React.FC<OverlayContentProps> = ({ overlay }) => {
   const overlayType = overlay.overlayTypeId?.name;
+  const gameId = overlay.gameId;
+
+  // Usar el nuevo hook unificado para eventos de socket del juego
+  useGameSocket(gameId);
+
+  // Mantener el hook específico para overlays (posición, escala, visibilidad)
+  useSocketHandleOverlays(overlay, gameId);
 
   // Render specific overlay content based on type
   switch (overlayType) {
     case 'baseball_scoreboard':
-      return <BaseballScoreboard overlay={overlay} />;
-    
+      switch (overlay.design) {
+        case 'RunsTable':
+          return <EnhancedRunsTable visible={overlay.visible} />
+        default:
+          return <BaseballScoreboard overlay={overlay} />;
+      }
+
     case 'baseball_scorebug':
-      return <BaseballScoreBug overlay={overlay} />;
-    
+      switch (overlay.design) {
+        case 'BallySports':
+          return <div className="flex-1 max-w-[100%] bg-black text-white max-[768px]:px-4 flex flex-col font-['Roboto_Condensed']">
+            <ScoreBugBallySports visible={overlay.visible} />
+          </div>
+
+        default:
+          return <BaseballScoreBug overlay={overlay} />;
+      }
+
     case 'baseball_lineup_home':
+      switch(overlay.design) {
+        case 'defensiveHome':
+          return <BaseballFormationOverlay overlayId={overlay.design} visible={overlay.visible} />;
+        default:
+          return <BaseballLineup overlay={overlay} />;
+      }
     case 'baseball_lineup_away':
-      return <BaseballLineup overlay={overlay} />;
-    
+      switch(overlay.design) {
+        case 'defensiveAway':
+          return <BaseballFormationOverlay overlayId={overlay.design} visible={overlay.visible} />;
+        default:
+          return <BaseballLineup overlay={overlay} />;
+      }
+
     case 'baseball_player_stats':
-      return <PlayerStats overlay={overlay} />;
-    
+      switch(overlay.design) {
+        default:
+          return <PlayerOverlay visible={overlay.visible} />;
+      }
+
     default:
       // Fallback placeholder for unknown overlay types
       return (
