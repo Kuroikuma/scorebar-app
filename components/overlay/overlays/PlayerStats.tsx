@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { IOverlay } from '@/app/types/overlay';
-import { useTeamsStore } from '@/app/store/teamsStore';
+import { TypeAbbreviatedBatting, TypeHitting, useTeamsStore } from '@/app/store/teamsStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/app/lib/utils';
 
@@ -57,6 +57,9 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({ overlay }) => {
 
   const { player, team } = currentBatter;
 
+  const homeRuns = player.turnsAtBat.filter(turn => turn.typeHitting === TypeHitting.HomeRun).length;
+  const hits = player.turnsAtBat.length
+
   return (
     <Card className={cn("min-w-[320px] font-mono", getDesignClasses(overlay.design))}>
       <CardHeader className="pb-2">
@@ -89,56 +92,29 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({ overlay }) => {
             </div>
             <div className="flex justify-between">
               <span className="opacity-75">HR:</span>
-              <span className="font-bold">{player.homeRuns || 0}</span>
+              <span className="font-bold">{homeRuns || 0}</span>
             </div>
-            <div className="flex justify-between">
+            {/* <div className="flex justify-between">
               <span className="opacity-75">RBI:</span>
               <span className="font-bold">{player.rbis || 0}</span>
-            </div>
+            </div> */}
           </div>
           
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="opacity-75">H:</span>
-              <span className="font-bold">{player.hits || 0}</span>
+              <span className="font-bold">{hits || 0}</span>
             </div>
-            <div className="flex justify-between">
+            {/* <div className="flex justify-between">
               <span className="opacity-75">R:</span>
               <span className="font-bold">{player.runs || 0}</span>
             </div>
             <div className="flex justify-between">
               <span className="opacity-75">SO:</span>
               <span className="font-bold">{player.strikeouts || 0}</span>
-            </div>
+            </div> */}
           </div>
         </div>
-
-        {/* Season Stats */}
-        {(player.seasonStats || player.gameStats) && (
-          <div className="border-t pt-3 space-y-2">
-            <div className="text-xs font-medium opacity-75 text-center">
-              TEMPORADA 2024
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-xs text-center">
-              <div>
-                <div className="opacity-75">AB</div>
-                <div className="font-bold">{player.seasonStats?.atBats || 0}</div>
-              </div>
-              <div>
-                <div className="opacity-75">OBP</div>
-                <div className="font-bold">
-                  .{Math.round((player.seasonStats?.onBasePercentage || 0) * 1000).toString().padStart(3, '0')}
-                </div>
-              </div>
-              <div>
-                <div className="opacity-75">SLG</div>
-                <div className="font-bold">
-                  .{Math.round((player.seasonStats?.sluggingPercentage || 0) * 1000).toString().padStart(3, '0')}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

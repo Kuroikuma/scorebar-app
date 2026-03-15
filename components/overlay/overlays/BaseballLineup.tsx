@@ -69,7 +69,7 @@ export const BaseballLineup: React.FC<BaseballLineupProps> = ({ overlay }) => {
         {team.lineup && team.lineup.length > 0 ? (
           team.lineup.map((player, index) => (
             <div 
-              key={player.id || index}
+              key={player._id || index}
               className={cn(
                 "flex items-center justify-between p-2 rounded text-sm",
                 team.currentBatter === index && "bg-yellow-400/20 font-bold"

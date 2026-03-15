@@ -105,7 +105,6 @@ export const GameOverlayIntegration: React.FC<GameOverlayIntegrationProps> = ({
                     id="edit-mode"
                     checked={isEditMode}
                     onCheckedChange={setIsEditMode}
-                    size="sm"
                   />
                 </div>
 
@@ -117,7 +116,6 @@ export const GameOverlayIntegration: React.FC<GameOverlayIntegrationProps> = ({
                     id="show-overlays"
                     checked={showOverlays}
                     onCheckedChange={setShowOverlays}
-                    size="sm"
                   />
                 </div>
               </>
