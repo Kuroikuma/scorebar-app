@@ -91,6 +91,8 @@ const BaseballScoreboardDestok = ({ gameId }: {gameId: string}) => {
 
 const BaseballScoreboardMovil = () => {
   const { activeTab, scoreboardStyle } = useUIStore();
+  const paramas = useParams();
+  const gameId = paramas?.id as string;
 
   return (
     <div className="h-screen w-screen p-4 font-['Roboto_Condensed'] flex flex-col">
@@ -115,7 +117,7 @@ const BaseballScoreboardMovil = () => {
           {activeTab === 'controlsBase' && <ControlBase />}
           {activeTab === 'lineup' && <LineupPanel />}
           {activeTab === 'status' && <StatusGame />}
-          {activeTab === 'overlays' && <CustomizeOverlays />}
+          {activeTab === 'overlays' && <OverlayManager gameId={gameId ?? ""} />}
         </div>
       </div>
     </div>

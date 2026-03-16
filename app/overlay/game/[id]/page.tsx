@@ -2,15 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { OverlayManager } from '@/components/overlay/OverlayManager';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Settings, Eye, EyeOff } from 'lucide-react';
 import { useGameOverlays, useOverlayInitialization } from '@/app/hooks/useGameOverlays';
 import { SportCategory } from '@/app/types/overlay';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useOverlayStore } from '@/app/store/useOverlayStore';
 import { OverlayRenderer } from '@/components/overlay/OverlayRenderer';
 
@@ -22,9 +15,6 @@ export default function GameOverlayPage() {
   const {
     loadGameOverlays,
   } = useOverlayStore();
-
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [showControls, setShowControls] = useState(true);
 
   const { overlays, loading, error, updateOverlayPosition } = useGameOverlays(gameId);
   const { initializeOverlays, loading: initializing } = useOverlayInitialization();
