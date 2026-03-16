@@ -271,7 +271,7 @@ export const OverlayManager: React.FC<OverlayManagerProps> = ({
                           variant="outline"
                           size="sm"
                           className="h-8 w-8 bg-[#1a1625] hover:bg-[#363447] border-[#363447]"
-                          onClick={() => updateOverlayScale(selectedOverlay!, Math.max(0.1, (selectedOverlayData.scale || 1) - 0.1))}
+                          onClick={() => updateOverlayScale(selectedOverlay!, Number(Math.max(0.1, (selectedOverlayData.scale || 1) - 0.1).toFixed(2)))}
                         >
                           -
                         </Button>
@@ -282,13 +282,13 @@ export const OverlayManager: React.FC<OverlayManagerProps> = ({
                           max="3"
                           className="flex-1 bg-[#1a1625] border-[#363447] text-center text-white text-sm"
                           value={selectedOverlayData.scale || 1}
-                          onChange={(e) => updateOverlayScale(selectedOverlay!, Math.max(0.1, Number(e.target.value)))}
+                          onChange={(e) => updateOverlayScale(selectedOverlay!, Number(Math.max(0.1, Number(e.target.value)).toFixed(2)))}
                         />
                         <Button
                           variant="outline"
                           size="sm"
                           className="h-8 w-8 bg-[#4c3f82] hover:bg-[#5a4b99] border-[#4c3f82] text-white"
-                          onClick={() => updateOverlayScale(selectedOverlay!, Math.min(3, (selectedOverlayData.scale || 1) + 0.1))}
+                          onClick={() => updateOverlayScale(selectedOverlay!, Number(Math.min(3, (selectedOverlayData.scale || 1) + 0.1).toFixed(2)))}
                         >
                           +
                         </Button>

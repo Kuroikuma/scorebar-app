@@ -38,6 +38,13 @@ export const DraggableOverlay: React.FC<DraggableOverlayProps> = ({
   
   let y = (overlay.y / 100) * window.innerHeight
 
+  // Normalizar la escala: si es > 10, asumimos que está en porcentaje y la convertimos
+  // Si es <= 10, asumimos que ya está en el formato correcto (0.1 - 3.0)
+  const normalizedScale = overlay.scale > 10 ? overlay.scale / 100 : overlay.scale || 1;
+  
+  // Validar que la escala esté en el rango correcto
+  const validScale = Math.max(0.1, Math.min(3.0, normalizedScale));
+
   return (
     <DraggableComponent
       key={overlay._id}
@@ -52,11 +59,13 @@ export const DraggableOverlay: React.FC<DraggableOverlayProps> = ({
     >
       <div className="absolute" style={{ width: '100%', height: '100%' }}>
         <div
-          style={{ transform: `scale(${overlay.scale / 100})` }}
-          className={`relative transform scale-[${overlay.scale / 100}]`}
+          style={{ transform: `scale(${validScale})` }}
+          className="relative"
         >
-          {!overlay._id.includes('formation') && (
-            <div className="drag-handle absolute -top-2 left-0 right-0 h-6 bg-white/10 rounded-t cursor-move opacity-0 hover:opacity-100 transition-opacity" />
+          {!overlay._id.includes('formation') && isDraggable && (
+            <div className="drag-handle absolute -top-2 left-0 right-0 h-6 bg-white/10 rounded-t cursor-move opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Move className="h-3 w-3 text-white" />
+            </div>
           )}
           <OverlayContent overlay={overlay} />
         </div>
