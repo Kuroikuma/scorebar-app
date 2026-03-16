@@ -55,7 +55,7 @@ export const OverlayCard: React.FC<OverlayCardProps> = ({
   const handleScaleChange = (value: string) => {
     const numValue = parseFloat(value) || 0.1;
     setLocalScale(value);
-    onScaleChange(Math.max(0.1, Math.min(3, numValue)));
+    onScaleChange(Math.max(0.1, Math.min(100, numValue)));
   };
 
   return (
@@ -146,9 +146,9 @@ export const OverlayCard: React.FC<OverlayCardProps> = ({
                 onChange={(e) => handleScaleChange(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
                 className="h-7 text-xs"
-                min="0.1"
-                max="3"
-                step="0.1"
+                min="1"
+                max="100"
+                step="1"
               />
             </div>
           </div>

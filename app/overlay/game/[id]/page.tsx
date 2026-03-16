@@ -12,6 +12,7 @@ import { useGameOverlays, useOverlayInitialization } from '@/app/hooks/useGameOv
 import { SportCategory } from '@/app/types/overlay';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useOverlayStore } from '@/app/store/useOverlayStore';
+import { OverlayRenderer } from '@/components/overlay/OverlayRenderer';
 
 export default function GameOverlayPage() {
   const params = useParams();
@@ -19,16 +20,17 @@ export default function GameOverlayPage() {
   const gameId = params.id as string;
 
   const {
-      loadGameOverlays,
-    } = useOverlayStore();
-  
+    loadGameOverlays,
+  } = useOverlayStore();
+
   const [isEditMode, setIsEditMode] = useState(false);
   const [showControls, setShowControls] = useState(true);
 
-  const { overlays, loading, error } = useGameOverlays(gameId);
+  const { overlays, loading, error, updateOverlayPosition } = useGameOverlays(gameId);
   const { initializeOverlays, loading: initializing } = useOverlayInitialization();
 
-    // Load overlays when gameId changes
+
+  // Load overlays when gameId changes
   useEffect(() => {
     if (gameId) {
       loadGameOverlays(gameId);
@@ -57,88 +59,9 @@ export default function GameOverlayPage() {
     );
   }
 
-  return (
-    <div className="relative w-full h-screen bg-gray-900 overflow-hidden">
-      {/* Controls Panel */}
-      {showControls && (
-        <Card className="absolute top-4 left-4 z-40 w-80">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Settings className="h-4 w-4" />
-              Control de Overlays
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Edit Mode Toggle */}
-            <div className="flex items-center justify-between">
-              <Label htmlFor="edit-mode" className="text-sm">
-                Modo Edición
-              </Label>
-              <Switch
-                id="edit-mode"
-                checked={isEditMode}
-                onCheckedChange={setIsEditMode}
-              />
-            </div>
-
-            {/* Initialize Overlays */}
-            {needsInitialization && (
-              <div className="space-y-2">
-                <Alert>
-                  <AlertDescription>
-                    No se encontraron overlays para este juego.
-                  </AlertDescription>
-                </Alert>
-                <Button 
-                  onClick={handleInitializeOverlays}
-                  disabled={initializing}
-                  className="w-full"
-                  size="sm"
-                >
-                  {initializing ? 'Inicializando...' : 'Inicializar Overlays'}
-                </Button>
-              </div>
-            )}
-
-            {/* Overlay Count */}
-            {overlays.length > 0 && (
-              <div className="text-sm text-muted-foreground">
-                {overlays.length} overlays disponibles
-                <br />
-                {overlays.filter(o => o.visible).length} visibles
-              </div>
-            )}
-
-            {/* Error Display */}
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription className="text-xs">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Controls Toggle */}
-      <Button
-        variant="outline"
-        size="sm"
-        className="absolute top-4 right-4 z-40"
-        onClick={() => setShowControls(!showControls)}
-      >
-        {showControls ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-      </Button>
-
-      {/* Overlay Manager */}
-      <OverlayManager
-        gameId={gameId}
-        isEditMode={isEditMode}
-      />
-
-      {/* Background for better visibility */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20 pointer-events-none" />
-    </div>
-  );
+  return (<OverlayRenderer
+    overlays={overlays}
+    isEditMode={true}
+    onPositionChange={updateOverlayPosition}
+  />);
 }

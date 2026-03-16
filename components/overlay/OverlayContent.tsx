@@ -5,10 +5,8 @@ import { IOverlay } from '@/app/types/overlay';
 import { BaseballScoreboard } from './overlays/BaseballScoreboard';
 import { BaseballScoreBug } from './overlays/BaseballScoreBug';
 import { BaseballLineup } from './overlays/BaseballLineup';
-import { PlayerStats } from './overlays/PlayerStats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGameSocket } from '@/app/hooks/useGameSocket';
-import { useSocketHandleOverlays } from '@/app/hooks/useSocketHandleOverlayGame';
 import { ScoreBugBallySports } from './ScoreBugBally';
 import { EnhancedRunsTable } from './enhanced-runs-table';
 import { BaseballFormationOverlay } from './improved-field-lineup';
@@ -24,9 +22,6 @@ export const OverlayContent: React.FC<OverlayContentProps> = ({ overlay }) => {
 
   // Usar el nuevo hook unificado para eventos de socket del juego
   useGameSocket(gameId);
-
-  // Mantener el hook específico para overlays (posición, escala, visibilidad)
-  useSocketHandleOverlays(overlay, gameId);
 
   // Render specific overlay content based on type
   switch (overlayType) {

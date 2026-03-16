@@ -15,10 +15,11 @@ import { LineupPanel } from '@/components/lineup-panel';
 import { StatusGame } from '@/components/statusGame';
 import CustomizeOverlays from '@/components/CustomizeOverlays';
 import { useSocketOverlayGame } from '@/app/hooks/useSocketOverlayGame';
-import { useSocketHandleOverlays } from '@/app/hooks/useSocketHandleOverlayGame';
 import ControlBase from '@/components/ControlBase';
 import { IOverlay } from '@/app/types/overlay';
 import { useGameOverlays } from '@/app/hooks/useGameOverlays';
+import { OverlayManager } from '@/components/overlay/OverlayManager';
+import { useOverlayStore } from '@/app/store/useOverlayStore';
 
 export default function BaseballScoreboard() {
   const { user, loading } = useAuth();
@@ -29,12 +30,13 @@ export default function BaseballScoreboard() {
 
   const { loadGame } = useGameStore();
 
-  const { overlays } = useGameOverlays(id);
+   const { loadGameOverlays } = useOverlayStore();
 
   useEffect(() => {
     if (user && id) {
       loadGame(id);
       setGameId(id);
+      loadGameOverlays(id);
     }
   }, [user, gameId, loadGame, setGameId, loading, paramas, id]);
 
@@ -50,11 +52,8 @@ export default function BaseballScoreboard() {
 
   return (
     <div>
-      {overlays.map((item) => (
-        <LoadOverlay key={item._id} item={item} gameId={id} />
-      ))}
       <div className="max-[768px]:hidden">
-        <BaseballScoreboardDestok />
+        <BaseballScoreboardDestok gameId={gameId ?? ""} />
       </div>
       <div className="min-[768px]:hidden">
         <BaseballScoreboardMovil />
@@ -63,7 +62,7 @@ export default function BaseballScoreboard() {
   );
 }
 
-const BaseballScoreboardDestok = () => {
+const BaseballScoreboardDestok = ({ gameId }: {gameId: string}) => {
   const { activeTab, scoreboardStyle } = useUIStore();
 
   return (
@@ -84,7 +83,7 @@ const BaseballScoreboardDestok = () => {
         {activeTab === 'controlsBase' && <ControlBase />}
         {activeTab === 'customize' && <CustomizePanel />}
         {activeTab === 'lineup' && <LineupPanel />}
-        {activeTab === 'overlays' && <CustomizeOverlays />}
+        {activeTab === 'overlays' && <OverlayManager gameId={gameId} />}
       </div>
     </div>
   );
@@ -121,9 +120,4 @@ const BaseballScoreboardMovil = () => {
       </div>
     </div>
   );
-};
-
-const LoadOverlay = ({ item, gameId }: { item: IOverlay; gameId: string }) => {
-  useSocketHandleOverlays(item, gameId);
-  return <></>;
 };

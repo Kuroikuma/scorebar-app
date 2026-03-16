@@ -15,7 +15,7 @@ interface OverlayState {
   // Actions - Overlay Management
   loadGameOverlays: (gameId: string) => Promise<void>;
   initializeGameOverlays: (gameId: string, sport: SportCategory) => Promise<void>;
-  updateOverlay: (overlayId: string, updates: IOverlayUpdate) => Promise<void>;
+  updateOverlay: (overlayId: string, updates: IOverlayUpdate, saved?: boolean) => Promise<void>;
   updateOverlayDesign: (overlayId: string, design: string, customConfig?: Record<string, any>) => Promise<void>;
   updateOverlayPosition: (overlayId: string, x: number, y: number) => Promise<void>;
   updateOverlayScale: (overlayId: string, scale: number) => Promise<void>;
@@ -75,14 +75,24 @@ export const useOverlayStore = create<OverlayState>((set, get) => ({
     }
   },
 
-  updateOverlay: async (overlayId: string, updates: IOverlayUpdate) => {
+  updateOverlay: async (overlayId: string, updates: IOverlayUpdate, saved: boolean = true) => {
     try {
-      const updatedOverlay = await overlayService.updateOverlay(overlayId, updates);
-      set(state => ({
-        overlays: state.overlays.map(overlay => 
-          overlay._id === overlayId ? { ...updatedOverlay, overlayTypeId: overlay.overlayTypeId } : overlay
-        )
-      }));
+      if (saved) {
+        // Save to backend and update with response
+        const updatedOverlay = await overlayService.updateOverlay(overlayId, updates);
+        set(state => ({
+          overlays: state.overlays.map(overlay => 
+            overlay._id === overlayId ? { ...updatedOverlay, overlayTypeId: overlay.overlayTypeId } : overlay
+          )
+        }));
+      } else {
+        // Local update only (for socket events)
+        set(state => ({
+          overlays: state.overlays.map(overlay => 
+            overlay._id === overlayId ? { ...overlay, ...updates } : overlay
+          )
+        }));
+      }
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Error updating overlay' });
     }

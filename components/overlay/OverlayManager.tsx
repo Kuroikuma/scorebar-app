@@ -16,7 +16,7 @@ interface OverlayManagerProps {
 
 export const OverlayManager: React.FC<OverlayManagerProps> = ({ 
   gameId, 
-  isEditMode = false 
+  isEditMode = true
 }) => {
   const {
     overlays,
@@ -31,8 +31,6 @@ export const OverlayManager: React.FC<OverlayManagerProps> = ({
 
   const { setEditMode } = useOverlayStore();
 
-  console.log(overlays);
-  
 
   // Set edit mode in store when prop changes
   React.useEffect(() => {
@@ -76,13 +74,6 @@ export const OverlayManager: React.FC<OverlayManagerProps> = ({
           onVisibilityChange={updateOverlayVisibility}
         />
       )}
-
-      {/* Renderizador de Overlays */}
-      <OverlayRenderer
-        overlays={overlays}
-        isEditMode={isEditMode}
-        onPositionChange={updateOverlayPosition}
-      />
     </div>
   );
 };

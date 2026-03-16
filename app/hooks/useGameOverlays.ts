@@ -22,20 +22,7 @@ export const useGameOverlays = (gameId: string) => {
   } = useOverlayStore();
 
   // Initialize Socket.io integration
-  const {
-    broadcastPositionUpdate,
-    broadcastVisibilityUpdate,
-    broadcastDesignUpdate,
-    broadcastScaleUpdate,
-    isConnected,
-  } = useOverlaySocket(gameId);
-
-  // Load overlays when gameId changes
-  // useEffect(() => {
-  //   if (gameId) {
-  //     loadGameOverlays(gameId);
-  //   }
-  // }, []);
+  const { isConnected } = useOverlaySocket(gameId);
 
   // Filter overlays for current game
   const gameOverlays = overlays.filter(overlay => overlay.gameId === gameId);
@@ -43,22 +30,18 @@ export const useGameOverlays = (gameId: string) => {
   // Enhanced update methods with Socket.io broadcasting
   const updateOverlayPositionWithBroadcast = async (overlayId: string, x: number, y: number) => {
     await updateOverlayPosition(overlayId, x, y);
-    broadcastPositionUpdate(overlayId, x, y);
   };
 
   const updateOverlayVisibilityWithBroadcast = async (overlayId: string, visible: boolean) => {
     await updateOverlayVisibility(overlayId, visible);
-    broadcastVisibilityUpdate(overlayId, visible);
   };
 
   const updateOverlayDesignWithBroadcast = async (overlayId: string, design: string, customConfig?: Record<string, any>) => {
     await updateOverlayDesign(overlayId, design, customConfig);
-    broadcastDesignUpdate(overlayId, design, customConfig);
   };
 
   const updateOverlayScaleWithBroadcast = async (overlayId: string, scale: number) => {
     await updateOverlayScale(overlayId, scale);
-    broadcastScaleUpdate(overlayId, scale);
   };
 
   return {

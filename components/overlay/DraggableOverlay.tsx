@@ -5,6 +5,7 @@ import { IOverlay } from '@/app/types/overlay';
 import { OverlayContent } from './OverlayContent';
 import { cn } from '@/app/lib/utils';
 import { Move, RotateCcw } from 'lucide-react';
+import dynamic from 'next/dynamic';
 
 interface DraggableOverlayProps {
   overlay: IOverlay;
@@ -12,117 +13,54 @@ interface DraggableOverlayProps {
   onPositionChange: (x: number, y: number) => void;
 }
 
+const DraggableComponent = dynamic(
+  () =>
+    import('react-draggable').then((mod) => {
+      const Draggable = mod.default
+      return ({ children, ...props }: any) => {
+        const nodeRef = useRef(null)
+        return (
+          <Draggable {...props} nodeRef={nodeRef}>
+            <div ref={nodeRef}>{children}</div>
+          </Draggable>
+        )
+      }
+    }),
+  { ssr: false }
+)
+
 export const DraggableOverlay: React.FC<DraggableOverlayProps> = ({
   overlay,
   isDraggable,
   onPositionChange,
 }) => {
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const dragStart = useRef({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
-
-  useEffect(() => {
-    if (!isDraggable || !overlayRef.current) return;
-
-    const element = overlayRef.current;
-
-    const handleMouseDown = (e: MouseEvent) => {
-      e.preventDefault();
-      isDragging.current = true;
-      dragStart.current = {
-        x: e.clientX - overlay.x,
-        y: e.clientY - overlay.y,
-      };
-      
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      
-      // Add dragging class
-      element.classList.add('dragging');
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging.current) return;
-
-      const newX = e.clientX - dragStart.current.x;
-      const newY = e.clientY - dragStart.current.y;
-
-      // Constrain to viewport
-      const constrainedX = Math.max(0, Math.min(window.innerWidth - element.offsetWidth, newX));
-      const constrainedY = Math.max(0, Math.min(window.innerHeight - element.offsetHeight, newY));
-
-      // Update position visually (optimistic update)
-      element.style.left = `${constrainedX}px`;
-      element.style.top = `${constrainedY}px`;
-    };
-
-    const handleMouseUp = (e: MouseEvent) => {
-      if (!isDragging.current) return;
-
-      isDragging.current = false;
-      
-      const newX = e.clientX - dragStart.current.x;
-      const newY = e.clientY - dragStart.current.y;
-
-      // Constrain to viewport
-      const constrainedX = Math.max(0, Math.min(window.innerWidth - element.offsetWidth, newX));
-      const constrainedY = Math.max(0, Math.min(window.innerHeight - element.offsetHeight, newY));
-
-      // Save to server
-      onPositionChange(constrainedX, constrainedY);
-
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      
-      // Remove dragging class
-      element.classList.remove('dragging');
-    };
-
-    element.addEventListener('mousedown', handleMouseDown);
-
-    return () => {
-      element.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDraggable, overlay.x, overlay.y, onPositionChange]);
-
-  const overlayStyle: React.CSSProperties = {
-    position: 'absolute',
-    left: overlay.x,
-    top: overlay.y,
-    transform: `scale(${overlay.scale})`,
-    transformOrigin: 'top left',
-    cursor: isDraggable ? 'move' : 'default',
-    zIndex: 1000,
-  };
+  console.log(overlay);
+  
+  let y = (overlay.y / 100) * window.innerHeight
 
   return (
-    <div
-      ref={overlayRef}
-      className={cn(
-        "overlay-element transition-shadow duration-200",
-        overlay.overlayTypeId?.name,
-        overlay.design,
-        isDraggable && "hover:shadow-lg",
-        isDraggable && isHovered && "ring-2 ring-primary/50"
-      )}
-      style={overlayStyle}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+    <DraggableComponent
+      key={overlay._id}
+      position={{ x: overlay.x, y: y }}
+      // defaultPosition={{ x: item.x, y: item.y }} // Usa `defaultPosition` en lugar de `position`.
+      onStop={(_: any, data: any) =>
+        onPositionChange(data.x, data.y)
+      }
+      // bounds="parent"
+      handle={overlay._id.includes('formation') ? undefined : '.drag-handle'}
+      disabled={overlay._id.includes('formation')} // Evita mover el campo.
     >
-      <OverlayContent overlay={overlay} />
-      
-      {/* Edit Mode Controls */}
-      {isDraggable && isHovered && (
-        <div className="absolute -top-8 -right-2 flex items-center gap-1 bg-background border border-border rounded-md px-2 py-1 shadow-md">
-          <Move className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">
-            {Math.round(overlay.x)}, {Math.round(overlay.y)}
-          </span>
+      <div className="absolute" style={{ width: '100%', height: '100%' }}>
+        <div
+          style={{ transform: `scale(${overlay.scale / 100})` }}
+          className={`relative transform scale-[${overlay.scale / 100}]`}
+        >
+          {!overlay._id.includes('formation') && (
+            <div className="drag-handle absolute -top-2 left-0 right-0 h-6 bg-white/10 rounded-t cursor-move opacity-0 hover:opacity-100 transition-opacity" />
+          )}
+          <OverlayContent overlay={overlay} />
         </div>
-      )}
-    </div>
+      </div>
+    </DraggableComponent>
   );
 };
