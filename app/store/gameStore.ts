@@ -3,6 +3,7 @@ import { getGame, updateGameService, changeBallCount, changeStrikeCount, changeO
 import { ITurnAtBat, Player, Team, TypeAbbreviatedBatting, TypeHitting, useTeamsStore } from './teamsStore'
 import { ConfigGame, useConfigStore } from './configStore';
 import { useHistoryStore } from './historiStore';
+import { usePlayResultStore } from './usePlayResultStore';
 import { toast } from 'sonner';
 
 export type Status = 'upcoming' | 'in_progress' | 'finished';
@@ -378,6 +379,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   handleWildPitch: async (advances: RunnerAdvance[]) => {
     console.log('🌪️ Wild Pitch - Registrando estadística del pitcher');
     
+    // Trigger wild pitch play result overlay
+    usePlayResultStore.getState().showPlayResult('WILD_PITCH')
+    
     // Registrar WP en estadísticas del pitcher
     await useTeamsStore.getState().recordWildPitchOrPassedBall('WP')
     
@@ -394,6 +398,9 @@ export const useGameStore = create<GameState>((set, get) => ({
    */
   handlePassedBall: async (advances: RunnerAdvance[]) => {
     console.log('🧤 Passed Ball - Registrando estadística del catcher');
+    
+    // Trigger passed ball play result overlay
+    usePlayResultStore.getState().showPlayResult('PASSED_BALL')
     
     // Registrar PB en estadísticas del catcher
     await useTeamsStore.getState().recordWildPitchOrPassedBall('PB')
@@ -417,6 +424,16 @@ export const useGameStore = create<GameState>((set, get) => ({
     console.log(`🏃 Intento de robo: Base ${fromBase + 1} → ${toBase === 3 ? 'Home' : `Base ${toBase + 1}`}`)
     
     const { bases, outs, updateGame, changeInning } = get()
+
+    // Trigger stolen base play result overlay
+    const baseNames = ['1ST', '2ND', '3RD', 'HOME']
+    const toBaseName = toBase === 3 ? 'HOME' : baseNames[toBase]
+    
+    if (wasSuccessful) {
+      usePlayResultStore.getState().showPlayResult('STOLEN_BASE', undefined, toBaseName)
+    } else {
+      usePlayResultStore.getState().showPlayResult('CAUGHT_STEALING')
+    }
 
     // Registrar estadísticas del intento
     await useTeamsStore.getState().recordStolenBaseAttempt(
@@ -493,6 +510,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       console.log('⚠️ No hay corredores en base - Balk sin efecto')
       return
     }
+
+    // Trigger balk play result overlay
+    usePlayResultStore.getState().showPlayResult('BALK')
 
     const offensiveTeamIndex = isTopInning ? 0 : 1
     const defensiveTeamIndex = isTopInning ? 1 : 0
@@ -657,7 +677,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   handleStrikeChange: async (newStrikes, isSaved = true) => {
-    const { outs, id, bases, handleOutsChange, updateGame } = get()
+    const { outs, id, bases, handleOutsChange, updateGame, getCurrentBatter } = get()
 
     const nextOuts = outs + 1;
 
@@ -670,6 +690,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     if (newStrikes === 3) {
+      // Trigger strikeout play result overlay
+      const currentBatter = getCurrentBatter()
+      if (currentBatter) {
+        usePlayResultStore.getState().showPlayResult('STRIKEOUT', currentBatter.name)
+      }
+
       // ── Regla 5.05(a)(2): Dropped Third Strike ─────────────────────────
       // Antes de procesar el out, verificar si aplica la condición.
       // El modal siempre aparece para que el operador indique WP o PB,
@@ -712,6 +738,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (newBalls === 4) {
       set({ balls: 0, strikes: 0 })
       const player = getCurrentBatter()
+      
+      // Trigger walk play result overlay
+      if (player) {
+        usePlayResultStore.getState().showPlayResult('WALK', player.name)
+      }
+      
       await handleBBPlay()
       await advanceBatter()
       const newBases = [...bases]
@@ -1090,6 +1122,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
+    // Trigger play result overlay
+    usePlayResultStore.getState().showPlayResult('SINGLE', currentBatter.name)
 
     const segunda = isStay ? bases[1].isOccupied ? bases[1] : bases[0] : bases[0]
     
@@ -1160,6 +1194,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
 
+    // Trigger play result overlay
+    usePlayResultStore.getState().showPlayResult('DOUBLE', currentBatter.name)
+
     const tercera = isStay ? bases[1] : bases[0]
 
     const newBases = [__initBase__ , { isOccupied:true, playerId: currentBatter._id as string }, tercera]
@@ -1227,6 +1264,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
+    // Trigger play result overlay
+    usePlayResultStore.getState().showPlayResult('TRIPLE', currentBatter.name)
 
     const newBases = [__initBase__, __initBase__, { isOccupied:true, playerId: currentBatter._id as string }]
 
@@ -1297,6 +1337,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     const runsScored =
       1 + (bases[2].isOccupied ? 1 : 0) + (bases[1].isOccupied ? 1 : 0) + (bases[0].isOccupied ? 1 : 0)
 
+    // Trigger play result overlay with runs scored detail
+    const runDetail = runsScored > 1 ? `${runsScored} RUNS` : undefined
+    usePlayResultStore.getState().showPlayResult('HOME_RUN', currentBatter.name, runDetail)
+
     let turnsAtBat: ITurnAtBat = {
       inning: useGameStore.getState().inning,
       typeHitting: TypeHitting.HomeRun,
@@ -1355,6 +1399,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     useHistoryStore.getState().handleStrikeFlowHistory('hit')
+
+    // Trigger hit by pitch play result overlay
+    usePlayResultStore.getState().showPlayResult('HIT_BY_PITCH', currentBatter.name)
 
     const newBases:IBase[] = [{ isOccupied:true, playerId: currentBatter._id as string }, bases[0], bases[1]]
     const runsScored = bases[2].isOccupied ? 1 : 0
@@ -1686,6 +1733,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     console.log('⚾ Infield Fly declarado - Bateador automáticamente out (Regla 5.09(b)(4))')
     console.log('📍 Corredores NO forzados - pueden quedarse o avanzar bajo su riesgo')
+
+    // Trigger infield fly play result overlay
+    usePlayResultStore.getState().showPlayResult('INFIELD_FLY', currentBatter.name)
 
     useHistoryStore.getState().handleStrikeFlowHistory('out')
 

@@ -10,6 +10,7 @@ export const useOverlaySocket = (gameId: string) => {
   const { 
     updateOverlay, 
     loadGameOverlays,
+    overlayAutoDismiss
   } = useOverlayStore();
 
   const overlayEvents = [
@@ -84,6 +85,18 @@ export const useOverlaySocket = (gameId: string) => {
       handler: (data: { gameId: string; overlay: IOverlay; timestamp: string }) => {
         updateOverlay(data.overlay._id, data.overlay);
       }
+    },
+    {
+        
+      eventName: 'overlayAutoDismiss',
+      handler: (data: { 
+        gameId: string; 
+        overlayId: string; 
+        timestamp: string
+      }) => {
+        overlayAutoDismiss(data.overlayId);
+      }
+
     }
   ];
 

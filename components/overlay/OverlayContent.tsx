@@ -11,6 +11,8 @@ import { ScoreBugBallySports } from './ScoreBugBally';
 import { EnhancedRunsTable } from './enhanced-runs-table';
 import { BaseballFormationOverlay } from './improved-field-lineup';
 import { PlayerOverlay } from './At-BatGraphic/player-stats-overlay';
+import { PlayResultOverlay, PlayResultType } from './designs/baseball_play_result/PlayResultOverlay';
+import { usePlayResultStore } from '@/app/store/usePlayResultStore';
 
 interface OverlayContentProps {
   overlay: IOverlay;
@@ -64,6 +66,15 @@ export const OverlayContent: React.FC<OverlayContentProps> = ({ overlay }) => {
         default:
           return <PlayerOverlay visible={overlay.visible} />;
       }
+    case 'baseball_play_result':
+      return (
+        <PlayResultOverlay
+          visible={overlay.visible}
+          play={(overlay.design as PlayResultType) || 'SINGLE'}
+          playerName={overlay?.customConfig?.playerName ?? ""}
+          detail={overlay?.customConfig?.detail ?? ""}
+        />
+      );
 
     default:
       // Fallback placeholder for unknown overlay types

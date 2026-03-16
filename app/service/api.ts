@@ -231,7 +231,7 @@ export const handleVisibleOverlayServices = async (id: string, visible: boolean,
 };
 
 export const handlePlayServices = async (id: string, teamIndex: number, team: Team, bases: IBase[]) => {
-  const response = await api.put(`/overlay/play`, {  id, teamIndex, team, bases });
+  const response = await api.put(`/games/handlePlay/play`, {  id, teamIndex, team, bases });
   return response.data;
 };
 

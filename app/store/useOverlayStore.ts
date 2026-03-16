@@ -21,6 +21,7 @@ interface OverlayState {
   updateOverlayScale: (overlayId: string, scale: number) => Promise<void>;
   updateOverlayVisibility: (overlayId: string, visible: boolean) => Promise<void>;
   deleteOverlay: (overlayId: string) => Promise<void>;
+  overlayAutoDismiss: (overlayId: string) => void;
 
   // Actions - Overlay Types
   loadOverlayTypes: (sport?: SportCategory) => Promise<void>;
@@ -187,6 +188,14 @@ export const useOverlayStore = create<OverlayState>((set, get) => ({
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Error deleting overlay' });
     }
+  },
+
+  overlayAutoDismiss: (overlayId: string) => {
+    set(state => ({
+      overlays: state.overlays.map(overlay =>
+        overlay._id === overlayId ? { ...overlay, visible: false } : overlay
+      )
+    }));
   },
 
   // Overlay Types Actions
