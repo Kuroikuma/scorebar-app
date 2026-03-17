@@ -13,6 +13,7 @@ import { BaseballFormationOverlay } from './improved-field-lineup';
 import { PlayerOverlay } from './At-BatGraphic/player-stats-overlay';
 import { PlayResultOverlay, PlayResultType } from './designs/baseball_play_result/PlayResultOverlay';
 import { usePlayResultStore } from '@/app/store/usePlayResultStore';
+import { InningScoreOverlay } from './inning-score-overlay';
 
 interface OverlayContentProps {
   overlay: IOverlay;
@@ -75,6 +76,13 @@ export const OverlayContent: React.FC<OverlayContentProps> = ({ overlay }) => {
           detail={overlay?.customConfig?.detail ?? ""}
         />
       );
+    case 'baseball_inning_change':
+      switch(overlay.design) {
+        case 'InningScore':
+          return <InningScoreOverlay visible={overlay.visible} />
+        default:
+          return <InningScoreOverlay visible={overlay.visible} />;
+      }
 
     default:
       // Fallback placeholder for unknown overlay types

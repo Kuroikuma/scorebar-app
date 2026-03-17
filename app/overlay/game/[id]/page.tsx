@@ -6,6 +6,7 @@ import { useGameOverlays, useOverlayInitialization } from '@/app/hooks/useGameOv
 import { SportCategory } from '@/app/types/overlay';
 import { useOverlayStore } from '@/app/store/useOverlayStore';
 import { OverlayRenderer } from '@/components/overlay/OverlayRenderer';
+import { useGameStore } from '@/app/store/gameStore';
 
 export default function GameOverlayPage() {
   const params = useParams();
@@ -17,12 +18,14 @@ export default function GameOverlayPage() {
   } = useOverlayStore();
 
   const { overlays, loading, error, updateOverlayPosition } = useGameOverlays(gameId);
+  const { loadGame } = useGameStore();
   const { initializeOverlays, loading: initializing } = useOverlayInitialization();
 
 
   // Load overlays when gameId changes
   useEffect(() => {
     if (gameId) {
+      loadGame(gameId);
       loadGameOverlays(gameId);
     }
   }, []);

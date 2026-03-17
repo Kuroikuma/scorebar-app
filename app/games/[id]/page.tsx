@@ -41,6 +41,7 @@ export default function BaseballScoreboard() {
   }, [user, gameId, loadGame, setGameId, loading, paramas, id]);
 
   useSocketOverlayGame(id);
+  useGameOverlays(id);
 
   if (loading) {
     return <div>Loading...</div>;

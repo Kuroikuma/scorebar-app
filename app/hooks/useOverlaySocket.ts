@@ -19,10 +19,16 @@ export const useOverlaySocket = (gameId: string) => {
       handler: (data: { 
         gameId: string; 
         overlayId: string; 
-        updates: IOverlayUpdate; 
+        overlay: IOverlay; 
         timestamp: string 
       }) => {
-        updateOverlay(data.overlayId, data.updates, false);
+        const overlay =  data.overlay;
+        const overlayId = overlay._id;
+
+        console.log(overlay);
+        
+        
+        updateOverlay(overlayId, overlay, false);
       }
     },
     {

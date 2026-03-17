@@ -27,10 +27,10 @@ export const usePlayResultStore = create<PlayResultState>((set, get) => ({
   playType: null,
   playerName: undefined,
   detail: undefined,
-  autoDismissMs: 3000,
+  autoDismissMs: 7000,
 
   // Actions
-  showPlayResult: async (playType, playerName, detail, autoDismissMs = 3000) => {
+  showPlayResult: async (playType, playerName, detail, autoDismissMs = 7000) => {
    const { overlays, updateOverlay } = useOverlayStore.getState();
    const overlayPlayResult = overlays.find((o => o.overlayTypeId?.name === 'baseball_play_result'));
 

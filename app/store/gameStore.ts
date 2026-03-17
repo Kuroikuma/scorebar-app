@@ -5,6 +5,7 @@ import { ConfigGame, useConfigStore } from './configStore';
 import { useHistoryStore } from './historiStore';
 import { usePlayResultStore } from './usePlayResultStore';
 import { toast } from 'sonner';
+import { te } from 'date-fns/locale';
 
 export type Status = 'upcoming' | 'in_progress' | 'finished';
 
@@ -423,20 +424,22 @@ export const useGameStore = create<GameState>((set, get) => ({
   handleStolenBase: async (runnerId, fromBase, toBase, wasSuccessful) => {
     console.log(`🏃 Intento de robo: Base ${fromBase + 1} → ${toBase === 3 ? 'Home' : `Base ${toBase + 1}`}`)
     
-    const { bases, outs, updateGame, changeInning } = get()
+    const { bases, outs, updateGame, changeInning, isTopInning } = get()
+    const {recordStolenBaseAttempt, teams, incrementRuns  } = useTeamsStore.getState();
+    const runner = teams[isTopInning ? 0 : 1].lineup.find(p => p._id === runnerId)
 
     // Trigger stolen base play result overlay
     const baseNames = ['1ST', '2ND', '3RD', 'HOME']
     const toBaseName = toBase === 3 ? 'HOME' : baseNames[toBase]
     
     if (wasSuccessful) {
-      usePlayResultStore.getState().showPlayResult('STOLEN_BASE', undefined, toBaseName)
+      usePlayResultStore.getState().showPlayResult('STOLEN_BASE', runner?.name, toBaseName)
     } else {
-      usePlayResultStore.getState().showPlayResult('CAUGHT_STEALING')
+      usePlayResultStore.getState().showPlayResult('CAUGHT_STEALING', runner?.name)
     }
 
     // Registrar estadísticas del intento
-    await useTeamsStore.getState().recordStolenBaseAttempt(
+    await recordStolenBaseAttempt(
       runnerId,
       fromBase,
       toBase,
@@ -453,7 +456,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (toBase === 3) {
         const { isTopInning } = get()
         const teamIndex = isTopInning ? 0 : 1
-        await useTeamsStore.getState().incrementRuns(teamIndex, 1, false)
+        await incrementRuns(teamIndex, 1, false)
         newBases[fromBase] = { isOccupied: false, playerId: null }
       } else {
         // Mover corredor a la nueva base
@@ -961,6 +964,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     const teamIndex = isTopInning ? 0 : 1
     const team = useTeamsStore.getState().teams[teamIndex]
     const teams = useTeamsStore.getState().teams
+
+    console.log(teams);
+    
 
     const isLineupComplete = teams[0].lineupSubmitted && teams[1].lineupSubmitted
 
