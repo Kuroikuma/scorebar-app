@@ -93,6 +93,7 @@ export type Player = {
   substituteFor?: string
   // Indica si un pitcher que salió puede regresar solo como jugador de posición
   canReturnAsFielder?: boolean
+  battingAverage?: number
 }
 
 export type Team = {

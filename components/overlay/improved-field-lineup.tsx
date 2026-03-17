@@ -13,7 +13,7 @@ interface ICoordenadas {
 }
 
 interface BaseballFormationOverlayProps {
-  overlayId : "formationA" | "formationB"
+  overlayId : "defensiveHome" | "defensiveAway"
   visible: boolean
 }
 
@@ -92,7 +92,7 @@ export default function BaseballFormation({ lineup, logo }: BaseballFormationPro
 
 export const BaseballFormationOverlay = ({ overlayId, visible }: BaseballFormationOverlayProps) => {
   const { teams } = useTeamsStore();
-  const currentTeam = overlayId === "formationA" ? teams[0] : teams[1];
+  const currentTeam = overlayId === "defensiveHome" ? teams[0] : teams[1];
   const lineup = currentTeam.lineup;
   const logo = currentTeam.logo;
 

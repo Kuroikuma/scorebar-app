@@ -6,8 +6,13 @@ import { ISocketDataInning, ISocketDataPlayer } from '../types/SocketEvents';
 
 /**
  * @deprecated Este store será eliminado en futuras versiones.
- * La lógica de overlays se ha movido a gameStore y teamsStore.
- * Usar directamente gameStore.handleSocket* y teamsStore.handleSocket* methods.
+ * La lógica de overlays se ha movido a useOverlayStore (nuevo sistema desacoplado).
+ * Para nuevas implementaciones, usar useOverlayStore en lugar de este.
+ * 
+ * MIGRACIÓN:
+ * - Reemplazar useOverlayStore por el nuevo useOverlayStore de './useOverlayStore'
+ * - Los overlays ahora son entidades independientes del Game
+ * - Usar los nuevos servicios overlay.service.ts y overlayType.service.ts
  */
 
 

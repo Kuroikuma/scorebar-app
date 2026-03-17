@@ -4,6 +4,7 @@ import { ArrowUpIcon, ArrowDownIcon, AlertTriangleIcon } from "lucide-react"
 import { ITransaction, TransactionType } from "@/app/types/ITransaction"
 import { useAuth } from "@/app/context/AuthContext"
 import { IOrganization } from "@/app/types/organization"
+import { useMonthlyGrowth } from "@/app/hooks/useMonthlyGrowth"
 
 interface MainDashboardProps {
   transactions: ITransaction[]
@@ -19,15 +20,8 @@ export default function MainDashboard({ transactions }: MainDashboardProps) {
   const isPositiveNetIncome = netIncome >= 0
 
   // Calculate month-over-month growth
-  const currentMonthTotal = transactions
-    .filter((t) => new Date(t.createdAt).getMonth() === new Date().getMonth())
-    .reduce((acc, t) => (t.type === TransactionType.DEPOSIT ? acc + t.amount : acc - t.amount), 0)
-
-  const lastMonthTotal = transactions
-    .filter((t) => new Date(t.createdAt).getMonth() === new Date().getMonth() - 1)
-    .reduce((acc, t) => (t.type === TransactionType.DEPOSIT ? acc + t.amount : acc - t.amount), 0)
-
-  const growthRate = ((currentMonthTotal - lastMonthTotal) / lastMonthTotal) * 100
+const { currentMonthTotal, lastMonthTotal, growthRate } = useMonthlyGrowth(transactions)
+  
 
   return (
     <div className="space-y-6">
@@ -50,7 +44,7 @@ export default function MainDashboard({ transactions }: MainDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${totalBalance?.$numberDecimal}</div>
-            <p className="text-xs text-muted-foreground">+{growthRate.toFixed(2)}% from last month</p>
+            <p className="text-xs text-muted-foreground">+{growthRate?.toFixed(2)}% del mes pasado</p>
           </CardContent>
         </Card>
         <Card>
@@ -89,19 +83,19 @@ export default function MainDashboard({ transactions }: MainDashboardProps) {
 
       <Alert>
         <AlertTriangleIcon className="h-4 w-4" />
-        <AlertTitle>Financial Alert</AlertTitle>
+        <AlertTitle>Alerta financiera</AlertTitle>
         <AlertDescription>
           {totalBalance.$numberDecimal < 1000
-            ? "Low balance alert: Your total balance is below $1,000."
+            ? "Aviso de saldo bajo: Su saldo total es inferior a 1.000 $."
             : rangeTotalExpenses > rangeTotalIncome
-              ? "Expense alert: Your monthly expenses are higher than your monthly income."
-              : "Your finances are in good standing."}
+              ? "Aviso sobre gastos: tus gastos mensuales son superiores a tus ingresos mensuales."
+              : "Tu situación financiera es buena."}
         </AlertDescription>
       </Alert>
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
+          <CardTitle>Operaciones recientes</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">

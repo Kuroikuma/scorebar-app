@@ -15,8 +15,11 @@ import { LineupPanel } from '@/components/lineup-panel';
 import { StatusGame } from '@/components/statusGame';
 import CustomizeOverlays from '@/components/CustomizeOverlays';
 import { useSocketOverlayGame } from '@/app/hooks/useSocketOverlayGame';
-import { useSocketHandleOverlays } from '@/app/hooks/useSocketHandleOverlayGame';
 import ControlBase from '@/components/ControlBase';
+import { IOverlay } from '@/app/types/overlay';
+import { useGameOverlays } from '@/app/hooks/useGameOverlays';
+import { OverlayManager } from '@/components/overlay/OverlayManager';
+import { useOverlayStore } from '@/app/store/useOverlayStore';
 
 export default function BaseballScoreboard() {
   const { user, loading } = useAuth();
@@ -25,33 +28,20 @@ export default function BaseballScoreboard() {
 
   const [gameId, setGameId] = useState<string | null>(id);
 
-  const {
-    loadGame,
-    scoreboardOverlay,
-    scorebugOverlay,
-    formationAOverlay,
-    formationBOverlay,
-    scoreboardMinimalOverlay,
-    playerStatsOverlay,
-  } = useGameStore();
+  const { loadGame } = useGameStore();
 
-  const overlays = [
-    formationAOverlay,
-    scorebugOverlay,
-    scoreboardOverlay,
-    formationBOverlay,
-    scoreboardMinimalOverlay,
-    playerStatsOverlay,
-  ];
+   const { loadGameOverlays } = useOverlayStore();
 
   useEffect(() => {
     if (user && id) {
       loadGame(id);
       setGameId(id);
+      loadGameOverlays(id);
     }
   }, [user, gameId, loadGame, setGameId, loading, paramas, id]);
 
   useSocketOverlayGame(id);
+  useGameOverlays(id);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -63,11 +53,8 @@ export default function BaseballScoreboard() {
 
   return (
     <div>
-      {overlays.map((item) => (
-        <LoadOverlay key={item.id} item={item} gameId={id} />
-      ))}
       <div className="max-[768px]:hidden">
-        <BaseballScoreboardDestok />
+        <BaseballScoreboardDestok gameId={gameId ?? ""} />
       </div>
       <div className="min-[768px]:hidden">
         <BaseballScoreboardMovil />
@@ -76,7 +63,7 @@ export default function BaseballScoreboard() {
   );
 }
 
-const BaseballScoreboardDestok = () => {
+const BaseballScoreboardDestok = ({ gameId }: {gameId: string}) => {
   const { activeTab, scoreboardStyle } = useUIStore();
 
   return (
@@ -97,7 +84,7 @@ const BaseballScoreboardDestok = () => {
         {activeTab === 'controlsBase' && <ControlBase />}
         {activeTab === 'customize' && <CustomizePanel />}
         {activeTab === 'lineup' && <LineupPanel />}
-        {activeTab === 'overlays' && <CustomizeOverlays />}
+        {activeTab === 'overlays' && <OverlayManager gameId={gameId} />}
       </div>
     </div>
   );
@@ -105,6 +92,8 @@ const BaseballScoreboardDestok = () => {
 
 const BaseballScoreboardMovil = () => {
   const { activeTab, scoreboardStyle } = useUIStore();
+  const paramas = useParams();
+  const gameId = paramas?.id as string;
 
   return (
     <div className="h-screen w-screen p-4 font-['Roboto_Condensed'] flex flex-col">
@@ -129,14 +118,9 @@ const BaseballScoreboardMovil = () => {
           {activeTab === 'controlsBase' && <ControlBase />}
           {activeTab === 'lineup' && <LineupPanel />}
           {activeTab === 'status' && <StatusGame />}
-          {activeTab === 'overlays' && <CustomizeOverlays />}
+          {activeTab === 'overlays' && <OverlayManager gameId={gameId ?? ""} />}
         </div>
       </div>
     </div>
   );
-};
-
-const LoadOverlay = ({ item, gameId }: { item: IOverlays; gameId: string }) => {
-  useSocketHandleOverlays(item, gameId);
-  return <></>;
 };

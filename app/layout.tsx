@@ -31,7 +31,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (pathname === '/login' || pathname.includes("/overlay")) {
+  if (pathname === '/login' || pathname.includes("/overlay/")) {
     return <AuthLayout>{children}</AuthLayout>;
   }
 

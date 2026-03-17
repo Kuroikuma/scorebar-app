@@ -21,6 +21,10 @@ const usePlayer = (): IReturneUsePlayer => {
 
   const player = getCurrentBatter() as Player | undefined
 
+
+  console.log(player);
+  
+
   if (!player) {
     // Manejar el caso en que no haya jugador actual
     return {
